@@ -1,0 +1,204 @@
+HOST: https://platform.points.com
+
+--- Loyalty Commerce Platform API v1 ---
+---  
+<br/>
+![Points Logo](https://www.essoextra.com/images/logo_points_com.gif)
+
+# Reference Documentation
+## REST API Design Guidelines 
+This API is governed by the Points REST API Design Guidelines document.
+Found Here: [**Design Guidelines**](https://docs.google.com/a/points.com/document/d/1IralX6vqCs89Icg_1SeC-wjexyd0GEEA2u41EzTXYRo/edit)
+<br/>Please ensure you read this document.
+
+## Authorization
+All communications with APIs will require HTTPS encryption. Authorization will determined by attaching an “Application Key” in the header of all communications.
+
+Application Keys will have a number of meta-data associated with it at the time that it is setup.  
+Key meta-data will include Production vs. Preproduction and the type of Product Partner.  These 
+will be used by the Platform to determine routing of requests (Production vs. Preproduction).
+
+## Authentication
+In this version of the platform, authentication for member information will be completed by attaching 
+the required member credential information (fluctuates depending on loyalty partner) in the MV call over HTTPS.  
+Password or PIN information will immediately be tokenized at the edge of the platform as to safely store of this data in our systems.  
+De-tokenization will occur when the data is required to be sent to the appropriate loyalty partner.
+
+
+This is a test of the apiary.io documentation engine.
+I'll attempt to document a few of our APIs and see what the experience is like.
+What's interesting is the **markdown** *capabilities*.
+
+I can see a lot of use with this.
+---
+
+--
+/apps - Applications
+These set of Application resources enable an application to gather 
+information about itself.  These resources utilize the application key 
+passed along to the resources (except when defined otherwise) as a way of 
+identifying the application identification.
+--
+Provides a set of application information that can be utilized
+by the application for various functions.  
+If application header key does not match, an alternate response occurs (401).
+GET /apps/{id}
+> ApplicationKey: g7fgs7-hwek5-ospr9-sdfkj-wperj
+< 200
+< Content-Type: application/json
+{
+    "currentState": "production",
+    "LimitRemaining": "942",
+    "LimitStatus": "green",
+    "loyaltyPrograms":
+    {
+        "name": "US Airways",
+        "loyaltyId": "1234"
+    },
+    {
+        "name": "Global Rewards",
+        "loyaltyId": "5678"
+    },
+    "termsAndConditions": "Long terms and conditions string goes here."
+}
++++++
+< 401
+< Content-Type: application/json
+{
+    "message":"You are not an authorized application."
+}
+
+Details of promotions that are relevant to the Application & Member
+GET /apps/{id}/promotions
+> ApplicationKey: g7fgs7-hwek5-ospr9-sdfkj-wperj
+< 200
+< Content-Type: application/json
+{ 
+    { 
+        "loyaltyProgram" : "US Airways", 
+        "loyaltyId": "1234", 
+        "promotions": 
+        { 
+            "promoId": "4x32", 
+            "promoDescription": "Double reward miles!" 
+        },
+        { 
+            "promoId": "38T9", 
+            "promoDescription": "TRIPLE reward miles!" 
+        }
+    }
+    {
+        "loyaltyProgram" : "Global Rewards",
+        "loyaltyId": "5678",
+        "promotions":
+        {
+            "promoId": "2256",
+            "promoDescription": "25% more points!"
+        }
+    }
+}
+
+--
+/lps - Loyalty Programs
+The Loyalty Programs set of resources enable an Application to gather 
+necessary information about a Loyalty Partner they want to transact against.  
+Additionally, an application may need to utilize specific marketing assets 
+for a Loyalty Program such as Logos.
+--
+
+Returns a list of marketing terms & assets (logos etc.) that the application can use to 
+identify the loyalty program within the application.  Also is a set of marketing assets 
+for Points (eg. Powered by points logo)  Assets are links to web based resources.
+GET /lps/{lpID}
+> ApplicationKey: g7fgs7-hwek5-ospr9-sdfkj-wperj
+< 200
+< Content-Type: application/json
+"marketing_assets":
+{
+    "_id":"xxxxx1b6",
+    "meta":
+    {
+        "mimetype":"image/jpeg",
+        "description":"First Logo",
+        "name":"USAirways Logo 1",
+        "filename":"us250w_132h.jpg",
+        "asset_type":"LOGO",
+        "dimensions":
+        {
+            "width":"250",
+            "height":"132"
+        }
+    }
+},
+{
+    "_id":"a7180fd271296214",
+    "meta":
+    {
+        "mimetype":"image/jpeg",
+        "description":"Second Logo",
+        "name":"USAirways Logo 2",
+        "filename":"us_ai_335w_150h.jpg",
+        "asset_type":"LOGO",
+        "dimensions":
+        {
+            "width":"335",
+            "height":"150"
+        }
+    }
+}
+
+List the authentication fields required by a specific Loyalty Program.
+GET /lps/{lpID}/authentication_requirements
+> ApplicationKey: g7fgs7-hwek5-ospr9-sdfkj-wperj
+< 200
+< Content-Type: application/json
+{
+    "mvFields":
+    {
+        "fieldKey": "member_first_name",
+        "name": "First Name",
+        "description": "Field description"
+    },
+    {
+        "fieldKey": "member_last_name",
+        "name": "Last Name",
+        "description": "Field description"
+    }
+}
+
+--
+/transactions - Transactions
+Transactions enable applications to perform actions on a member's
+loyalty program.
+--
+
+Create a Member Validation
+POST /transactions/validations
+> Content-Type: application-json
+> ApplicationKey: g7fgs7-hwek5-ospr9-sdfkj-wperj
+{
+    "firstName": "Daniel",
+    "lastName": "Shapiro",
+    "email": "daniel.shapiro@points.com",
+    "password": "password"
+}
+< 200
+{
+    "validation": "/transactions/validations/12384"
+}
+
+Validate a Member Validation
+GET /transactions/validations/{mvID}
+> ApplicationKey: g7fgs7-hwek5-ospr9-sdfkj-wperj
+< 200
+< Content-Type: application/json
+{
+    "response": "valid",
+    "expires": "02132014",
+    "balance": "23000"
+}
+
+    
+
+
+
