@@ -43,7 +43,6 @@ Provides a set of application information that can be utilized
 by the application for various functions.  
 If application header key does not match, an alternate response occurs (401).
 GET /apps/{id}
-> ApplicationKey: g7fgs7-hwek5-ospr9-sdfkj-wperj
 < 200
 < Content-Type: application/json
 {
@@ -70,7 +69,6 @@ GET /apps/{id}
 
 Details of promotions that are relevant to the Application & Member
 GET /apps/{id}/promotions
-> ApplicationKey: g7fgs7-hwek5-ospr9-sdfkj-wperj
 < 200
 < Content-Type: application/json
 { 
@@ -110,7 +108,6 @@ Returns a list of marketing terms & assets (logos etc.) that the application can
 identify the loyalty program within the application.  Also is a set of marketing assets 
 for Points (eg. Powered by points logo)  Assets are links to web based resources.
 GET /lps/{lpID}
-> ApplicationKey: g7fgs7-hwek5-ospr9-sdfkj-wperj
 < 200
 < Content-Type: application/json
 "marketing-assets":
@@ -149,7 +146,6 @@ GET /lps/{lpID}
 
 List the authentication fields required by a specific Loyalty Program.
 GET /lps/{lpID}/authentication-requirements
-> ApplicationKey: g7fgs7-hwek5-ospr9-sdfkj-wperj
 < 200
 < Content-Type: application/json
 {
@@ -173,23 +169,21 @@ loyalty program.
 --
 
 Create a Member Validation
-POST /transactions/validations
-> Content-Type: application-json
-> ApplicationKey: g7fgs7-hwek5-ospr9-sdfkj-wperj
+POST /transactions/member-validations
+> Content-Type: application/json
 {
     "firstName": "Daniel",
     "lastName": "Shapiro",
     "email": "daniel.shapiro@points.com",
     "password": "password"
 }
-< 200
+< 201
 {
-    "validation": "/transactions/validations/12384"
+    "validation": "/12384"
 }
 
 Validate a Member Validation
-GET /transactions/validations/{mvID}
-> ApplicationKey: g7fgs7-hwek5-ospr9-sdfkj-wperj
+GET /transactions/member-validations/{mvID}
 < 200
 < Content-Type: application/json
 {
