@@ -1,36 +1,218 @@
-HOST: http://www.google.com/
+HOST: https://platform.points.com
 
---- Authorization Model ---
+--- Loyalty Commerce Platform API v1 ---
+---  
+<br/>
+![Points Logo](https://www.essoextra.com/images/logo_points_com.gif)
 
----
-Welcome to the our sample API documentation. All comments can be written in (support [Markdown](http://daringfireball.net/projects/markdown/syntax) syntax)
+# Reference Documentation
+## REST API Design Guidelines 
+This API is governed by the Points REST API Design Guidelines document.
+Found Here: [**Design Guidelines**](https://docs.google.com/a/points.com/document/d/1IralX6vqCs89Icg_1SeC-wjexyd0GEEA2u41EzTXYRo/edit)
+<br/>Please ensure you read this document.
+
+## Authorization
+All communications with APIs will require HTTPS encryption. Authorization will determined by attaching an “Application Key” in the header of all communications.
+
+Application Keys will have a number of meta-data associated with it at the time that it is setup.  
+Key meta-data will include Production vs. Preproduction and the type of Product Partner.  These 
+will be used by the Platform to determine routing of requests (Production vs. Preproduction).
+
+## Authentication
+In this version of the platform, authentication for member information will be completed by attaching 
+the required member credential information (fluctuates depending on loyalty partner) in the MV call over HTTPS.  
+Password or PIN information will immediately be tokenized at the edge of the platform as to safely store of this data in our systems.  
+De-tokenization will occur when the data is required to be sent to the appropriate loyalty partner.
+
+
+This is a test of the apiary.io documentation engine.
+I'll attempt to document a few of our APIs and see what the experience is like.
+What's interesting is the **markdown** *capabilities*.
+
+I can see a lot of use with this.
 ---
 
 --
-Shopping Cart Resources
-The following is a section of resources related to the shopping cart
+/apps - Applications
+These set of Application resources enable an application to gather 
+information about itself.  These resources utilize the application key 
+passed along to the resources (except when defined otherwise) as a way of 
+identifying the application identification.
 --
-
-List products added into your shopping-cart. (comment block again in Markdown)
-GET /shopping-cart
+Provides a set of application information that can be utilized
+by the application for various functions.  
+If application header key does not match, an alternate response occurs (401).
+GET /apps/{id}
 < 200
 < Content-Type: application/json
-{ "items": [
-{ "url": "/shopping-cart/1", "product":"2ZY48XPZ", "quantity": 1, "name": "New socks", "price": 1.25 }
-] }
+{
+    "currentState": "production",
+    "LimitRemaining": "942",
+    "LimitStatus": "green",
+    "loyaltyPrograms":
+    {
+        "name": "US Airways",
+        "loyaltyId": "1234"
+    },
+    {
+        "name": "Global Rewards",
+        "loyaltyId": "5678"
+    },
+    "termsAndConditions": "Long terms and conditions string goes here."
+}
++++++
+< 401
+< Content-Type: application/json
+{
+    "message":"You are not an authorized application."
+}
 
-Save new products in your shopping cart
-POST /shopping-cart
+Details of promotions that are relevant to the Application & Member
+GET /apps/{id}/promotions
+< 200
+< Content-Type: application/json
+{ 
+    { 
+        "loyaltyProgram" : "US Airways", 
+        "loyaltyId": "1234", 
+        "promotions": 
+        { 
+            "promoId": "4x32", 
+            "promoDescription": "Double reward miles!" 
+        },
+        { 
+            "promoId": "38T9", 
+            "promoDescription": "TRIPLE reward miles!" 
+        }
+    }
+    {
+        "loyaltyProgram" : "Global Rewards",
+        "loyaltyId": "5678",
+        "promotions":
+        {
+            "promoId": "2256",
+            "promoDescription": "25% more points!"
+        }
+    }
+}
+
+--
+/lps - Loyalty Programs
+The Loyalty Programs set of resources enable an Application to gather 
+necessary information about a Loyalty Partner they want to transact against.  
+Additionally, an application may need to utilize specific marketing assets 
+for a Loyalty Program such as Logos.
+--
+
+Returns a list of marketing terms & assets (logos etc.) that the application can use to 
+identify the loyalty program within the application.  Also is a set of marketing assets 
+for Points (eg. Powered by points logo)  Assets are links to web based resources.
+<br>
+If an LP is not found, return a 404 not found.
+
+GET /lps/{lpID}
+< 200
+< Content-Type: application/json
+"marketing-assets":
+{
+    "_id":"xxxxx1b6",
+    "meta":
+    {
+        "mimetype":"image/jpeg",
+        "description":"First Logo",
+        "name":"USAirways Logo 1",
+        "filename":"us250w_132h.jpg",
+        "asset_type":"LOGO",
+        "dimensions":
+        {
+            "width":"250",
+            "height":"132"
+        }
+    }
+},
+{
+    "_id":"a7180fd271296214",
+    "meta":
+    {
+        "mimetype":"image/jpeg",
+        "description":"Second Logo",
+        "name":"USAirways Logo 2",
+        "filename":"us_ai_335w_150h.jpg",
+        "asset_type":"LOGO",
+        "dimensions":
+        {
+            "width":"335",
+            "height":"150"
+        }
+    }
+}
++++++
+< 404
+< Content-Type: application/json
+
+
+List the authentication fields required by a specific Loyalty Program.
+<br> If a LP is not found, return a 404.
+GET /lps/{lpID}/authentication-requirements
+< 200
+< Content-Type: application/json
+{
+    "mvFields":
+    {
+        "fieldKey": "member_first_name",
+        "name": "First Name",
+        "description": "Field description"
+    },
+    {
+        "fieldKey": "member_last_name",
+        "name": "Last Name",
+        "description": "Field description"
+    }
+}
++++++
+< 404
+< Content-Type: application/json
+
+--
+/transactions - Transactions
+Transactions enable applications to perform actions on a member's
+loyalty program.
+--
+
+Create a Member Validation
+<br>If invalid fields are passed, return a 400 (Bad Request)
+
+POST /transactions/member-validations
 > Content-Type: application/json
-{ "product":"1AB23ORM", "quantity": 2 }
+{
+    "firstName": "Daniel",
+    "lastName": "Shapiro",
+    "email": "daniel.shapiro@points.com",
+    "password": "password"
+}
 < 201
+{
+    "validation": "/12384"
+}
++++++
+< 400
 < Content-Type: application/json
-{ "status": "created", "url": "/shopping-cart/2" }
 
--- Payment Resources --
+Validate a Member Validation
+</br>If Validation not found, return a 404 (Not found)
 
-This resource allows you to submit payment information to process your *shopping cart* items
-POST /payment
-{ "cc": "12345678900", "cvc": "123", "expiry": "0112" }
+GET /transactions/member-validations/{mvID}
 < 200
-{ "receipt": "/payment/receipt/1" }
+< Content-Type: application/json
+{
+    "response": "valid",
+    "expires": "2013-04-11T12:43:00Z",
+    "balance": 23000
+}
++++++
+< 404
+< Content-Type: application/json
+
+    
+
+
