@@ -180,7 +180,8 @@ loyalty program.
 --
 
 Create a Member Validation
-<br>If invalid fields are passed, return a 400 (Bad Request)
+</br>If invalid fields are passed, return a 400 (Bad Request)
+</br>If LP Service is unavailable for any reason, return a 503 (Service Unavailable)
 
 POST /transactions/member-validations
 > Content-Type: application/json
@@ -197,6 +198,13 @@ POST /transactions/member-validations
 +++++
 < 400
 < Content-Type: application/json
++++++
+< 503
+< Content-Type: application/json
+{
+    "message": "Loyalty Partner service is temporarily unavailable."
+}
+
 
 Validate a Member Validation
 </br>If Validation not found, return a 404 (Not found)
