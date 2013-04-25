@@ -45,15 +45,9 @@ GET /apps{?apps*,org,keyId,lpaccess}
 < Content-Type: application/json
 {
     "results":{
-        "appId": "/apps/23454"
-    },
-    {
-        "appId": "/apps/42345"
-    },
-    {
-        "appId": "/apps/65633"
+        "appId": "/apps/23454", "/apps/42345", "/apps/65633"
     }
-
+}
 
 Creates an Application
 POST /apps
@@ -170,6 +164,45 @@ necessary information about a Loyalty Partner they want to transact against.
 Additionally, an application may need to utilize specific marketing assets 
 for a Loyalty Program such as Logos.
 --
+Search Registered Loyalty Programs
+GET /lps{?lps*,partnerName,routing,appID}
+< 200
+< Content-Type: application/json
+{
+    "results":{
+        "appId": "/apps/23454", "/apps/42345", "/apps/65633"
+    }
+}
+
+Register a new LPS in the Platform
+POST /lps
+> Content-Type:applicaton/json
+{
+    "partnerName": "Wyndham",
+    "partnerID": "wynd",
+    "routing": "pie",
+    "domainName": "Wyndham_PointsCore",
+    "routingName": "Wyndham"
+}
+< 201
+{
+    "message": "success"
+}
+
+Register a new LPS in the Platform
+PUT /lps/{id}
+> Content-Type:applicaton/json
+{
+    "partnerName": "Wyndham",
+    "partnerID": "wnd2",
+    "routing": "pie",
+    "domainName": "Wyndham_PointsCore",
+    "routingName": "Wyndham"
+}
+< 201
+{
+    "message": "success"
+}
 
 Returns a list of marketing terms & assets (logos etc.) that the application can use to 
 identify the loyalty program within the application.  Also is a set of marketing assets 
@@ -331,8 +364,53 @@ POST /orders/{id}/points-in
 < Content-Type: application/json
 {
     "message": "success."
-    "transactionId: "/orders/12345/9293885
+    "transactionId": "/orders/12345/141341341"
 }
+
+Perform an AUTH Against a Credit Card
+POST /orders/{id}/auth
+> Content-Type: application/json
+{
+    "mv": "/lps/12345/member-validations/78348927"
+    "currency": "CAD"
+    "amount": 220.34
+    "billingInfo": {
+        "firstName": "Daniel"
+        "lastName": "Shapiro"
+        "street": "171 John St."
+        "state": "ON"
+        "country": "CAN"
+        "type": "visa"
+        "number": "4563764523789827"
+        "exp": "0617"
+        "ccv": "431"
+    }
+}
+< 202
+< Content-Type: application/json
+{
+    "message": "success."
+    "transactionId": "/orders/12345/3412341235"
+}
+
+Perform an CAPTURE Against a Credit Card
+POST /orders/{id}/capture
+> Content-Type: application/json
+{
+    "authID": "/orders/12345/3412341235"
+}
+< 202
+< Content-Type: application/json
+{
+    "message": "success."
+    "transactionId": "/orders/12345/349013244"
+}
+
+
+
+
+
+
 
 
 
