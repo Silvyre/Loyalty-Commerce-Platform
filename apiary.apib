@@ -39,6 +39,46 @@ information about itself.  These resources utilize the application key
 passed along to the resources (except when defined otherwise) as a way of 
 identifying the application identification.
 --
+Creates an Application
+POST /apps
+> Content-Type: application/json
+{
+    "orgName": "Mano's Company Inc.",
+    "orgContact": "Mano Developer",
+    "orgEmail": "mano@manoscompany.com",
+    "orgPhone": "+14163455959"
+}
+< 201
+{
+    "appId": "/apps/49282939",
+    "message": "success."
+}
+
+Create an Application Key
+POST /apps/{id}/keys
+> Content-Type: application/json
+{
+    "type": "development",
+    "status": "active",
+}
+< 201
+{
+    "appKey": "/apps/43325/keys/458934-234980f-kj234h-kj324kh",
+    "message": "success."
+}
+
+Modify an Application Key (Upgrading to production)
+PUT /apps/{id}/keys/{id}
+> Content-Type: application/json
+{
+    "type": "production",
+    "status": "deactivated"
+}
+< 201
+{
+    "message": "success."
+}
+
 Provides a set of application information that can be utilized
 by the application for various functions.  
 If application header key does not match, an alternate response occurs (401).
