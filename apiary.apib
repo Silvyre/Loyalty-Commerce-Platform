@@ -70,6 +70,34 @@ POST /apps
     "message": "success."
 }
 
+Provides a set of application information that can be utilized
+by the application for various functions.  
+If application header key does not match, an alternate response occurs (401).
+GET /apps/{id}
+< 200
+< Content-Type: application/json
+{
+    "currentState": "production",
+    "LimitRemaining": "942",
+    "LimitStatus": "green",
+    "loyaltyPrograms":
+    {
+        "name": "US Airways",
+        "loyaltyId": "1234"
+    },
+    {
+        "name": "Global Rewards",
+        "loyaltyId": "5678"
+    },
+    "termsAndConditions": "Long terms and conditions string goes here."
+}
++++++
+< 401
+< Content-Type: application/json
+{
+    "message":"You are not an authorized application."
+}
+
 Create an Application Key
 POST /apps/{id}/keys
 > Content-Type: application/json
@@ -104,34 +132,6 @@ GET /apps/{id}/keys
     "/apps/234242/keys/4139480-342098-32409-32423",
     "/apps/234242/keys/4139480-342098-32409-32423",
     "/apps/234242/keys/4139480-342098-32409-32423"
-}
-
-Provides a set of application information that can be utilized
-by the application for various functions.  
-If application header key does not match, an alternate response occurs (401).
-GET /apps/{id}
-< 200
-< Content-Type: application/json
-{
-    "currentState": "production",
-    "LimitRemaining": "942",
-    "LimitStatus": "green",
-    "loyaltyPrograms":
-    {
-        "name": "US Airways",
-        "loyaltyId": "1234"
-    },
-    {
-        "name": "Global Rewards",
-        "loyaltyId": "5678"
-    },
-    "termsAndConditions": "Long terms and conditions string goes here."
-}
-+++++
-< 401
-< Content-Type: application/json
-{
-    "message":"You are not an authorized application."
 }
 
 Details of promotions that are relevant to the Application & Member
