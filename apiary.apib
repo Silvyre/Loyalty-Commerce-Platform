@@ -173,17 +173,11 @@ GET /lps/{lpID}/authentication-requirements
 < 404
 < Content-Type: application/json
 
---
-/transactions - Transactions
-Transactions enable applications to perform actions on a member's
-loyalty program.
---
-
 Create a Member Validation
 </br>If invalid fields are passed, return a 400 (Bad Request)
 </br>If LP Service is unavailable for any reason, return a 503 (Service Unavailable)
 
-POST /transactions/member-validations
+POST /lps/{lpID}/member-validations
 > Content-Type: application/json
 {
     "firstName": "Daniel",
@@ -209,7 +203,7 @@ POST /transactions/member-validations
 Validate a Member Validation
 </br>If Validation not found, return a 404 (Not found)
 
-GET /transactions/member-validations/{mvID}
+GET /lps/{lpID}/member-validations/{mvID}
 < 200
 < Content-Type: application/json
 {
@@ -221,6 +215,57 @@ GET /transactions/member-validations/{mvID}
 < 404
 < Content-Type: application/json
 
-    
+--
+/orders Orders
+--
+Create a new order & return the orderID.
+POST /orders
+> Content-Type: application/json
+{
+}
+< 202
+< Content-Type: application/json
+{
+    "orderID: "/orders/12345"
+}
+
+Retrieve Transactions associated with an OrderID
+GET /orders/{id}
+< 200
+< Content-Type: application/json
+{
+    transactions: [id1,id2,id3,id4]
+}
+
+Deduct points from an account.
+POST /orders/{id}/points-out
+> Content-Type: application/json
+{
+    "mv": "/lps/12345/member-validations/78348927"
+    "currency": "sky"
+    "amount": 24300
+}
+< 202
+< Content-Type: application/json
+{
+    "message": "success."
+    "transactionID": "/orders/12345/9293874"
+}
+
+Add points to an account.
+POST /orders/{id}/points-in
+> Content-Type: application/json
+{
+    "mv": "/lps/12345/member-validations/78348927"
+    "currency": "sky"
+    "amount": 220
+}
+< 202
+< Content-Type: application/json
+{
+    "message": "success."
+    "transactionId: "/orders/12345/9293885
+}
+
 
 
