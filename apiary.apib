@@ -33,14 +33,14 @@ I can see a lot of use with this.
 ---
 
 --
-/apps - Applications
+/org - Product Partner Organization
 These set of Application resources enable an application to gather 
 information about itself.  These resources utilize the application key 
 passed along to the resources (except when defined otherwise) as a way of 
 identifying the application identification.
 --
 Searches list of Applications by App Name, Organization, keyId & LP Access
-GET /apps{?apps,org,keyId,lpaccess}
+GET /org/{id}/apps{?apps,org,keyId,lpaccess}
 < 200
 < Content-Type: application/json
 {
@@ -50,7 +50,7 @@ GET /apps{?apps,org,keyId,lpaccess}
 }
 
 Creates an Application
-POST /apps
+POST /org/{id}/apps
 > Content-Type: application/json
 {
     "orgName": "Mano's Company Inc.",
@@ -67,7 +67,7 @@ POST /apps
 Provides a set of application information that can be utilized
 by the application for various functions.  
 If application header key does not match, an alternate response occurs (401).
-GET /apps/{id}
+GET /org/{id}/apps/{id}
 < 200
 < Content-Type: application/json
 {
@@ -93,7 +93,7 @@ GET /apps/{id}
 }
 
 Create an Application Key
-POST /apps/{id}/keys
+POST /org/{id}/apps/{id}/keys
 > Content-Type: application/json
 {
     "type": "development",
@@ -106,7 +106,7 @@ POST /apps/{id}/keys
 }
 
 Modify an Application Key (Upgrading to production)
-PUT /apps/{id}/keys/{id}
+PUT /org/{id}/apps/{id}/keys/{id}
 > Content-Type: application/json
 {
     "type": "production",
@@ -118,7 +118,7 @@ PUT /apps/{id}/keys/{id}
 }
 
 Retrieve an apps keys
-GET /apps/{id}/keys
+GET /org/{id}/apps/{id}/keys
 < 201
 < Content-Type: application/json
 {
@@ -129,7 +129,7 @@ GET /apps/{id}/keys
 }
 
 Details of promotions that are relevant to the Application & Member
-GET /apps/{id}/promotions
+GET /org/{id}/apps/{id}/promotions
 < 200
 < Content-Type: application/json
 { 
