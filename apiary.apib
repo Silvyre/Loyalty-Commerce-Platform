@@ -39,6 +39,22 @@ information about itself.  These resources utilize the application key
 passed along to the resources (except when defined otherwise) as a way of 
 identifying the application identification.
 --
+Searches list of Applications by App Name, Organization, keyId & LP Access
+GET /apps{?apps*,org,keyId,lpaccess}
+< 200
+< Content-Type: application/json
+{
+    "results":{
+        "appId": "/apps/23454"
+    },
+    {
+        "appId": "/apps/42345"
+    },
+    {
+        "appId": "/apps/65633"
+    }
+
+
 Creates an Application
 POST /apps
 > Content-Type: application/json
@@ -77,6 +93,17 @@ PUT /apps/{id}/keys/{id}
 < 201
 {
     "message": "success."
+}
+
+Retrieve an apps keys
+GET /apps/{id}/keys
+< 201
+< Content-Type: application/json
+{
+    "keys": "/apps/234242/keys/4139480-342098-32409-32423",
+    "/apps/234242/keys/4139480-342098-32409-32423",
+    "/apps/234242/keys/4139480-342098-32409-32423",
+    "/apps/234242/keys/4139480-342098-32409-32423"
 }
 
 Provides a set of application information that can be utilized
