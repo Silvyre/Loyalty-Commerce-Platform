@@ -406,6 +406,15 @@ POST /orders/{id}/capture
     "transactionId": "/orders/12345/349013244"
 }
 
+Check the status of a transaction
+GET /orders/12345/{id}
+< 202
+< Content-Type: application/json
+{
+    "message": "success."
+    "started": <DATE>
+    "completed": <DATE>
+}
 
 
 
