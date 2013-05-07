@@ -11,12 +11,19 @@ This API is governed by the Points REST API Design Guidelines document.
 Found Here: [**Design Guidelines**](https://docs.google.com/a/points.com/document/d/1IralX6vqCs89Icg_1SeC-wjexyd0GEEA2u41EzTXYRo/edit)
 <br/>Please ensure you read this document.
 
+## Getting Started Guide
+Please read the Getting Started Guide to understand how to use this API Reference.
+https://www.github.com/points/voyager/wiki 
+
 ## Authorization
-All communications with APIs will require HTTPS encryption. Authorization will determined by attaching an “Application Key” in the header of all communications.
+All communications with APIs will require HTTPS encryption. 
+
+All applications using this API, are required to obtain a key-pair made up of a private key and a shared secret (public key).  
+The shared secret key must be included in the HTTP header of every call.  See the Getting Started Guide for details.
 
 Application Keys will have a number of meta-data associated with it at the time that it is setup.  
-Key meta-data will include Production vs. Preproduction and the type of Product Partner.  These 
-will be used by the Platform to determine routing of requests (Production vs. Preproduction).
+Key meta-data will include Production vs. Sandbox and the type of Product Partner.  These 
+will be used by the Platform to determine routing of requests (Production vs. Sandbox).
 
 ## Authentication
 In this version of the platform, authentication for member information will be completed by attaching 
@@ -24,135 +31,214 @@ the required member credential information (fluctuates depending on loyalty part
 Password or PIN information will immediately be tokenized at the edge of the platform as to safely store of this data in our systems.  
 De-tokenization will occur when the data is required to be sent to the appropriate loyalty partner.
 
+## Pagination
+Respones that return a result set or list, will return the first 20 results. If a resource explicitly allows, this can
+be overidden to return a different number of results. 
+The Link Header (RFC 5988) will be used to proceed to the next result set. 
+Relation Type ("rev" param should utilize "next" and "prev" to indicate how to follow the links)
 
-This is a test of the apiary.io documentation engine.
-I'll attempt to document a few of our APIs and see what the experience is like.
-What's interesting is the **markdown** *capabilities*.
+## Standard Headers
 
-I can see a lot of use with this.
+
+## Error Responses
+The platform utilizes standard HTTP Response codes to indicate response results.  Additionally, the platform uses a set
+of sub-codes to provide more verbose and specific details.  
+See the Rest API Design document above to determine how to read these sub-codes.
+The listing of all these codes can be found at: https://github.com/points/voyager/wiki/HTTP-Response-Codes
+
+## Conditional Requests/Optimistic Concurrency
+-
+
+## Content Type
+All content is in JSON format.  All strings passes to and from the platform must be encoded to UTF-8.
+
+
+
+
 ---
 
 --
-/org - Product Partner Organization
+/prod-partner - Product Partner Organization
 These set of Application resources enable an application to gather 
 information about itself.  These resources utilize the application key 
 passed along to the resources (except when defined otherwise) as a way of 
 identifying the application identification.
 --
 Searches list of Applications by App Name, Organization, keyId & LP Access
-GET /org/{id}/apps{?apps,org,keyId,lpaccess}
+GET /prod-partner/{id}/apps{?apps,org,keyId,lpaccess}
 < 200
-< Content-Type: application/json
+< Content-Type: application/json; charset=utf-8
+< Link: <https://na.platform.points.com/prod-partner/{id}/apps?page=3>; rel="next"; <https://na.platform.points.com/prod-partner/{id}/apps?page=1>; rel="prev";
 {
-    "results":{
-        "appId": "/apps/23454", "/apps/42345", "/apps/65633"
+    "results": [ 
+        {
+            "id": "someId",
+            "name": "Mano's App",
+            "type": "web",
+            "links": "https://na.platform.points.com/prod-partner/{id}/apps/49282939"
+        },
+        {
+            "id": "someId",
+            "name": "Mano's Other App",
+            "type": "mobile",
+            "links": "https://na.platform.points.com/prod-partner/{id}/apps/9872349178"
+        }   
+    ]
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/prod-partner/{id}/apps{?apps,org,keyId,lpaccess}"
+        }
     }
 }
 
 Creates an Application
-POST /org/{id}/apps
-> Content-Type: application/json
+POST /prod-partner/{id}/apps
+> Content-Type: application/json; charset=utf-8
 {
-    "orgName": "Mano's Company Inc.",
-    "orgContact": "Mano Developer",
-    "orgEmail": "mano@manoscompany.com",
-    "orgPhone": "+14163455959"
+    "name": "Mano's App",
+    "type": "web"
 }
 < 201
 {
-    "appId": "/apps/49282939",
-    "message": "success."
+    "appId": "https://na.platform.points.com/prod-partner/{id}/apps/49282939",
 }
 
 Provides a set of application information that can be utilized
 by the application for various functions.  
 If application header key does not match, an alternate response occurs (401).
-GET /org/{id}/apps/{id}
+GET /prod-partner/{id}/apps/{id}
 < 200
-< Content-Type: application/json
+< Content-Type: application/json; charset=utf-8
 {
+    "id": "someId",
+    "name": "Mano's App",
+    "type": "web"
     "currentState": "production",
-    "LimitRemaining": "942",
-    "LimitStatus": "green",
-    "loyaltyPrograms":
+    "accessibleLoyaltyPrograms": [
     {
         "name": "US Airways",
-        "loyaltyId": "1234"
+        "loyaltyProgram": "https://na.platform/points.com/lps/9834701"
     },
     {
         "name": "Global Rewards",
-        "loyaltyId": "5678"
-    },
+        "loyaltyId": "https://na.platform/points.com/lps/5678"
+    }
+    ]
     "termsAndConditions": "Long terms and conditions string goes here."
-}
-+++++
-< 401
-< Content-Type: application/json
-{
-    "message":"You are not an authorized application."
+    "links": {
+        "self": { 
+            "href": "https://na.platform.points.com/prod-partner/{id}/apps/49282939"
+        }
+    }
 }
 
 Create an Application Key
-POST /org/{id}/apps/{id}/keys
-> Content-Type: application/json
+POST /prod-partner/{id}/apps/{id}/keys
+> Content-Type: application/json; charset=utf-8
 {
-    "type": "development",
+    "type": "production",
     "status": "active",
 }
 < 201
 {
-    "appKey": "/apps/43325/keys/458934-234980f-kj234h-kj324kh",
-    "message": "success."
+    "self": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh"
 }
 
 Modify an Application Key (Upgrading to production)
-PUT /org/{id}/apps/{id}/keys/{id}
-> Content-Type: application/json
+PUT /prod-partner/{id}/apps/{id}/keys/{id}
+> Content-Type: application/json; charset=utf-8
 {
     "type": "production",
     "status": "deactivated"
 }
 < 201
 {
-    "message": "success."
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh"
+        }
+    }
 }
 
-Retrieve an apps keys
-GET /org/{id}/apps/{id}/keys
-< 201
-< Content-Type: application/json
+Retrieve details about an App Key
+GET /prod-partner/{id}/apps/{id}/keys/{id}
+< 200
+< Content-Type: application/json; charset=utf-8
 {
-    "keys": "/apps/234242/keys/4139480-342098-32409-32423",
-    "/apps/234242/keys/4139480-342098-32409-32423",
-    "/apps/234242/keys/4139480-342098-32409-32423",
-    "/apps/234242/keys/4139480-342098-32409-32423"
+    "type": "production",
+    "status": "active",
+    "publicKey": "458934-234980f-kj234h-kj324kh",
+    "sharedSecret": "09fa14-lk34j4-gh7h7hj-0a8df8"
+    "links": {
+        "self": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh",
+        "app": "https://na.platform.points.com/prod-partner/{id}/apps/49282939"
+    }
+}
+
+Retrieve all keys associted to an App
+GET /prod-partner/{id}/apps/{id}/keys
+< 201
+< Content-Type: application/json; charset=utf-8
+< Link: <https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys?page=2>;rel="next"
+{
+   "results": [
+       {
+           "keyID": "458934-234980f-kj234h-kj324kh"
+           "type": "production"
+           "status": "deactivated"
+           "link": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh"
+       },
+       {
+           "keyID": "458934-234980f-kj234h-kj324kh"
+           "type": "sandbox"
+           "status": "active"
+           "link": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh"
+       },
+    ],
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys"
+        }
+    }
 }
 
 Details of promotions that are relevant to the Application & Member
-GET /org/{id}/apps/{id}/promotions
+GET /prod-partner/{id}/apps/{id}/promotions
 < 200
-< Content-Type: application/json
+< Content-Type: application/json; charset=utf-8
 { 
-    { 
-        "loyaltyProgram" : "US Airways", 
-        "loyaltyId": "1234", 
-        "promotions": 
+    "results": 
+    [
         { 
-            "promoId": "4x32", 
-            "promoDescription": "Double reward miles!" 
-        },
-        { 
-            "promoId": "38T9", 
-            "promoDescription": "TRIPLE reward miles!" 
-        }
-    }
-    {
-        "loyaltyProgram" : "Global Rewards",
-        "loyaltyId": "5678",
-        "promotions":
+            "loyaltyProgram" : "US Airways", 
+            "loyaltyId": "https://na.platform.points.com/lps/1234", 
+            "promotions": 
+                [
+                    { 
+                    "promoId": "https://na.platform.points.com/lps/1234/promotions/4x32", 
+                    "promoDescription": "Double reward miles!" 
+                    },
+                    { 
+                    "promoId": "https://na.platform.points.com/lps/1234/promotions/38T9", 
+                    "promoDescription": "TRIPLE reward miles!" 
+                    } 
+                ]
+        }, 
         {
-            "promoId": "2256",
-            "promoDescription": "25% more points!"
+            "loyaltyProgram" : "Global Rewards",
+            "loyaltyId": "https://na.platform.points.com/lps/5678",
+            "promotions":
+                [
+                    {
+                    "promoId": "https://na.platform.points.com/lps/5678/promotions/2256",
+                    "promoDescription": "25% more points!"
+                    }
+                ]    
+        }
+    ],
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/promotions"
         }
     }
 }
