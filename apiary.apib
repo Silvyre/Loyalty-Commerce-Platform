@@ -1,36 +1,534 @@
-HOST: http://www.google.com/
+HOST: https://platform.points.com
 
---- authmodel ---
+--- Loyalty Commerce Platform API v1 ---
+---  
+<br/>
+![Points Logo](https://www.essoextra.com/images/logo_points_com.gif)
 
----
-Welcome to the our sample API documentation. All comments can be written in (support [Markdown](http://daringfireball.net/projects/markdown/syntax) syntax)
+# Reference Documentatio
+## REST API Design Guidelines 
+This API is governed by the Points REST API Design Guidelines document.
+Found Here: [**Design Guidelines**](https://docs.google.com/a/points.com/document/d/1IralX6vqCs89Icg_1SeC-wjexyd0GEEA2u41EzTXYRo/edit)
+<br/>Please ensure you read this document.
+
+## Getting Started Guide
+Please read the Getting Started Guide to understand how to use this API Reference.
+https://www.github.com/points/voyager/wiki 
+
+## Authorization
+All communications with APIs will require HTTPS encryption. 
+
+All applications using this API, are required to obtain a key-pair made up of a private key and a shared secret (public key).  
+The shared secret key must be included in the HTTP header of every call.  See the Getting Started Guide for details.
+
+Application Keys will have a number of meta-data associated with it at the time that it is setup.  
+Key meta-data will include Production vs. Sandbox and the type of Product Partner.  These 
+will be used by the Platform to determine routing of requests (Production vs. Sandbox).
+
+## Authentication
+In this version of the platform, authentication for member information will be completed by attaching 
+the required member credential information (fluctuates depending on loyalty partner) in the MV call over HTTPS.  
+Password or PIN information will immediately be tokenized at the edge of the platform as to safely store of this data in our systems.  
+De-tokenization will occur when the data is required to be sent to the appropriate loyalty partner.
+
+## Pagination
+Respones that return a result set or list, will return the first 20 results. If a resource explicitly allows, this can
+be overidden to return a different number of results. 
+The Link Header (RFC 5988) will be used to proceed to the next result set. 
+Relation Type ("rev" param should utilize "next" and "prev" to indicate how to follow the links)
+
+## Standard Headers
+
+
+## Error Responses
+The platform utilizes standard HTTP Response codes to indicate response results.  Additionally, the platform uses a set
+of sub-codes to provide more verbose and specific details.  
+See the Rest API Design document above to determine how to read these sub-codes.
+The listing of all these codes can be found at: https://github.com/points/voyager/wiki/HTTP-Response-Codes
+
+## Conditional Requests/Optimistic Concurrency
+-
+
+## Content Type
+All content is in JSON format.  All strings passes to and from the platform must be encoded to UTF-8.
+
+
+
+
 ---
 
 --
-Shopping Cart Resources
-The following is a section of resources related to the shopping cart
+/prod-partner - Product Partner Organization
+These set of Application resources enable an application to gather 
+information about itself.  These resources utilize the application key 
+passed along to the resources (except when defined otherwise) as a way of 
+identifying the application identification.
 --
-
-List products added into your shopping-cart. (comment block again in Markdown)
-GET /shopping-cart
+Searches list of Applications by App Name, Organization, keyId & LP Access
+GET /prod-partner/{id}/apps{?apps,org,keyId,lpaccess}
 < 200
-< Content-Type: application/json
-{ "items": [
-{ "url": "/shopping-cart/1", "product":"2ZY48XPZ", "quantity": 1, "name": "New socks", "price": 1.25 }
-] }
+< Content-Type: application/json; charset=utf-8
+< Link: <https://na.platform.points.com/prod-partner/{id}/apps?page=3>, rel="next"; <https://na.platform.points.com/prod-partner/{id}/apps?page=1>, rel="prev";
+{
+    "results": [ 
+        {
+            "id": "someId",
+            "name": "Mano's App",
+            "type": "web",
+            "links": "https://na.platform.points.com/prod-partner/{id}/apps/49282939"
+        },
+        {
+            "id": "someId",
+            "name": "Mano's Other App",
+            "type": "mobile",
+            "links": "https://na.platform.points.com/prod-partner/{id}/apps/9872349178"
+        }   
+    ]
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/prod-partner/{id}/apps{?apps,org,keyId,lpaccess}"
+        }
+    }
+}
 
-Save new products in your shopping cart
-POST /shopping-cart
-> Content-Type: application/json
-{ "product":"1AB23ORM", "quantity": 2 }
+Creates an Application
+POST /prod-partner/{id}/apps
+> Content-Type: application/json; charset=utf-8
+{
+    "name": "Mano's App",
+    "type": "web"
+}
 < 201
-< Content-Type: application/json
-{ "status": "created", "url": "/shopping-cart/2" }
+{
+    "appId": "https://na.platform.points.com/prod-partner/{id}/apps/49282939",
+}
 
--- Payment Resources --
-
-This resource allows you to submit payment information to process your *shopping cart* items
-POST /payment
-{ "cc": "12345678900", "cvc": "123", "expiry": "0112" }
+Provides a set of application information that can be utilized
+by the application for various functions.  
+If application header key does not match, an alternate response occurs (401).
+GET /prod-partner/{id}/apps/{id}
 < 200
-{ "receipt": "/payment/receipt/1" }
+< Content-Type: application/json; charset=utf-8
+{
+    "id": "someId",
+    "name": "Mano's App",
+    "type": "web"
+    "currentState": "production",
+    "accessibleLoyaltyPrograms": [
+    {
+        "name": "US Airways",
+        "loyaltyProgram": "https://na.platform/points.com/lps/9834701"
+    },
+    {
+        "name": "Global Rewards",
+        "loyaltyId": "https://na.platform/points.com/lps/5678"
+    }
+    ]
+    "termsAndConditions": "Long terms and conditions string goes here."
+    "links": {
+        "self": { 
+            "href": "https://na.platform.points.com/prod-partner/{id}/apps/49282939"
+        }
+    }
+}
+
+Create an Application Key
+POST /prod-partner/{id}/apps/{id}/keys
+> Content-Type: application/json; charset=utf-8
+{
+    "type": "production",
+    "status": "active",
+}
+< 201
+{
+    "self": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh"
+}
+
+Modify an Application Key (Upgrading to production)
+PUT /prod-partner/{id}/apps/{id}/keys/{id}
+> Content-Type: application/json; charset=utf-8
+{
+    "type": "production",
+    "status": "deactivated"
+}
+< 201
+{
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh"
+        }
+    }
+}
+
+Retrieve details about an App Key
+GET /prod-partner/{id}/apps/{id}/keys/{id}
+< 200
+< Content-Type: application/json; charset=utf-8
+{
+    "type": "production",
+    "status": "active",
+    "publicKey": "458934-234980f-kj234h-kj324kh",
+    "sharedSecret": "09fa14-lk34j4-gh7h7hj-0a8df8"
+    "links": {
+        "self": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh",
+        "app": "https://na.platform.points.com/prod-partner/{id}/apps/49282939"
+    }
+}
+
+Retrieve all keys associted to an App
+GET /prod-partner/{id}/apps/{id}/keys
+< 201
+< Content-Type: application/json; charset=utf-8
+< Link: <https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys?page=2>, rel="next"
+{
+   "results": [
+       {
+           "keyID": "458934-234980f-kj234h-kj324kh"
+           "type": "production"
+           "status": "deactivated"
+           "link": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh"
+       },
+       {
+           "keyID": "458934-234980f-kj234h-kj324kh"
+           "type": "sandbox"
+           "status": "active"
+           "link": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh"
+       },
+    ],
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys"
+        }
+    }
+}
+
+Details of promotions that are relevant to the Application & Member
+GET /prod-partner/{id}/apps/{id}/promotions
+< 200
+< Content-Type: application/json; charset=utf-8
+{ 
+    "results": 
+    [
+        { 
+            "loyaltyProgram" : "US Airways", 
+            "loyaltyId": "https://na.platform.points.com/lps/1234", 
+            "promotions": 
+                [
+                    { 
+                    "promoId": "https://na.platform.points.com/lps/1234/promotions/4x32", 
+                    "promoDescription": "Double reward miles!" 
+                    },
+                    { 
+                    "promoId": "https://na.platform.points.com/lps/1234/promotions/38T9", 
+                    "promoDescription": "TRIPLE reward miles!" 
+                    } 
+                ]
+        }, 
+        {
+            "loyaltyProgram" : "Global Rewards",
+            "loyaltyId": "https://na.platform.points.com/lps/5678",
+            "promotions":
+                [
+                    {
+                    "promoId": "https://na.platform.points.com/lps/5678/promotions/2256",
+                    "promoDescription": "25% more points!"
+                    }
+                ]    
+        }
+    ],
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/promotions"
+        }
+    }
+}
+
+--
+/lps - Loyalty Programs 123
+The Loyalty Programs set of resources enable an Application to gather 
+necessary information about a Loyalty Partner they want to transact against.  
+Additionally, an application may need to utilize specific marketing assets 
+for a Loyalty Program such as Logos.
+--
+Search Registered Loyalty Programs
+GET /lps{?lps*,partnerName,routing,appID}
+< 200
+< Content-Type: application/json; charset=utf-8
+< Link: <https://na.platform.points.com/lps?page=3>, rel="next"; <https://na.platform.points.com/lps?page=2>,  rel="prev";
+{
+    "results": [ 
+        {
+            "id": "someId",
+            "name": "US Airways",
+            "partnerID": "usar",
+            "routing": "pie",
+            "domainName": "USAir_PointsCore",
+            "links": "https://na.platform.points.com/lps/294857"
+        },
+        {
+            "id": "someId",
+            "name": "Wyndham",
+            "partnerID": "wynd",
+            "routing": "pie",
+            "domainName": "Wyndham_PointsCore",
+            "links": "https://na.platform.points.com/lps/91284"
+        }   
+    ],
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/lps{?lps*,partnerName,routing,appID}"
+        }
+    }
+}
+
+Register a new LPS in the Platform
+POST /lps
+> Content-Type:applicaton/json
+{
+    "partnerName": "Wyndham",
+    "partnerID": "wynd",
+    "routing": "pie",
+    "domainName": "Wyndham_PointsCore",
+    "routingName": "Wyndham"
+}
+< 201
+{
+    "message": "success"
+}
+
+Register a new LPS in the Platform
+PUT /lps/{id}
+> Content-Type:applicaton/json
+{
+    "partnerName": "Wyndham",
+    "partnerID": "wnd2",
+    "routing": "pie",
+    "domainName": "Wyndham_PointsCore",
+    "routingName": "Wyndham"
+}
+< 201
+{
+    "message": "success"
+}
+
+Returns a list of marketing terms & assets (logos etc.) that the application can use to 
+identify the loyalty program within the application.  Also is a set of marketing assets 
+for Points (eg. Powered by points logo)  Assets are links to web based resources.
+<br>
+If an LP is not found, return a 404 not found.
+
+GET /lps/{lpID}
+< 200
+< Content-Type: application/json
+"marketing-assets":
+{
+    "_id":"xxxxx1b6",
+    "meta":
+    {
+        "mimetype":"image/jpeg",
+        "description":"First Logo",
+        "name":"USAirways Logo 1",
+        "filename":"us250w_132h.jpg",
+        "asset_type":"LOGO",
+        "dimensions":
+        {
+            "width":"250",
+            "height":"132"
+        }
+    }
+},
+{
+    "_id":"a7180fd271296214",
+    "meta":
+    {
+        "mimetype":"image/jpeg",
+        "description":"Second Logo",
+        "name":"USAirways Logo 2",
+        "filename":"us_ai_335w_150h.jpg",
+        "asset_type":"LOGO",
+        "dimensions":
+        {
+            "width":"335",
+            "height":"150"
+        }
+    }
+}
++++++
+< 404
+< Content-Type: application/json
+
+
+List the authentication fields required by a specific Loyalty Program.
+<br> If a LP is not found, return a 404.
+GET /lps/{lpID}/authentication-requirements
+< 200
+< Content-Type: application/json
+{
+    "mvFields":
+    {
+        "fieldKey": "member_first_name",
+        "name": "First Name",
+        "description": "Field description"
+    },
+    {
+        "fieldKey": "member_last_name",
+        "name": "Last Name",
+        "description": "Field description"
+    }
+}
++++++
+< 404
+< Content-Type: application/json
+
+Create a Member Validation
+</br>If invalid fields are passed, return a 400 (Bad Request)
+</br>If LP Service is unavailable for any reason, return a 503 (Service Unavailable)
+
+POST /lps/{lpID}/member-validations
+> Content-Type: application/json
+> signature: 8fasd8j2348hfas8d23hf78
+> public-key: 4j23k4-flk234-j23lk1-lk134h14l
+{
+    "firstName": "Daniel",
+    "lastName": "Shapiro",
+    "email": "daniel.shapiro@points.com",
+    "password": "password"
+}
+< 201
+{
+    "validation": "/12384"
+}
++++++
+< 400
+< Content-Type: application/json
++++++
+< 503
+< Content-Type: application/json
+{
+    "message": "Loyalty Partner service is temporarily unavailable."
+}
+
+
+Validate a Member Validation
+</br>If Validation not found, return a 404 (Not found)
+
+GET /lps/{lpID}/member-validations/{mvID}
+< 200
+< Content-Type: application/json
+{
+    "response": "valid",
+    "expires": "2013-04-11T12:43:00Z",
+    "balance": 23000
+}
++++++
+< 404
+< Content-Type: application/json
+
+--
+/orders Orders
+--
+Create a new order & return the orderID.
+POST /orders
+> Content-Type: application/json
+{
+}
+< 202
+< Content-Type: application/json
+{
+    "orderID: "/orders/12345"
+}
+
+Retrieve Transactions associated with an OrderID
+GET /orders/{id}
+< 200
+< Content-Type: application/json
+{
+    transactions: [id1,id2,id3,id4]
+}
+
+Deduct points from an account.
+POST /orders/{id}/points-out
+> Content-Type: application/json
+{
+    "mv": "/lps/12345/member-validations/78348927"
+    "currency": "sky"
+    "amount": 24300
+}
+< 202
+< Content-Type: application/json
+{
+    "message": "success."
+    "transactionID": "/orders/12345/9293874"
+}
+
+Add points to an account.
+POST /orders/{id}/points-in
+> Content-Type: application/json
+{
+    "mv": "/lps/12345/member-validations/78348927"
+    "currency": "sky"
+    "amount": 220
+}
+< 202
+< Content-Type: application/json
+{
+    "message": "success."
+    "transactionId": "/orders/12345/141341341"
+}
+
+Perform an AUTH Against a Credit Card
+POST /orders/{id}/auth
+> Content-Type: application/json
+{
+    "mv": "/lps/12345/member-validations/78348927"
+    "currency": "CAD"
+    "amount": 220.34
+    "billingInfo": {
+        "firstName": "Daniel"
+        "lastName": "Shapiro"
+        "street": "171 John St."
+        "state": "ON"
+        "country": "CAN"
+        "type": "visa"
+        "number": "4563764523789827"
+        "exp": "0617"
+        "ccv": "431"
+    }
+}
+< 202
+< Content-Type: application/json
+{
+    "message": "success."
+    "transactionId": "/orders/12345/3412341235"
+}
+
+Perform an CAPTURE Against a Credit Card
+POST /orders/{id}/capture
+> Content-Type: application/json
+{
+    "authID": "/orders/12345/3412341235"
+}
+< 202
+< Content-Type: application/json
+{
+    "message": "success."
+    "transactionId": "/orders/12345/349013244"
+}
+
+Check the status of a transaction
+GET /orders/12345/{id}
+< 202
+< Content-Type: application/json
+{
+    "message": "success."
+    "started": <DATE>
+    "completed": <DATE>
+}
+
+
+
+
+
+
+
+
