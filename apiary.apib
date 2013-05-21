@@ -1,159 +1,351 @@
-HOST: https://platform.points.com
-
---- Loyalty Commerce Platform API v1 ---
----  
+HOST: https://na.platform.points.com
+---    Points LCP v1 Resources
+--- 
 <br/>
-![Points Logo](https://www.essoextra.com/images/logo_points_com.gif)
+![Points Logo](http://www.gravatar.com/avatar/a8fcc27c7a8c373bd9cfead3f599ea9d.png) 
+## Overview
+* see [overview section of voyager wiki](https://github.com/Points/Voyager/wiki) - once overview section is updated copy the content here
 
-# Reference Documentation
-## REST API Design Guidelines 
-This API is governed by the Points REST API Design Guidelines document.
-Found Here: [**Design Guidelines**](https://docs.google.com/a/points.com/document/d/1IralX6vqCs89Icg_1SeC-wjexyd0GEEA2u41EzTXYRo/edit)
-<br/>Please ensure you read this document.
-
-## Getting Started Guide
-Please read the Getting Started Guide to understand how to use this API Reference.
-[**Getting Started Guide**](https://www.github.com/points/voyager/wiki)
-
-## Authorization
-All communications with APIs will require HTTPS encryption. 
-
-All applications using this API, are required to obtain a key-pair made up of a private key (a shared secret) and a public key.  
-Every request to the platform must signed as described below.  See the Getting Started Guide for details.
-
-##### Signing
-API keys are used to generate signed requests which comform to the [OAuth 2.0 MAC Tokens](http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02) specification.
-Any request not signed using this algorithm, or sent with an invalid signature, will be rejected with a '401 Not Authorized' response.
-
-##### Application Key Metadata
-Application Keys will have a number of meta-data associated with it at the time that it is setup.  
-Key meta-data will include Production vs. Sandbox and the type of Product Partner.  These 
-will be used by the Platform to determine routing of requests (Production vs. Sandbox).
-
-## Authentication
-In this version of the platform, authentication for member information will be completed by attaching 
-the required member credential information (fluctuates depending on loyalty partner) in the MV call over HTTPS.  
-Password or PIN information will immediately be tokenized at the edge of the platform as to safely store of this data in our systems.  
-De-tokenization will occur when the data is required to be sent to the appropriate loyalty partner.
-
-## Pagination
-Respones that return a result set or list, will return the first 20 results. If a resource explicitly allows, this can
-be overidden to return a different number of results. 
-The Link Header (RFC 5988) will be used to proceed to the next result set. 
-Relation Type ("rev" param should utilize "next" and "prev" to indicate how to follow the links)
-
-## Standard Headers
-
-## Hypermedia
-Links to a resource’s state transitions and to related resources can be found in ‘links’ collections. Here’s an example for an application resource:
-
-{
-<br>&nbsp;&nbsp;&nbsp;    …
-<br>&nbsp;&nbsp;&nbsp;   “links”: {
-<br>&nbsp;&nbsp;&nbsp;“self”: {“href”: “http://....”},
-<br>&nbsp;&nbsp;&nbsp;“publicKey”: {“href”: “http://...”},
-<br>&nbsp;&nbsp;&nbsp;“privateKey”: {“href”: “http://...”}
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
-<br>}
-
-
-## Error Responses
-The platform utilizes standard HTTP Response codes to indicate response results.  
-<br>Client errors are communicated in the response using standard HTTP 4xx status codes. Additional information about the error will be included in the response body using the following JSON format:
-<br><br>{
-<br>&nbsp;&nbsp;&nbsp;“errors”: [
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; “code”: “ERROR_CODE”,
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;“description”: “Error description suitable for debugging or logging.”
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;“code”: “ERROR_CODE”,
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;“description”: “Error description suitable for debugging or logging.”
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} 
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]
-<br>}
-
-
-The value of ‘code’ can be tested programmatically to handle specific error scenarios. The description should not be used programmatically to handle errors, but is suitable for logging or debugging to provide additional information.
-
-Note that any distinct value for ‘code’ could occur multiple times if the same error occurs more than once e.g. validation errors where required fields are missing.
-
-The listing of all these codes can be found at: [Error Responses](https://github.com/points/voyager/wiki/HTTP-Response-Codes)
-
-## Conditional Requests/Optimistic Concurrency
--
-
-## Content & Scheme
-All content is in JSON format.  All strings passes to and from the platform must be encoded to UTF-8.
-The platform will ignore the 'Accept' header in the request.
-<br> All time values are UTC and represented as strings formatted according to [ISO-8601](http://en.wikipedia.org/wiki/ISO_8601).
-
-
-
+## :TODO:'s Against Almost All Resources Below
+* :TODO: we're using [OAuth 2.0 MACs](http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02)
+so eliminate all the shared secret, public key and private key references in the resources 
+* :TODO: start describing requests and responses using [JSON Schema](http://json-schema.org/)
+* :TODO: how does multi-language work? if we think about the account creation process
+should the POST to /accounts contain an indication of the account's preferred language
+and if this specification doesn't appear then we default to Voyager's default lanaguage?
+What resource is used to manage the langugage? Would be a /langs collection
+specifying all supported languages and a /langs/default or /defaults/lang or /system-settings/lang
+resource make sense? all creds (post account authorization) should be able to do
+a GET on /langs/{id} but only creds in the points administrators group should be able
+to do a POST on /langs and a PUT & DELETE on /langs/{id}
 ---
 
 --
-/prod-partner - Product Partner Organization
-These set of Application resources enable an application to gather 
-information about itself.  These resources utilize the application key 
-passed along to the resources (except when defined otherwise) as a way of 
-identifying the application identification.
+/accounts - Accounts
+The accounts resources enable you to create an account and obtain security credentials to
+begin using the platform immediately. To get started, simply POST to the /accounts resource
+to create your account and obtain your credentials.
+ 
 --
-Searches list of Applications by App Name, Organization, keyId & LP Access
-GET /prod-partner/{id}/apps{?apps,org,keyId,lpaccess}
+Create an account. 
+</br></br> Anyone can create an account.
+The only mandatory field is the email field.
+Creating your account will return a link to admin-credentials which you can 
+start using immediately to develop against the platform.
+POST /accounts
+> Content-Type: application/json; charset=utf-8
+{
+    "primaryEmail": "mano@manoscompany.com"
+}
+< 201
+< Location: https://na.platform.points.com/accounts/mano@manoscompany.com
+< Content-Location: https://na.platform.points.com/accounts/{id}
+< Content-Type: application/json; charset=utf-8
+< Content-Length: XXX
+{
+    "id": "234j4-34j14-pxm134-fhg1234",
+    "name": "",
+    "primaryFirstName": "",
+    "primaryLastName": "",
+    "primaryEmail": "mano@manoscompany.com",
+    "primaryPhone": ""
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/accounts/mano@manoscompany.com",
+            "href": "https://na.platform.points.com/accounts/{id}"
+        },
+        "creds": {
+        }
+    }
+}
+
+Get an account.
+GET /accounts/{id}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+{
+}
 < 200
 < Content-Type: application/json; charset=utf-8
-< Link: <https://na.platform.points.com/prod-partner/{id}/apps?page=3>, rel="next"; <https://na.platform.points.com/prod-partner/{id}/apps?page=1>, rel="prev";
+< Content-Length: XXX
 {
+    "id": "234j4-34j14-pxm134-fhg1234",
+    "name": "",
+    "primaryFirstName": "",
+    "primaryLastName": "",
+    "primaryEmail": "mano@manoscompany.com",
+    "primaryPhone": ""
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/accounts/mano@manoscompany.com",
+            "href": "https://na.platform.points.com/accounts/{id}"
+        },
+        "creds": {
+        }
+    }
+}
+
+Modify an account.
+PUT /accounts/{id}
+> Content-Type: application/json; charset=utf-8
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+{
+    "name": "Mano's Company Modified Name",
+    "primaryFirstName": "Mano",
+    "primaryLastName": "Partner",
+    "primaryEmail": "mano@manoscompany.com",
+    "primaryPhone": "4162324576"
+}
+< 200
+< Location: https://na.platform.points.com/accounts/mano@manoscompany.com
+< Content-Type: application/json; charset=utf-8
+{
+    "id": ""
+    "name": "Mano's Company Modified Name",
+    "primaryFirstName": "Mano",
+    "primaryLastName": "Partner",
+    "primaryEmail": "mano@manoscompany.com",
+    "primaryPhone": "4162324576"
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/accounts/mano@manoscompany.com",
+            "href": "https://na.platform.points.com/accounts/{id}"
+        },
+        "creds": {
+            "href": "https://na.platform.points.com/accounts/mano@manoscompany.com/458934-234980f-kj234h-kj324kh"
+        }
+    }
+}
+
+Delete an account.
+DELETE /accounts/{id}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+{
+}
+< 200
+{
+}
+
+Create Credentials
+POST /accounts/{id}/creds
+> Content-Type: applicaton/json; charset=utf-8
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+{
+}
+< 201
+< Content-Type: application/json; charset=utf-8
+< Location: https://na.platform.points.com/accounts/mano@manoscompany.com/458934-234980f-kj234h-kj324kh
+{
+    "macKeyIdentifier": "458934234980fkj234hkj324kh",
+    "macKey": "933n5-4m1n23-m13nn3-l12TYL",
+    "macAlgorithm": "HMAC-SHA1",
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/accounts/mano@manoscompany.com/458934-234980f-kj234h-kj324kh"
+        }
+    }
+}
+
+Get all credentials associated with this account.
+GET /accounts/{id}/creds
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+< 200
+< Content-Type: application/json; charset=utf-8
+{
+    [
+        {
+            "key": "458934-234980f-kj234h-kj324kh",
+            "shared-secret": "933n5-4m1n23-m13nn3-l12TYL",
+            "status": "active"
+            "links": {
+                "self": {
+                    "href": "https://na.platform.points.com/accounts/{id}/creds/{id}"
+                }
+            }
+        }
+    ]
+}
+
+Get a specific set of credentials.
+GET /accounts/{id}/creds/{id}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+< 200
+< Content-Type: application/json; charset=utf-8
+{
+    "key": "458934-234980f-kj234h-kj324kh",
+    "shared-secret": "933n5-4m1n23-m13nn3-l12TYL",
+    "status": "inactive",
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/accounts/{id}/creds/{id}"
+        }
+    }
+}
+
+Delete a specific set of credentials.
+DELETE /accounts/{id}/creds/{id}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+{
+}
+< 200
+{
+}
+
+Trigger an email to the Accounts Administrator with a link to access the shared-secret for a specific credential.
+
+:DAS: don't understand the above. POST should create a resource. What resource is being created?
+</br>My recommendation is:
+</br>1/ response to a POST against /accounts is to create an account
+and include in the response an initial set of credentials - the credentials
+will only be authorized to GET, PUT & DELETE against /accounts/{id} 
+and POST against /accounts/{id}/activations
+meaning the account has yet to be activated ie. anyone with the credentials
+can't yet really do anything except admin their own account
+</br>2/ creating an account causes Voyager to send an e-mail to the
+e-mail address used in the POST to /accounts - the e-mail will contain
+an account activation code
+</br>3/ to activate the account (ie. start doing something with the account) POST
+/accounts/{id}/activations with the account activation code in the POST's body
+</br>4/ as part of servicing the POST to /accounts/{id}/activations the account
+will now be activated and can be used to develop in the sandbox
+</br>5/ :TODO: think we need to think thru the HTTP status codes POST against /accounts
+and GET, PUT & DELETE against /accounts/{id} until an account has been activated - am
+thinking there should be a account "status" which is never explicitly shared outside
+VOYAGER other than through the HTTP status code - for example, HTTP status code
+against /accounts could be 202 (Accepted) and a GET against /accounts/{id} would
+return 200 only after the /accounts/{id}/activations resource had been created - what
+would the HTTP status code be for a GET against /accounts/{id} where the account
+had yet to be activated? could be 404 but PUT and DELETE against the resource
+wouldn't really make sense in those cases
+POST /accounts/{id}/creds/{id}
+> Content-Type: application/json; charset=utf-8
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+{
+}
+< 201
+{
+}
+
+--
+/apps - Production Applications
+--
+
+Searches list of Applications by App Name, Organization, MacID & LP Access
+
+:DAS: don't think we'd search by credentials (aka keys)
+
+:DAS: what is "lpaccess"
+
+:DAS: aren't all applications production? think we should just use the label "/apps - Applicaitons" rather than "/apps - Production Applications"
+GET /apps{?apps,org,keyId,lpaccess}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+< 200
+< Content-Type: application/json; charset=utf-8
+< Link: <https://na.platform.points.com/accounts/{id}/apps?page=3>, rel="next"; <https://na.platform.points.com/prod-partner/{id}/apps?page=1>, rel="prev";
+{
+    "lang": "us-en",
     "results": [ 
         {
-            "id": "someId",
             "name": "Mano's App",
             "type": "web",
-            "links": "https://na.platform.points.com/prod-partner/{id}/apps/49282939"
+            "links": {
+                "self": {
+                    "https://na.platform.points.com/accounts/{id}/apps/49282939"
+                }
         },
         {
-            "id": "someId",
             "name": "Mano's Other App",
             "type": "mobile",
-            "links": "https://na.platform.points.com/prod-partner/{id}/apps/9872349178"
+            "links": {
+                "self": {
+                    "https://na.platform.points.com/accounts/{id}/apps/9872349178"
+                }
         }   
     ]
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/prod-partner/{id}/apps{?apps,org,keyId,lpaccess}"
+            "href": "https://na.platform.points.com/accounts/{id}/apps{?apps,org,keyId,lpaccess}"
         }
     }
 }
 
 Creates an Application
-POST /prod-partner/{id}/apps
+POST /apps
 > Content-Type: application/json; charset=utf-8
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
-    "name": "Mano's App",
+    "name": { 
+        "us-en": "Mano's App",
+        "ca-fr": "Mano's App",
+    }
+    "termsAndConditons": {
+        "us-en": "Long terms and conditions string goes here.",
+        "ca-fr": "Termes et conditions étendues vont ici."
+    }
     "type": "web"
 }
 < 201
-< Location: https://na.platform.points.com/prod-partner/{id}/apps/49282939
+< Content-Type: application/json;charset=utf-8
+< Location: https://na.platform.points.com/accounts/{id}/apps/49282939
 {
-    "links": {
-        "self": {
-            "href": "https://na.platform.points.com/prod-partner/{id}/apps/49282939"
+[
+    {
+        "lang": "us-en",
+        "name": "Mano's App",
+        "type": "web"
+        "accessibleLoyaltyPrograms": [
+            {
+                "name": "US Airways",
+                "loyaltyProgram": "https://na.platform/points.com/lps/9834701"
+            },
+            {
+                "name": "Global Rewards",
+                "loyaltyId": "https://na.platform/points.com/lps/5678"
+            }
+        ]
+        "termsAndConditions": "Long terms and conditions string goes here."
+        "links": {
+            "self": { 
+                "href": "https://na.platform.points.com/accounts/{id}/apps/49282939"
+            }
+        }
+    },
+    {
+        "lang": "ca-fr",
+        "name": "Mano's App",
+        "type": "web"
+        "accessibleLoyaltyPrograms": [
+            {
+                "name": "US Airways",
+                "loyaltyProgram": "https://na.platform/points.com/lps/9834701"
+            },
+            {
+                "name": "Global Rewards",
+                "loyaltyId": "https://na.platform/points.com/lps/5678"
+            }
+        ]
+        "termsAndConditions": "Termes et conditions étendues vont ici."
+        "links": {
+            "self": { 
+                "href": "https://na.platform.points.com/accounts/{id}/apps/49282939"
+            }
         }
     }
+    
 }
+
+:DAS: debug - can't see why the "}" above is there.
 
 Provides a set of application information that can be utilized
 by the application for various functions.  
-If application header key does not match, an alternate response occurs (401).
-GET /prod-partner/{id}/apps/{id}
+GET /apps/{id}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
 < Content-Type: application/json; charset=utf-8
+< Accepted-Lang: us-en
 {
-    "id": "someId",
+    "lang": "us-en",
     "name": "Mano's App",
     "type": "web"
-    "currentState": "production",
     "accessibleLoyaltyPrograms": [
     {
         "name": "US Airways",
@@ -167,136 +359,90 @@ GET /prod-partner/{id}/apps/{id}
     "termsAndConditions": "Long terms and conditions string goes here."
     "links": {
         "self": { 
-            "href": "https://na.platform.points.com/prod-partner/{id}/apps/49282939"
+            "href": "https://na.platform.points.com/accounts/{id}/apps/49282939"
         }
     }
 }
 
-Create an Application Key
-POST /prod-partner/{id}/apps/{id}/keys
+Create an Application Credential
+
+:DAS: this should be called credentials not keys
+POST /apps/{id}/creds
 > Content-Type: application/json; charset=utf-8
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
-    "type": "production",
     "status": "active",
 }
 < 201
-< Location: https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh
+< Content-Type: application/json;charset=utf-8
+< Location: https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh
 {
+    "status": "active",
+    "publicKey": "458934-234980f-kj234h-kj324kh",
+    "sharedSecret": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh/SharedSecret"
     "links": {
-        "self": {
-            "href": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh"
-        }
-    }
-}
-
-Modify an Application Key (Upgrading to production)
-PUT /prod-partner/{id}/apps/{id}/keys/{id}
-> Content-Type: application/json; charset=utf-8
-{
-    "type": "production",
-    "status": "deactivated"
-}
-< 201
-< Location: https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh
-{
-    "links": {
-        "self": {
-            "href": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh"
-        }
+        "self": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh",
+        "app": "https://na.platform.points.com/accounts/{id}/apps/49282939"
     }
 }
 
 Retrieve details about an App Key
-GET /prod-partner/{id}/apps/{id}/keys/{id}
+GET /apps/{id}/creds/{id}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
 < Content-Type: application/json; charset=utf-8
 {
-    "type": "production",
     "status": "active",
     "publicKey": "458934-234980f-kj234h-kj324kh",
-    "sharedSecret": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh/SharedSecret"
+    "sharedSecret": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh/SharedSecret"
     "links": {
-        "self": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh",
-        "app": "https://na.platform.points.com/prod-partner/{id}/apps/49282939"
+        "self": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh",
+        "app": "https://na.platform.points.com/accounts/{id}/apps/49282939"
     }
 }
 
-Initiates an email to resend the SharedSecret to Application Owner
-GET /prod-partner/{id}/apps/{id}/keys/{id}
+Initiates an auto-generated email to send the SharedSecret to Application Owner
+:DAS: I don't understand this.
+GET /apps/{id}/keys/{id}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
 < Content-Type: application/json; charset=utf-8
 {
     "links": {
-        "keys": {
-            "href": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh"
+        "creds": {
+            "href": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh"
         }
     }
 }
 
-Retrieve all keys associted to an App
-GET /prod-partner/{id}/apps/{id}/keys
-< 201
+Retrieve all credentials associted to an App
+GET /apps/{id}/creds
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+< 200
 < Content-Type: application/json; charset=utf-8
-< Link: <https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys?page=2>, rel="next"
+< Link: <https://na.platform.points.com/accounts/{id}/apps/{id}/creds?page=2>, rel="next"
 {
    "results": [
        {
-           "keyID": "458934-234980f-kj234h-kj324kh"
-           "type": "production"
            "status": "deactivated"
-           "link": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh"
+           "link": {
+               "self": {
+                   "href": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh"
+               }
+           }
        },
        {
-           "keyID": "458934-234980f-kj234h-kj324kh"
-           "type": "sandbox"
            "status": "active"
-           "link": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys/458934-234980f-kj234h-kj324kh"
+           "link": {
+               "self": {
+                   "href": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh"
+               }
+           }
        },
     ],
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/keys"
-        }
-    }
-}
-
-Details of promotions that are relevant to the Application & Member
-GET /prod-partner/{id}/apps/{id}/promotions
-< 200
-< Content-Type: application/json;charset=utf-8
-{ 
-    "results": 
-    [
-        { 
-            "loyaltyProgram" : "US Airways", 
-            "loyaltyId": "https://na.platform.points.com/lps/1234", 
-            "promotions": 
-                [
-                    { 
-                    "promoId": "https://na.platform.points.com/lps/1234/promotions/4x32", 
-                    "promoDescription": "Double reward miles!" 
-                    },
-                    { 
-                    "promoId": "https://na.platform.points.com/lps/1234/promotions/38T9", 
-                    "promoDescription": "TRIPLE reward miles!" 
-                    } 
-                ]
-        }, 
-        {
-            "loyaltyProgram" : "Global Rewards",
-            "loyaltyId": "https://na.platform.points.com/lps/5678",
-            "promotions":
-                [
-                    {
-                    "promoId": "https://na.platform.points.com/lps/5678/promotions/2256",
-                    "promoDescription": "25% more points!"
-                    }
-                ]    
-        }
-    ],
-    "links": {
-        "self": {
-            "href": "https://na.platform.points.com/prod-partner/{id}/apps/{id}/promotions"
+            "href": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds"
         }
     }
 }
@@ -307,16 +453,71 @@ The Loyalty Programs set of resources enable an Application to gather
 necessary information about a Loyalty Partner they want to transact against.  
 Additionally, an application may need to utilize specific marketing assets 
 for a Loyalty Program such as Logos.
+
+
 --
+Get all LPS that my credentials has access to.  {id} should be replaced with 
+public key.
+GET /lps/access/{id}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+> Accepted-Lang: us-en
+< 200
+< Content-Type: application/json; charset=utf-8
+{
+    "lang": "us-en",
+    [
+        {
+            "name": "US Airways",
+            "partnerID": "usar",
+            "mode": "sandbox",
+            "links": {
+                "self": {
+                    "href": "https://sandbox.na.platform.points.com/lps/294857"
+                }
+                "authentication-requirements": {
+                    "href": "https://sandbox.na.platform.points.com/lps/294857/authentication-requirements"
+                }
+        },
+        {
+            "name": "Wyndham",
+            "partnerID": "wynd",
+            "mode": "sandbox",
+            "links": {
+                "self": {
+                    "href": "https://sandbox.na.platform.points.com/lps/91284"
+                }
+                "authentication-requirements": {        
+                    "href": "https://sandbox.na.platform.points.com/lps/91284/authentication-requirements"
+                }
+        },
+        {
+            "name": "Global Rewards",
+            "partnerID": "glbl",
+            "mode": "sandbox",
+            "links": {
+                "self": {
+                    "href": "https://sandbox.na.platform.points.com/lps/212389"
+                }
+                "authentication-requirements": {
+                    "href": "https://sandbox.na.platform.points.com/lps/212389/authentication-requirements"
+                }
+            }
+        }
+    ]
+}
+
+
 Search Registered Loyalty Programs
 GET /lps{?lps*,partnerName,routing,appID}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+> Accepted-Lang: us-en
 < 200
 < Content-Type: application/json;charset=utf-8
 < Link: <https://na.platform.points.com/lps?page=3>, rel="next"; <https://na.platform.points.com/lps?page=2>,  rel="prev";
 {
+    "lang": "us-en",
     "results": [ 
         {
-            "id": "someId",
             "name": "US Airways",
             "partnerID": "usar",
             "routing": "pie",
@@ -324,7 +525,6 @@ GET /lps{?lps*,partnerName,routing,appID}
             "links": "https://na.platform.points.com/lps/294857"
         },
         {
-            "id": "someId",
             "name": "Wyndham",
             "partnerID": "wynd",
             "routing": "pie",
@@ -341,17 +541,30 @@ GET /lps{?lps*,partnerName,routing,appID}
 
 Register a new LPS in the Platform
 POST /lps
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Content-Type:applicaton/json;charset=utf-8
 {
-    "partnerName": "Wyndham",
+    "partnerName": {
+        "us-en": "Wyndham",
+        "ca-fr": "Wyndham"
+    }
     "partnerID": "wynd",
     "routing": "pie",
     "domainName": "Wyndham_PointsCore",
     "routingName": "Wyndham"
 }
 < 201
+< Content-Type: application/json;charset=utf-8
 < Location: https://na.platform.points.com/lps/14985736
 {
+    "partnerName": {
+        "us-en": "Wyndham",
+        "ca-fr": "Wyndham"
+    }
+    "partnerID": "wynd",
+    "routing": "pie",
+    "domainName": "Wyndham_PointsCore",
+    "routingName": "Wyndham"
     "links": {
         "self": {
             "href": "https://na.platform.points.com/lps/14985736"
@@ -359,6 +572,51 @@ POST /lps
     }
 }
 
+Returns LPS configuration information and a list of allowed Applications.
+GET /lps/{id}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+> Accepted-Lang: us-en
+< 200
+< Content-Type: application/json;charset=utf-8
+{
+"lang": "us-en",
+    {
+    "partnerName": "Wyndham",
+    "partnerID": "wynd",
+    "routing": "pie",
+    "domainName": "Wyndham_PointsCore",
+    "routingName": "Wyndham"
+    "allowedApps": [
+        {
+            "name": "Mano's App",
+            "type": "web",
+            "links": {
+                "self": {
+                    "https://na.platform.points.com/accounts/{id}/apps/49282939"
+                }
+        },
+        {
+            "name": "Mano's Other App",
+            "type": "mobile",
+            "links": {
+                "self": {
+                    "https://na.platform.points.com/accounts/{id}/apps/9872349178"
+                }
+        }   
+        ]
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/lps/1493848"
+        }
+        "marketing-assets": {
+            "href": "https://na.platform.points.com/lps/1493848/marketing-assets"
+        }
+        "authentication-requirements": {
+            "href": "https://na.platform.points.com/lps/1493848/authentication-requirements"
+        }
+    }
+    }
+}
 
 Returns a list of marketing terms & assets (logos etc.) that the application can use to 
 identify the loyalty program within the application.  Also is a set of marketing assets 
@@ -366,15 +624,17 @@ for Points (eg. Powered by points logo)  Assets are links to web based resources
 <br>
 If an LP is not found, return a 404 not found.
 
-GET /lps/{lpID}
+GET /lps/{lpID}/marketing-assets
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+> Accepted-Lang: all
 < 200
 < Content-Type: application/json;charset=utf-8
 {
+[
+    {
+    "lang": "us-en",
     "marketing-assets": 
     [
-        {
-        "_id":"xxxxx1b6",
-        "meta":
             {
             "mimetype":"image/jpeg",
             "description":"First Logo",
@@ -382,65 +642,157 @@ GET /lps/{lpID}
             "filename":"http://cms.platform.points.com/lps/1234234/us250w_132h.jpg",
             "asset_type":"LOGO",
             "dimensions":
-            {
+                {
                 "width":"250",
                 "height":"132"
-            }
-        },
-        {
-        "_id":"a7180fd271296214",
-        "meta":
-        {
+                }
+            },
+            {
             "mimetype":"image/jpeg",
             "description":"Second Logo",
             "name":"USAirways Logo 2",
             "filename":"http://cms.platform.points.com/lps/1234234/us_ai_335w_150h.jpg",
             "asset_type":"LOGO",
             "dimensions":
-            {
+                {
                 "width":"335",
                 "height":"150"
+                }
             }
-        }
-    ]
+    ],
     "links": {
         "self": {
             "href": "https://na.platform.points.com/lps/{lpID}"
             }
         }
-}
-
-
-List the authentication fields required by a specific Loyalty Program.
-<br> If a LP is not found, return a 404.
-GET /lps/{lpID}/authentication-requirements
-< 200
-< Content-Type: application/json;charset=utf-8
-{
-    "authenticationFields":
+    },
+    {
+    "lang": "ca-fr",
+    "marketing-assets": 
     [
-        {
-            "fieldKey": "member_first_name",
-            "name": "First Name",
-            "description": "Field description"
-        },
-        {
-            "fieldKey": "member_last_name",
-            "name": "Last Name",
-            "description": "Field description"
-        }
-    ]
+            {
+            "mimetype":"image/jpeg",
+            "description":"French Logo 1",
+            "name":"USAirways Logo 1",
+            "filename":"http://cms.platform.points.com/lps/1234234/us250w_132h.jpg",
+            "asset_type":"LOGO",
+            "dimensions":
+                {
+                "width":"250",
+                "height":"132"
+                }
+            },
+            {
+            "mimetype":"image/jpeg",
+            "description":"French Version Second Logo",
+            "name":"USAirways Logo 2",
+            "filename":"http://cms.platform.points.com/lps/1234234/us_ai_335w_150h.jpg",
+            "asset_type":"LOGO",
+            "dimensions":
+                {
+                "width":"335",
+                "height":"150"
+                }
+            }
+    ],
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/lps/{lpID}/authentication-requirements"
+            "href": "https://na.platform.points.com/lps/{lpID}"
+            }
         }
-        "actions":
-        {
-            "member-validations": "https://na.platform.points.com/lps/{lpID}/member-validations"
+    }
+]
+}
+
+Add an authentication requirement
+POST /lps/{lpID}/authentication-requirements
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+{
+    "type": "identificationFields",
+    "fieldKey": "member_first_name",
+    "validation": "^[A-Za-z]{3,15}$",
+    "name": {
+        "us-en": "First Name"
+    }
+    "description": {
+        "us-en": "Member's First Name"
+    }
+}
+< 201
+{
+    "type": "identificationFields",
+    "fieldKey": "member_first_name",
+    "validation": "^[A-Za-z]{3,15}$",
+    "name": {
+        "us-en": "First Name"
+    }
+    "description": {
+        "us-en": "Member's First Name"
+    }
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/lps/{lpID}/authentication-requirements/9876"
         }
     }
 }
 
+List the authentication fields required by a specific Loyalty Program.
+<br> If a LP is not found, return a 404.
+GET /lps/{lpID}/authentication-requirements
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+> Accepted-Lang: us-en
+< 200
+< Content-Type: application/json;charset=utf-8
+{
+    "identificationFields":
+    [
+        {
+            "fieldKey": "member_first_name",
+            "name": "First Name",
+            "validation": "^[A-Za-z]{3,15}$",
+            "description": "Field description"
+            "links": {
+                "self": {
+                    "href": "https://na.platform.points.com/lps/{lpID}/authentication-requirements/9876"
+                    }
+                }
+        },
+        {
+            "fieldKey": "member_last_name",
+            "name": "Last Name",
+            "validation": "^[A-Za-z]{3,15}$",
+            "description": "Field description"
+            "links": {
+                "self": {
+                    "href": "https://na.platform.points.com/lps/{lpID}/authentication-requirements/46724"
+                    }
+                }
+        }
+    ]
+    "authenticationFields":
+    [
+        {
+            "fieldKey": "member_password",
+            "name": "Password",
+            "description": "Password"
+            "validation": "^[A-Za-z0-9]{8,16}$"
+            "links": {
+                "self": {
+                    "href": "https://na.platform.points.com/lps/{lpID}/authentication-requirements/9876"
+                    }
+                }
+        }
+        ]
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/lps/{lpID}/authentication-requirements"
+        }
+        "member-validations":
+        {
+            "href": "https://na.platform.points.com/lps/{lpID}/member-validations"
+        }
+    }
+}
 
 Create a Member Validation
 </br>If invalid fields are passed, return a 400 (Bad Request)
@@ -448,6 +800,7 @@ Create a Member Validation
 
 POST /lps/{lpID}/member-validations
 > Content-Type: application/json;charset=utf-8
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
     "firstName": "Daniel",
     "lastName": "Shapiro",
@@ -455,6 +808,7 @@ POST /lps/{lpID}/member-validations
     "password": "password",
 }
 < 201
+< Content-Type: application/json;charset=utf-8
 < Location: https://na.platform.points.com/lps/{lpID}/member-validations/948202349
 {
     "expires": "2013-04-11T12:43:00Z",
@@ -468,6 +822,7 @@ POST /lps/{lpID}/member-validations
 
 Validate a Member Validation
 GET /lps/{lpID}/member-validations/{mvID}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
 < Content-Type: application/json;charset=utf-8
 {
@@ -485,6 +840,7 @@ GET /lps/{lpID}/member-validations/{mvID}
 --
 Create a new order & return the orderID.
 POST /orders
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Content-Type: application/json
 {
 }
@@ -496,6 +852,7 @@ POST /orders
 
 Retrieve Transactions associated with an OrderID
 GET /orders/{id}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
 < Content-Type: application/json
 {
@@ -504,6 +861,7 @@ GET /orders/{id}
 
 Deduct points from an account.
 POST /orders/{id}/points-out
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Content-Type: application/json
 {
     "mv": "/lps/12345/member-validations/78348927"
@@ -519,6 +877,7 @@ POST /orders/{id}/points-out
 
 Add points to an account.
 POST /orders/{id}/points-in
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Content-Type: application/json
 {
     "mv": "/lps/12345/member-validations/78348927"
@@ -534,6 +893,7 @@ POST /orders/{id}/points-in
 
 Perform an AUTH Against a Credit Card
 POST /orders/{id}/auth
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Content-Type: application/json
 {
     "mv": "/lps/12345/member-validations/78348927"
@@ -560,6 +920,7 @@ POST /orders/{id}/auth
 
 Perform an CAPTURE Against a Credit Card
 POST /orders/{id}/capture
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Content-Type: application/json
 {
     "authID": "/orders/12345/3412341235"
@@ -573,6 +934,7 @@ POST /orders/{id}/capture
 
 Check the status of a transaction
 GET /orders/12345/{id}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 202
 < Content-Type: application/json
 {
@@ -580,11 +942,3 @@ GET /orders/12345/{id}
     "started": <DATE>
     "completed": <DATE>
 }
-
-
-
-
-
-
-
-
