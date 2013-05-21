@@ -223,6 +223,11 @@ return 200 only after the /accounts/{id}/activations resource had been created -
 would the HTTP status code be for a GET against /accounts/{id} where the account
 had yet to be activated? could be 404 but PUT and DELETE against the resource
 wouldn't really make sense in those cases
+</br>
+</br>
+**:DS I've created the section in the github wiki [Creating a New Account](https://github.com/Points/Voyager/wiki/Creating-a-New-Account)**
+
+
 POST /accounts/{id}/creds/{id}
 > Content-Type: application/json; charset=utf-8
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
@@ -233,17 +238,17 @@ POST /accounts/{id}/creds/{id}
 }
 
 --
-/apps - Production Applications
+/apps - Applications
 --
 
-Searches list of Applications by App Name, Organization, MacID & LP Access
-
-:DAS: don't think we'd search by credentials (aka keys)
+Searches list of Applications by App Name, Organization & LP Access
 
 :DAS: what is "lpaccess"
+</br>    **:DS Loyalty Partners to search based on which LPs an app has access to**
 
 :DAS: aren't all applications production? think we should just use the label "/apps - Applicaitons" rather than "/apps - Production Applications"
-GET /apps{?apps,org,keyId,lpaccess}
+</br>   **:DS Done.**
+GET /apps{?apps,org,lpaccess}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
 < Content-Type: application/json; charset=utf-8
@@ -337,11 +342,11 @@ POST /apps
             }
         }
     }
-    
 }
 
 :DAS: debug - can't see why the "}" above is there.
-
+</br>   **:DS Fixed, Apiary is sensitive on extra white space**
+</br>
 Provides a set of application information that can be utilized
 by the application for various functions.  
 GET /apps/{id}
@@ -374,6 +379,7 @@ GET /apps/{id}
 Create an Application Credential
 
 :DAS: this should be called credentials not keys
+</br>   **:DS Done.**
 POST /apps/{id}/creds
 > Content-Type: application/json; charset=utf-8
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
@@ -408,8 +414,9 @@ GET /apps/{id}/creds/{id}
     }
 }
 
-Initiates an auto-generated email to send the SharedSecret to Application Owner
+Initiates an auto-generated email to send the Credentials to Application Owner
 :DAS: I don't understand this.
+</br>**:DS This is to be used when the credentials are lost. As the accounts and apps are not directly linked.**
 GET /apps/{id}/keys/{id}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
@@ -465,7 +472,7 @@ for a Loyalty Program such as Logos.
 --
 Get all LPS that my credentials has access to.  {id} should be replaced with 
 public key.
-</br>    :DS I would suggest replacing ID with a parameter passed such as /lps/access?cred={id}
+</br>    **:DS I would suggest replacing ID with a parameter passed such as /lps/access?cred={id}**
 GET /lps/access/{id}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Accepted-Lang: us-en
