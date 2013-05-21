@@ -248,6 +248,9 @@ Searches list of Applications by App Name, Organization & LP Access
 
 :DAS: aren't all applications production? think we should just use the label "/apps - Applicaitons" rather than "/apps - Production Applications"
 </br>   **:DS Done.**
+</br>
+**:DS: Dave, I noticed you changed the return resource ID to drop /apps under /accounts/{id}/apps.  Can we discuss?**
+
 GET /apps{?apps,org,lpaccess}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
@@ -394,8 +397,12 @@ POST /apps/{id}/creds
     "publicKey": "458934-234980f-kj234h-kj324kh",
     "sharedSecret": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh/SharedSecret"
     "links": {
-        "self": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh",
-        "app": "https://na.platform.points.com/accounts/{id}/apps/49282939"
+        "self": {
+            "href": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh"
+        }
+        "app": {
+            "href": "https://na.platform.points.com/accounts/{id}/apps/49282939"
+        }
     }
 }
 
@@ -409,16 +416,23 @@ GET /apps/{id}/creds/{id}
     "publicKey": "458934-234980f-kj234h-kj324kh",
     "sharedSecret": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh/SharedSecret"
     "links": {
-        "self": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh",
-        "app": "https://na.platform.points.com/accounts/{id}/apps/49282939"
+        "self": {
+            "href": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh"
+        }
+        "app": {
+            "href": "https://na.platform.points.com/accounts/{id}/apps/49282939"
+        }
     }
 }
 
 Initiates an auto-generated email to send the Credentials to Application Owner
 :DAS: I don't understand this.
-</br>**:DS This is to be used when the credentials are lost. As the accounts and apps are not directly linked.**
-GET /apps/{id}/keys/{id}
+</br>**:DS This is to be used when the secret credentials are lost. As the accounts and apps are not directly linked.**
+POST /apps/{id}/creds/{id}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+> Content-Type: application/json; charset=utf-8
+{
+}
 < 200
 < Content-Type: application/json; charset=utf-8
 {
