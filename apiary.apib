@@ -9,7 +9,9 @@ HOST: https://na.platform.points.com
 ## :TODO:'s Against Almost All Resources Below
 * :TODO: we're using [OAuth 2.0 MACs](http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02)
 so eliminate all the shared secret, public key and private key references in the resources 
+     * *:DS I think this one is complete, can we close?*
 * :TODO: start describing requests and responses using [JSON Schema](http://json-schema.org/)
+    * *:DS This probably will not take place for another seveal weeks*
 * :TODO: how does multi-language work? if we think about the account creation process
 should the POST to /accounts contain an indication of the account's preferred language
 and if this specification doesn't appear then we default to Voyager's default lanaguage?
@@ -18,6 +20,7 @@ specifying all supported languages and a /langs/default or /defaults/lang or /sy
 resource make sense? all creds (post account authorization) should be able to do
 a GET on /langs/{id} but only creds in the points administrators group should be able
 to do a POST on /langs and a PUT & DELETE on /langs/{id}
+    * *:DS Please review the modifications made to the Blueprint and also the additional language resource*
 ---
 
 --
@@ -462,6 +465,7 @@ for a Loyalty Program such as Logos.
 --
 Get all LPS that my credentials has access to.  {id} should be replaced with 
 public key.
+</br>    :DS I would suggest replacing ID with a parameter passed such as /lps/access?cred={id}
 GET /lps/access/{id}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Accepted-Lang: us-en
@@ -474,6 +478,7 @@ GET /lps/access/{id}
             "name": "US Airways",
             "partnerID": "usar",
             "mode": "sandbox",
+            "supportedLangs": ["us-en","ca-fr", "ca-en"],
             "links": {
                 "self": {
                     "href": "https://sandbox.na.platform.points.com/lps/294857"
@@ -486,6 +491,7 @@ GET /lps/access/{id}
             "name": "Wyndham",
             "partnerID": "wynd",
             "mode": "sandbox",
+            "supportedLangs": ["us-en"],
             "links": {
                 "self": {
                     "href": "https://sandbox.na.platform.points.com/lps/91284"
@@ -498,6 +504,7 @@ GET /lps/access/{id}
             "name": "Global Rewards",
             "partnerID": "glbl",
             "mode": "sandbox",
+            "supportedLangs": ["ca-fr","us-en"],
             "links": {
                 "self": {
                     "href": "https://sandbox.na.platform.points.com/lps/212389"
@@ -510,7 +517,6 @@ GET /lps/access/{id}
     ]
 }
 
-
 Search Registered Loyalty Programs
 GET /lps{?lps*,partnerName,routing,appID}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
@@ -521,20 +527,32 @@ GET /lps{?lps*,partnerName,routing,appID}
 {
     "lang": "us-en",
     "results": [ 
-        {
+       {
             "name": "US Airways",
             "partnerID": "usar",
-            "routing": "pie",
-            "domainName": "USAir_PointsCore",
-            "links": "https://na.platform.points.com/lps/294857"
+            "mode": "sandbox",
+            "supportedLangs": ["us-en","ca-fr", "ca-en"],
+            "links": {
+                "self": {
+                    "href": "https://sandbox.na.platform.points.com/lps/294857"
+                }
+                "authentication-requirements": {
+                    "href": "https://sandbox.na.platform.points.com/lps/294857/authentication-requirements"
+                }
         },
         {
             "name": "Wyndham",
             "partnerID": "wynd",
-            "routing": "pie",
-            "domainName": "Wyndham_PointsCore",
-            "links": "https://na.platform.points.com/lps/91284"
-        }   
+            "mode": "sandbox",
+            "supportedLangs": ["us-en"],
+            "links": {
+                "self": {
+                    "href": "https://sandbox.na.platform.points.com/lps/91284"
+                }
+                "authentication-requirements": {        
+                    "href": "https://sandbox.na.platform.points.com/lps/91284/authentication-requirements"
+                }
+        },
     ],
     "links": {
         "self": {
@@ -590,6 +608,7 @@ GET /lps/{id}
     "routing": "pie",
     "domainName": "Wyndham_PointsCore",
     "routingName": "Wyndham"
+    "supportedLangs": ["us-en","ca-en"],
     "allowedApps": [
         {
             "name": "Mano's App",
