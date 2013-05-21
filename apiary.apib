@@ -44,16 +44,20 @@ POST /accounts
 < Content-Length: XXX
 {
     "id": "234j4-34j14-pxm134-fhg1234",
-    "name": "",
-    "primaryFirstName": "",
-    "primaryLastName": "",
-    "primaryEmail": "mano@manoscompany.com",
-    "primaryPhone": ""
+    "primary": {
+        name": "",
+        "primaryFirstName": "",
+        "primaryLastName": "",
+        "primaryEmail": "mano@manoscompany.com",
+        "primaryPhone": ""
+    }
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/accounts/mano@manoscompany.com",
             "href": "https://na.platform.points.com/accounts/{id}"
         },
+        "friendly": {
+            "href": "https://na.platform.points.com/accounts/mano@manoscompany.com"
+        }
         "creds": {
         }
     }
