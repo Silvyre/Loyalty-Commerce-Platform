@@ -239,6 +239,7 @@ POST /accounts/{id}/creds/{id}
 
 --
 /apps - Applications
+**:DS: Dave, I noticed you changed the return resource ID to drop /apps under /accounts/{id}/apps.  Can we discuss?**
 --
 
 Searches list of Applications by App Name, Organization & LP Access
@@ -249,7 +250,6 @@ Searches list of Applications by App Name, Organization & LP Access
 :DAS: aren't all applications production? think we should just use the label "/apps - Applicaitons" rather than "/apps - Production Applications"
 </br>   **:DS Done.**
 </br>
-**:DS: Dave, I noticed you changed the return resource ID to drop /apps under /accounts/{id}/apps.  Can we discuss?**
 
 GET /apps{?apps,org,lpaccess}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
