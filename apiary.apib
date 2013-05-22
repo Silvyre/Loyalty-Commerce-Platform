@@ -752,7 +752,7 @@ Add an authentication requirement
 POST /lps/{lpID}/mv-md
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
-    "type": "identificationFields",
+    "type": "identifyingFields",
     "fieldKey": "member_first_name",
     "validation": "^[A-Za-z]{3,15}$",
     "name": {
@@ -764,7 +764,7 @@ POST /lps/{lpID}/mv-md
 }
 < 201
 {
-    "type": "identificationFields",
+    "type": "identifyingFields",
     "fieldKey": "member_first_name",
     "validation": "^[A-Za-z]{3,15}$",
     "name": {
@@ -788,7 +788,7 @@ GET /lps/{lpID}/mv-md
 < 200
 < Content-Type: application/json;charset=utf-8
 {
-    "identificationFields":
+    "identifyingFields":
     [
         {
             "fieldKey": "member_first_name",
@@ -813,7 +813,7 @@ GET /lps/{lpID}/mv-md
                 }
         }
     ]
-    "authenticationFields":
+    "authenticatingFields":
     [
         {
             "fieldKey": "member_password",
