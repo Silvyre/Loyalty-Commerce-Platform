@@ -39,12 +39,11 @@ POST /accounts
 > Content-Type: application/json; charset=utf-8
 {
     "primary": {
-        ""email": "mano@manoscompany.com"
+        "email": "mano@manoscompany.com"
     }
 }
 < 201
-< Location: https://na.platform.points.com/accounts/mano@manoscompany.com
-< Content-Location: https://na.platform.points.com/accounts/{id}
+< Location: https://na.platform.points.com/accounts/{id}
 < Content-Type: application/json; charset=utf-8
 < Content-Length: XXX
 {
