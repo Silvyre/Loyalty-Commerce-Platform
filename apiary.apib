@@ -749,7 +749,7 @@ GET /lps/{lpID}/marketing-assets
 }
 
 Add an authentication requirement
-POST /lps/{lpID}/authentication-requirements
+POST /lps/{lpID}/mv-md
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
     "type": "identificationFields",
@@ -782,7 +782,7 @@ POST /lps/{lpID}/authentication-requirements
 
 List the authentication fields required by a specific Loyalty Program.
 <br> If a LP is not found, return a 404.
-GET /lps/{lpID}/authentication-requirements
+GET /lps/{lpID}/mv-md
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Accepted-Lang: us-en
 < 200
@@ -797,7 +797,7 @@ GET /lps/{lpID}/authentication-requirements
             "description": "Field description"
             "links": {
                 "self": {
-                    "href": "https://na.platform.points.com/lps/{lpID}/authentication-requirements/9876"
+                    "href": "https://na.platform.points.com/lps/{lpID}/mv-md/9876"
                     }
                 }
         },
@@ -808,7 +808,7 @@ GET /lps/{lpID}/authentication-requirements
             "description": "Field description"
             "links": {
                 "self": {
-                    "href": "https://na.platform.points.com/lps/{lpID}/authentication-requirements/46724"
+                    "href": "https://na.platform.points.com/lps/{lpID}/mv-md/46724"
                     }
                 }
         }
@@ -822,18 +822,18 @@ GET /lps/{lpID}/authentication-requirements
             "validation": "^[A-Za-z0-9]{8,16}$"
             "links": {
                 "self": {
-                    "href": "https://na.platform.points.com/lps/{lpID}/authentication-requirements/9876"
+                    "href": "https://na.platform.points.com/lps/{lpID}/mv-md/9876"
                     }
                 }
         }
         ]
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/lps/{lpID}/authentication-requirements"
+            "href": "https://na.platform.points.com/lps/{lpID}/mv-md"
         }
         "member-validations":
         {
-            "href": "https://na.platform.points.com/lps/{lpID}/member-validations"
+            "href": "https://na.platform.points.com/lps/{lpID}/mv"
         }
     }
 }
@@ -842,7 +842,7 @@ Create a Member Validation
 </br>If invalid fields are passed, return a 400 (Bad Request)
 </br>If LP Service is unavailable for any reason, return a 503 (Service Unavailable)
 
-POST /lps/{lpID}/member-validations
+POST /lps/{lpID}/mv
 > Content-Type: application/json;charset=utf-8
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
@@ -853,19 +853,19 @@ POST /lps/{lpID}/member-validations
 }
 < 201
 < Content-Type: application/json;charset=utf-8
-< Location: https://na.platform.points.com/lps/{lpID}/member-validations/948202349
+< Location: https://na.platform.points.com/lps/{lpID}/mv/948202349
 {
     "expires": "2013-04-11T12:43:00Z",
     "balance": 23000,
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/lps/{lpID}/member-validations/948202349"
+            "href": "https://na.platform.points.com/lps/{lpID}/mv/948202349"
         }
     }
 }
 
 Validate a Member Validation
-GET /lps/{lpID}/member-validations/{mvID}
+GET /lps/{lpID}/mv/{mvID}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
 < Content-Type: application/json;charset=utf-8
@@ -874,7 +874,7 @@ GET /lps/{lpID}/member-validations/{mvID}
     "balance": 23000
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/lps/{lpID}/member-validations/948202349"
+            "href": "https://na.platform.points.com/lps/{lpID}/mv/948202349"
         }
     }
 }
