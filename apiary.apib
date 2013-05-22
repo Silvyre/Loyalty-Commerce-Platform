@@ -35,10 +35,14 @@ Create an account.
 The only mandatory field is the email field.
 Creating your account will return a link to admin-credentials which you can 
 start using immediately to develop against the platform.
+
+* *:BS I adjust the representation for the POST to conform with what we discussed.
 POST /accounts
 > Content-Type: application/json; charset=utf-8
 {
-    "primaryEmail": "mano@manoscompany.com"
+    "primary": {
+        ""email": "mano@manoscompany.com"
+    }
 }
 < 201
 < Location: https://na.platform.points.com/accounts/mano@manoscompany.com
@@ -49,10 +53,10 @@ POST /accounts
     "id": "234j4-34j14-pxm134-fhg1234",
     "primary": {
         "name": "",
-        "primaryFirstName": "",
-        "primaryLastName": "",
-        "primaryEmail": "mano@manoscompany.com",
-        "primaryPhone": ""
+        "firstName": "",
+        "lastName": "",
+        "email": "mano@manoscompany.com",
+        "phone": ""
     }
     "links": {
         "self": {
