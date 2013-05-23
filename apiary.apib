@@ -38,9 +38,7 @@ start using immediately to develop against the platform.
 POST /accounts
 > Content-Type: application/json; charset=utf-8
 {
-    "primary": {
-        "email": "mano@manoscompany.com"
-    }
+    "email": "mano@manoscompany.com"
 }
 < 201
 < Location: https://na.platform.points.com/accounts/{id}
@@ -48,13 +46,11 @@ POST /accounts
 < Content-Length: XXX
 {
     "id": "234j4-34j14-pxm134-fhg1234",
-    "primary": {
-        "name": "",
-        "firstName": "",
-        "lastName": "",
-        "email": "mano@manoscompany.com",
-        "phone": ""
-    }
+    "name": "",
+    "firstName": "",
+    "lastName": "",
+    "email": "mano@manoscompany.com",
+    "phone": "",
     "links": {
         "self": {
             "href": "https://na.platform.points.com/accounts/{id}"
