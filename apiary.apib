@@ -641,6 +641,7 @@ GET /lps/{id}
             "mode": "production",
             "name": "Mano's Other App",
             "type": "mobile",
+            "pstCode": "pts-MNOMOB",
             "links": {
                 "self": {
                     "https://na.platform.points.com/accounts/{id}/apps/9872349178"
@@ -665,41 +666,22 @@ POST /lps/{lpID}/allowedapps
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Content-Type:applicaton/json;charset=utf-8
 {
-    "sandbox": {
-        "ref": {
-            "href": "https://na.platform.points.com/accounts/{id}"
-        }
-    }
-    "production": {
-        "ref": {
-            "href": "https://na.platform.points.com/accounts/{id}/apps/{id}"
-        }
-    }
+    "mode": "production",
+    "pstCode": "pts-MNOMOB",
+    "ref": "https://na.platform.points.com/accounts/{id}/apps/{id}"
 }
 < 201
 < Content-Type:applicaton/json;charset=utf-8
-[
-    {
-        "mode": "sandbox",
-        "name": "Mano's App",
-        "type": "web",
-        "links": {
+{
+    "mode": "production",
+    "name": "Mano's Other App",
+    "type": "mobile",
+    "links": {
         "self": {
-            "https://na.platform.points.com/accounts/{id}/apps/49282939"
-            }
-        },
-        {
-        "mode": "production",
-        "name": "Mano's Other App",
-        "type": "mobile",
-        "links": {
-            "self": {
-                "https://na.platform.points.com/accounts/{id}/apps/9872349178"
-            }
+            "https://na.platform.points.com/accounts/{id}/apps/9872349178"
         }
-    }   
-]
-    
+    }
+}   
 
 Returns a list of marketing terms & assets (logos etc.) that the application can use to 
 identify the loyalty program within the application.  Also is a set of marketing assets 
