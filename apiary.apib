@@ -882,6 +882,9 @@ POST /lps/{lpID}/mv
         "self": {
             "href": "https://na.platform.points.com/lps/{lpID}/mv/948202349"
         }
+        "orderId": {
+            "href": "https://na.platform.points.com/orders/{id}"
+        }
     }
 }
 
@@ -908,6 +911,7 @@ POST /orders
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Content-Type: application/json
 {
+    "mv": "https://na.platform.points.com/lps/{lpID}/mv/948202349"
 }
 < 202
 < Content-Type: application/json
@@ -929,7 +933,6 @@ POST /orders/{id}/points-out
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Content-Type: application/json
 {
-    "mv": "/lps/12345/member-validations/78348927"
     "currency": "sky"
     "amount": 24300
 }
@@ -945,7 +948,6 @@ POST /orders/{id}/points-in
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Content-Type: application/json
 {
-    "mv": "/lps/12345/member-validations/78348927"
     "currency": "sky"
     "amount": 220
 }
@@ -961,7 +963,6 @@ POST /orders/{id}/auth
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Content-Type: application/json
 {
-    "mv": "/lps/12345/member-validations/78348927"
     "currency": "CAD"
     "amount": 220.34
     "billingInfo": {
