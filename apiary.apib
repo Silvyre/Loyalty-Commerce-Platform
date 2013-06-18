@@ -248,98 +248,74 @@ Searches list of Applications by App Name, Organization & LP Access
 </br>   **:DS Done.**
 </br>
 
-GET /apps{?apps,org,lpaccess}
+GET /apps
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
-< Content-Type: application/json; charset=utf-8
+< Content-Type: application/json
 < Link: <https://na.platform.points.com/accounts/{id}/apps?page=3>, rel="next"; <https://na.platform.points.com/prod-partner/{id}/apps?page=1>, rel="prev";
 {
-    "lang": "us-en",
-    "results": [ 
+    "apps": [ 
         {
             "name": "Mano's App",
-            "type": "web",
             "links": {
                 "self": {
-                    "https://na.platform.points.com/accounts/{id}/apps/49282939"
+                    "https://na.platform.points.com/apps/49282939"
                 }
         },
         {
             "name": "Mano's Other App",
-            "type": "mobile",
             "links": {
                 "self": {
-                    "https://na.platform.points.com/accounts/{id}/apps/9872349178"
+                    "https://na.platform.points.com/apps/9872349178"
                 }
         }   
     ]
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/accounts/{id}/apps{?apps,org,keyId,lpaccess}"
+            "href": "https://na.platform.points.com/apps"
         }
     }
 }
 
 Creates an Application
 POST /apps
-> Content-Type: application/json; charset=utf-8
+> Content-Type: application/json
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
-    "name": { 
-        "us-en": "Mano's App",
-        "ca-fr": "Mano's App",
-    }
-    "termsAndConditons": {
-        "us-en": "Long terms and conditions string goes here.",
-        "ca-fr": "Termes et conditions étendues vont ici."
-    }
-    "type": "web"
+    "name": "Mano's App",
 }
 < 201
-< Content-Type: application/json;charset=utf-8
-< Location: https://na.platform.points.com/accounts/{id}/apps/49282939
+< Content-Type: application/json
+< Location: https://na.platform.points.com/apps/{id}
 {
-[
-    {
-        "lang": "us-en",
-        "name": "Mano's App",
-        "type": "web"
-        "accessibleLoyaltyPrograms": [
-            {
-                "name": "US Airways",
-                "loyaltyProgram": "https://na.platform/points.com/lps/9834701"
-            },
-            {
-                "name": "Global Rewards",
-                "loyaltyId": "https://na.platform/points.com/lps/5678"
-            }
-        ]
-        "termsAndConditions": "Long terms and conditions string goes here."
-        "links": {
-            "self": { 
-                "href": "https://na.platform.points.com/accounts/{id}/apps/49282939"
+    "name": "Mano's App",
+    "sandboxCredentials" : [
+        {
+            "keyIdentifier": "sandbox_458934234980fkj234hkj324kh",
+            "sharedSecret": "933n5-4m1n23-m13nn3-l12TYL",
+            "links": {
+                "self": {
+                    "href": "https://na.platform.points.com/apps/{id}/credentials/{id}"
+                }
             }
         }
-    },
-    {
-        "lang": "ca-fr",
-        "name": "Mano's App",
-        "type": "web"
-        "accessibleLoyaltyPrograms": [
-            {
-                "name": "US Airways",
-                "loyaltyProgram": "https://na.platform/points.com/lps/9834701"
-            },
-            {
-                "name": "Global Rewards",
-                "loyaltyId": "https://na.platform/points.com/lps/5678"
-            }
-        ]
-        "termsAndConditions": "Termes et conditions étendues vont ici."
-        "links": {
-            "self": { 
-                "href": "https://na.platform.points.com/accounts/{id}/apps/49282939"
-            }
+    ]
+    "accessibleLoyaltyPrograms": [
+        {
+            "name": "US Airways",
+            "loyaltyProgram": "https://na.platform/points.com/loyalty-programs/9834701"
+        },
+        {
+            "name": "Global Rewards",
+            "loyaltyId": "https://na.platform/points.com/loyalty-programs/5678"
+        }
+    ]
+    "links": {
+        "self": { 
+            "href": "https://na.platform.points.com/apps/{id}"
+        },
+        "sandboxCredentials": {
+            "href": "https://na.platform.points.com/apps/{id}/credentials"
         }
     }
 }
@@ -352,26 +328,37 @@ by the application for various functions.
 GET /apps/{id}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
-< Content-Type: application/json; charset=utf-8
+< Content-Type: application/json
 < Accepted-Lang: us-en
 {
-    "lang": "us-en",
     "name": "Mano's App",
-    "type": "web"
-    "accessibleLoyaltyPrograms": [
-    {
-        "name": "US Airways",
-        "loyaltyProgram": "https://na.platform/points.com/lps/9834701"
-    },
-    {
-        "name": "Global Rewards",
-        "loyaltyId": "https://na.platform/points.com/lps/5678"
-    }
+    "sandboxCredentials" : [
+        {
+            "keyIdentifier": "sandbox_458934234980fkj234hkj324kh",
+            "sharedSecret": "933n5-4m1n23-m13nn3-l12TYL",
+            "links": {
+                "self": {
+                    "href": "https://na.platform.points.com/apps/{id}/credentials/{id}"
+                }
+            }
+        }
     ]
-    "termsAndConditions": "Long terms and conditions string goes here."
+    "accessibleLoyaltyPrograms": [
+        {
+            "name": "US Airways",
+            "loyaltyProgram": "https://na.platform/points.com/loyalty-programs/9834701"
+        },
+        {
+            "name": "Global Rewards",
+            "loyaltyId": "https://na.platform/points.com/loyalty-programs/5678"
+        }
+    ]
     "links": {
         "self": { 
-            "href": "https://na.platform.points.com/accounts/{id}/apps/49282939"
+            "href": "https://na.platform.points.com/apps/{id}"
+        },
+        "sandboxCredentials": {
+            "href": "https://na.platform.points.com/apps/{id}/credentials"
         }
     }
 }
