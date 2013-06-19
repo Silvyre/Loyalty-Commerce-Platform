@@ -35,6 +35,13 @@ Create an account.
 The only mandatory field is the email field.
 Creating your account will return a link to admin-credentials which you can 
 start using immediately to develop against the platform.
+<br><br>
+VALIDATION: 
+{ 
+"email": {"type": "email", "description": "Must be valid,", “not null”}
+}
+
+
 POST /accounts
 > Content-Type: application/json; charset=utf-8
 {
@@ -64,6 +71,12 @@ POST /accounts
 }
 
 Get an account.
+<br><br>
+VALIDATION:<br>
+<br>
+{ "id": {"type": "AccountId", “not null”} }
+<br>
+<br>
 GET /accounts/{id}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
@@ -89,6 +102,22 @@ GET /accounts/{id}
 }
 
 Modify an account.
+<br><br>
+VALIDATION:<br>
+<br>
+{ "id": {"type": "AccountId", “not null”} }
+<br>
+<br>
+JSON Body<br>
+“name” : {"type": "string", “max length: ??” }<br>
+“primaryFirstName” : {"type": "string", “max length: ??” }<br>
+“primaryLastName” : {"type": "string", “max length: ??” }<br>
+“primaryEmail” : {"type": "email", “max length: ??” }<br>
+<b>***QUESTION BNO:  Should they be allowed to change this here, and if so, would this trigger a new validation email to be sent to the address to validate the address?</b><br>
+“primaryPhone” : {"type": "TelephoneNumber", }<br>
+<b>*QUESTION BNO: Not sure if you want this data type or not.</b>
+<Br>
+<Br>
 PUT /accounts/{id}
 > Content-Type: application/json; charset=utf-8
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
@@ -121,6 +150,12 @@ PUT /accounts/{id}
 }
 
 Delete an account.
+<br><br>
+VALIDATION:<br>
+<br>
+{ "id": {"type": "AccountId", “not null”} }
+<br>
+<br>
 DELETE /accounts/{id}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
@@ -130,6 +165,12 @@ DELETE /accounts/{id}
 }
 
 Create Credentials
+<br><br>
+VALIDATION:<br>
+<br>
+{ "id": {"type": "AccountId", “not null”} }
+<br>
+<br>
 POST /accounts/{id}/creds
 > Content-Type: applicaton/json; charset=utf-8
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
@@ -150,6 +191,12 @@ POST /accounts/{id}/creds
 }
 
 Get all credentials associated with this account.
+<br><br>
+VALIDATION:<br>
+<br>
+{ "id": {"type": "AccountId", “not null”} }
+<br>
+<br>
 GET /accounts/{id}/creds
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
@@ -170,6 +217,13 @@ GET /accounts/{id}/creds
 }
 
 Get a specific set of credentials.
+<br><br>
+VALIDATION:<br>
+<br>
+{ "id": {"type": "AccountId", “not null”} }
+{ "id": {"type": "MemberId", “not null”} }
+<br>
+<br>
 GET /accounts/{id}/creds/{id}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
@@ -186,6 +240,13 @@ GET /accounts/{id}/creds/{id}
 }
 
 Delete a specific set of credentials.
+<br><br>
+VALIDATION:<br>
+<br>
+{ "id": {"type": "AccountId", “not null”} }
+{ "id": {"type": "MemberId", “not null”} }
+<br>
+<br>
 DELETE /accounts/{id}/creds/{id}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
