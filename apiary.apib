@@ -548,7 +548,7 @@ PUT /apps/{id}/lp-access/sandbox
             "supportedLangs": ["us-en","ca-fr", "ca-en"],
             "links": {
                 "self": {
-                    "href": "https://sandbox.na.platform.points.com/lps/294857"
+                    "href": "https://sandbox.na.platform.points.com/lp-access/sandbox/{lpid}"
                 }
         },
         {
@@ -557,13 +557,13 @@ PUT /apps/{id}/lp-access/sandbox
             "supportedLangs": ["us-en"],
             "links": {
                 "self": {
-                    "href": "https://sandbox.na.platform.points.com/lps/91284"
+                    "href": "https://sandbox.na.platform.points.com/lp-access/sandbox/{lpid}"
                 }
         }
     ],
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/apps/{id}/lp-access"
+            "href": "https://na.platform.points.com/apps/{id}/lp-access/sandbox"
         }
     } 
 }
@@ -581,28 +581,6 @@ PUT /apps/{id}/lp-access/live
 < 201
 < Content-Type: application/json; charset=utf-8
 {
-    "sandbox": [
-        {
-            "access": ["mv","points-in"],
-            "name": "US Airways",
-            "partnerID": "usar",
-            "supportedLangs": ["us-en","ca-fr", "ca-en"],
-            "links": {
-                "self": {
-                    "href": "https://sandbox.na.platform.points.com/lps/294857"
-                }
-        },
-        {
-            "access": ["mv"],
-            "name": "Wyndham",
-            "partnerID": "wynd",
-            "supportedLangs": ["us-en"],
-            "links": {
-                "self": {
-                    "href": "https://sandbox.na.platform.points.com/lps/91284"
-                }
-        }
-    ],
     "live": [
         {
             "access": ["mv"],
@@ -611,13 +589,13 @@ PUT /apps/{id}/lp-access/live
             "supportedLangs": ["us-en","ca-fr", "ca-en"],
             "links": {
                 "self": {
-                    "href": "https://sandbox.na.platform.points.com/lps/294857"
+                    "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/live/{lpid}"
                 }
         }
     ],
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/apps/{id}/lp-access"
+            "href": "https://na.platform.points.com/apps/{id}/lp-access/live"
         }
     } 
 }
@@ -638,7 +616,7 @@ GET /apps/{id}/lp-access
             "supportedLangs": ["us-en","ca-fr", "ca-en"],
             "links": {
                 "self": {
-                    "href": "https://sandbox.na.platform.points.com/lps/294857"
+                    "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/sandbox/{lpid}"
                 }
         },
         {
@@ -648,7 +626,7 @@ GET /apps/{id}/lp-access
             "supportedLangs": ["us-en"],
             "links": {
                 "self": {
-                    "href": "https://sandbox.na.platform.points.com/lps/91284"
+                    "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/sandbox/{lpid}"
                 }
         }
     ],
@@ -660,7 +638,7 @@ GET /apps/{id}/lp-access
             "supportedLangs": ["us-en","ca-fr", "ca-en"],
             "links": {
                 "self": {
-                    "href": "https://sandbox.na.platform.points.com/lps/294857"
+                    "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/live/{lpid}"
                 }
         }
     ],
@@ -671,7 +649,25 @@ GET /apps/{id}/lp-access
     } 
 }
 
-
+LP Can provide a specific app access to a specific LP in live mode
+POST /apps/{id}/lp-access/live
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+> Content-Type: application/json; charset=utf-8
+{
+    "access": "mv"
+}
+< 201
+< Content-Type: application/json; charset=utf-8
+{
+    "access": ["mv"],
+    "name": "US Airways",
+    "partnerID": "usar",
+    "supportedLangs": ["us-en","ca-fr", "ca-en"],
+    "links": {
+    "self": {
+        "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/live/{lpid}"
+    }
+}
 
 --
 /lps - Loyalty Programs
