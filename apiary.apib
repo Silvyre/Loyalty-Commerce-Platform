@@ -524,6 +524,155 @@ GET /apps/{id}/creds
     }
 }
 
+Add LPs to Sandbox mode
+PUT /apps/{id}/lp-access/sandbox
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+> Content-Type: application/json; charset=utf-8
+{
+    { 
+        "lpid": "usar"
+        "access": ["mv","points-in"]
+    },
+    {  
+        "lpid": "wynd"
+        "access": ["mv"]
+    }
+}
+< 201
+< Content-Type: application/json; charset=utf-8
+{
+    "sandbox": [
+        {
+            "name": "US Airways",
+            "partnerID": "usar",
+            "supportedLangs": ["us-en","ca-fr", "ca-en"],
+            "links": {
+                "self": {
+                    "href": "https://sandbox.na.platform.points.com/lps/294857"
+                }
+        },
+        {
+            "name": "Wyndham",
+            "partnerID": "wynd",
+            "supportedLangs": ["us-en"],
+            "links": {
+                "self": {
+                    "href": "https://sandbox.na.platform.points.com/lps/91284"
+                }
+        }
+    ],
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/apps/{id}/lp-access"
+        }
+    } 
+}
+
+Add LPs to Live mode
+PUT /apps/{id}/lp-access/live
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+> Content-Type: application/json; charset=utf-8
+[    
+    { 
+        "lpid": "usar",
+        "access": ["mv"]
+    }
+]
+< 201
+< Content-Type: application/json; charset=utf-8
+{
+    "sandbox": [
+        {
+            "access": ["mv","points-in"],
+            "name": "US Airways",
+            "partnerID": "usar",
+            "supportedLangs": ["us-en","ca-fr", "ca-en"],
+            "links": {
+                "self": {
+                    "href": "https://sandbox.na.platform.points.com/lps/294857"
+                }
+        },
+        {
+            "access": ["mv"],
+            "name": "Wyndham",
+            "partnerID": "wynd",
+            "supportedLangs": ["us-en"],
+            "links": {
+                "self": {
+                    "href": "https://sandbox.na.platform.points.com/lps/91284"
+                }
+        }
+    ],
+    "live": [
+        {
+            "access": ["mv"],
+            "name": "US Airways",
+            "partnerID": "usar",
+            "supportedLangs": ["us-en","ca-fr", "ca-en"],
+            "links": {
+                "self": {
+                    "href": "https://sandbox.na.platform.points.com/lps/294857"
+                }
+        }
+    ],
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/apps/{id}/lp-access"
+        }
+    } 
+}
+
+
+Retrieve the LP Access for an Application
+GET /apps/{id}/lp-access
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+> Content-Type: application/json; charset=utf-8
+< 200
+< Content-Type: application/json;charset=utf-8
+{
+    "sandbox": [
+        {
+            "access": ["mv","points-in"],
+            "name": "US Airways",
+            "partnerID": "usar",
+            "supportedLangs": ["us-en","ca-fr", "ca-en"],
+            "links": {
+                "self": {
+                    "href": "https://sandbox.na.platform.points.com/lps/294857"
+                }
+        },
+        {
+            "access": ["mv"],
+            "name": "Wyndham",
+            "partnerID": "wynd",
+            "supportedLangs": ["us-en"],
+            "links": {
+                "self": {
+                    "href": "https://sandbox.na.platform.points.com/lps/91284"
+                }
+        }
+    ],
+    "live": [
+        {
+            "access": ["mv"],
+            "name": "US Airways",
+            "partnerID": "usar",
+            "supportedLangs": ["us-en","ca-fr", "ca-en"],
+            "links": {
+                "self": {
+                    "href": "https://sandbox.na.platform.points.com/lps/294857"
+                }
+        }
+    ],
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/apps/{id}/lp-access"
+        }
+    } 
+}
+
+
+
 --
 /lps - Loyalty Programs
 The Loyalty Programs set of resources enable an Application to gather 
@@ -533,59 +682,6 @@ for a Loyalty Program such as Logos.
 
 
 --
-Get all LPS that my credentials has access to.  {id} should be replaced with 
-public key.
-</br>    **:DS I would suggest replacing ID with a parameter passed such as /lps/access?cred={id}**
-GET /lps/access/{id}
-> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
-> Accepted-Lang: us-en
-< 200
-< Content-Type: application/json; charset=utf-8
-{
-    "lang": "us-en",
-    [
-        {
-            "name": "US Airways",
-            "partnerID": "usar",
-            "mode": "sandbox",
-            "supportedLangs": ["us-en","ca-fr", "ca-en"],
-            "links": {
-                "self": {
-                    "href": "https://sandbox.na.platform.points.com/lps/294857"
-                }
-                "authentication-requirements": {
-                    "href": "https://sandbox.na.platform.points.com/lps/294857/authentication-requirements"
-                }
-        },
-        {
-            "name": "Wyndham",
-            "partnerID": "wynd",
-            "mode": "sandbox",
-            "supportedLangs": ["us-en"],
-            "links": {
-                "self": {
-                    "href": "https://sandbox.na.platform.points.com/lps/91284"
-                }
-                "authentication-requirements": {        
-                    "href": "https://sandbox.na.platform.points.com/lps/91284/authentication-requirements"
-                }
-        },
-        {
-            "name": "Global Rewards",
-            "partnerID": "glbl",
-            "mode": "sandbox",
-            "supportedLangs": ["ca-fr","us-en"],
-            "links": {
-                "self": {
-                    "href": "https://sandbox.na.platform.points.com/lps/212389"
-                }
-                "authentication-requirements": {
-                    "href": "https://sandbox.na.platform.points.com/lps/212389/authentication-requirements"
-                }
-            }
-        }
-    ]
-}
 
 Search Registered Loyalty Programs
 GET /lps{?lps*,partnerName,routing,appID}
