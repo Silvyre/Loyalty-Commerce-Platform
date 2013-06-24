@@ -913,7 +913,7 @@ GET /lps/{lpID}/marketing-assets
 ]
 }
 
-Add an authentication requirement
+Add an MV Field
 POST /lps/{lpID}/mv-md
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
@@ -945,7 +945,7 @@ POST /lps/{lpID}/mv-md
     }
 }
 
-List the authentication fields required by a specific Loyalty Program.
+List the authentication fields for a specific Loyalty Program.
 <br> If a LP is not found, return a 404.
 GET /lps/{lpID}/mv-md
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
