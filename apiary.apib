@@ -359,32 +359,34 @@ GET /apps/{id}
 {
     "name": "Mano's App",
     "description": "Universal Balance Checker",
-    "sandboxCredentials" : [
+    "sandboxCreds" : [
         {
             "keyIdentifier": "sandbox_458934234980fkj234hkj324kh",
             "sharedSecret": "933n5-4m1n23-m13nn3-l12TYL",
             "links": {
                 "self": {
-                    "href": "https://na.platform.points.com/apps/{id}/sandbox-creds/{id}"
+                    "href": "https://na.platform.points.com/apps/{id}/sandbox-creds/sandbox_458934234980fkj234hkj324kh"
                 }
             }
         }
     ],
-    "liveCredentials" : [
+    "liveCreds" : [
         {
             "keyIdentifier": "live_908-123498-0998341",
             "sharedSecret": "jl4123lkj09uf09u2MPPLQ123",
             "links": {
                 "self": {
-                    "href": "https://na.platform.points.com/apps/{id}/live-creds/{id}"
+                    "href": "https://na.platform.points.com/apps/{id}/live-creds/live_908-123498-0998341"
                 }
             }
         }
     ],
-    "sandboxLoyaltyPrograms": [
+    "sandboxLPAccess": [
         {
             "name": "US Airways",
-            "loyaltyProgram": "https://na.platform/points.com/lps/9834701"
+            "links": {
+                "self": "https://sandbox.lcp.points.com/lps/9834701"
+            }
         },
         {
             "name": "Global Rewards",
@@ -404,6 +406,9 @@ GET /apps/{id}
         },
         "sandboxCredentials": {
             "href": "https://na.platform.points.com/apps/{id}/sandbox-creds"
+        }
+        "liveCredentials": {
+            "href": "https://na.platform.points.com/apps/{id}/live-creds"
         }
     }
 }
