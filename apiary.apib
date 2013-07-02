@@ -255,45 +255,7 @@ DELETE /accounts/{id}/creds/{id}
 {
 }
 
-Trigger an email to the Accounts Administrator with a link to access the shared-secret for a specific credential.
 
-:DAS: don't understand the above. POST should create a resource. What resource is being created?
-</br>My recommendation is:
-</br>1/ response to a POST against /accounts is to create an account
-and include in the response an initial set of credentials - the credentials
-will only be authorized to GET, PUT & DELETE against /accounts/{id} 
-and POST against /accounts/{id}/activations
-meaning the account has yet to be activated ie. anyone with the credentials
-can't yet really do anything except admin their own account
-</br>2/ creating an account causes Voyager to send an e-mail to the
-e-mail address used in the POST to /accounts - the e-mail will contain
-an account activation code
-</br>3/ to activate the account (ie. start doing something with the account) POST
-/accounts/{id}/activations with the account activation code in the POST's body
-</br>4/ as part of servicing the POST to /accounts/{id}/activations the account
-will now be activated and can be used to develop in the sandbox
-</br>5/ :TODO: think we need to think thru the HTTP status codes POST against /accounts
-and GET, PUT & DELETE against /accounts/{id} until an account has been activated - am
-thinking there should be a account "status" which is never explicitly shared outside
-VOYAGER other than through the HTTP status code - for example, HTTP status code
-against /accounts could be 202 (Accepted) and a GET against /accounts/{id} would
-return 200 only after the /accounts/{id}/activations resource had been created - what
-would the HTTP status code be for a GET against /accounts/{id} where the account
-had yet to be activated? could be 404 but PUT and DELETE against the resource
-wouldn't really make sense in those cases
-</br>
-</br>
-**:DS I've created the section in the github wiki [Creating a New Account](https://github.com/Points/Voyager/wiki/Creating-a-New-Account)**
-
-
-POST /accounts/{id}/creds/{id}
-> Content-Type: application/json; charset=utf-8
-> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
-{
-}
-< 201
-{
-}
 
 --
 /apps - Applications
@@ -403,27 +365,45 @@ GET /apps/{id}
             "sharedSecret": "933n5-4m1n23-m13nn3-l12TYL",
             "links": {
                 "self": {
-                    "href": "https://na.platform.points.com/apps/{id}/credentials/{id}"
+                    "href": "https://na.platform.points.com/apps/{id}/sandbox-creds/{id}"
                 }
             }
         }
-    ]
-    "accessibleLoyaltyPrograms": [
+    ],
+    "liveCredentials" : [
+        {
+            "keyIdentifier": "live_908-123498-0998341",
+            "sharedSecret": "jl4123lkj09uf09u2MPPLQ123",
+            "links": {
+                "self": {
+                    "href": "https://na.platform.points.com/apps/{id}/live-creds/{id}"
+                }
+            }
+        }
+    ],
+    "sandboxLoyaltyPrograms": [
         {
             "name": "US Airways",
-            "loyaltyProgram": "https://na.platform/points.com/loyalty-programs/9834701"
+            "loyaltyProgram": "https://na.platform/points.com/lps/9834701"
         },
         {
             "name": "Global Rewards",
-            "loyaltyId": "https://na.platform/points.com/loyalty-programs/5678"
+            "loyaltyId": "https://na.platform/points.com/lps/5678"
         }
-    ]
+    ],
+    "liveLoyaltyPrograms": [
+        {
+            "name": "US Airways",
+            "loyaltyProgram": "https://na.platform/points.com/lps/9834701"
+        },
+    ],
+        
     "links": {
         "self": { 
             "href": "https://na.platform.points.com/apps/{id}"
         },
         "sandboxCredentials": {
-            "href": "https://na.platform.points.com/apps/{id}/credentials"
+            "href": "https://na.platform.points.com/apps/{id}/sandbox-creds"
         }
     }
 }
@@ -432,7 +412,7 @@ Create an Application Credential
 
 :DAS: this should be called credentials not keys
 </br>   **:DS Done.**
-POST /apps/{id}/creds
+POST /apps/{id}/sandbox-creds
 > Content-Type: application/json; charset=utf-8
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
@@ -440,89 +420,82 @@ POST /apps/{id}/creds
 }
 < 201
 < Content-Type: application/json;charset=utf-8
-< Location: https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh
+< Location: https://na.platform.points.com//apps/{id}/sandbox-creds/458934-234980f-kj234h-kj324kh
 {
     "status": "active",
     "publicKey": "458934-234980f-kj234h-kj324kh",
-    "sharedSecret": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh/SharedSecret"
+    "sharedSecret": "098341njk309-1jl;jk"
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh"
+            "href": "https://na.platform.points.com/accounts/{id}/apps/{id}/sandbox-creds/458934-234980f-kj234h-kj324kh"
         }
         "app": {
-            "href": "https://na.platform.points.com/accounts/{id}/apps/49282939"
+            "href": "https://na.platform.points.com/apps/49282939"
+        }
+    }
+}
+
+Retrieve details about an Sandbox Cred
+GET /apps/{id}/sandbox-creds/{id}
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+< 200
+< Content-Type: application/json; charset=utf-8
+{
+    "status": "active",
+    "publicKey": "098341njk309-1jl;jk",
+    "sharedSecret": "https://na.platform.points.com/apps/{id}/sandbox-creds/458934-234980f-kj234h-kj324kh"
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/apps/{id}/sandbox-creds/458934-234980f-kj234h-kj324kh"
+        }
+        "app": {
+            "href": "https://na.platform.points.com/apps/49282939"
+        }
+    }
+}
+
+POST /apps/{id}/live-creds
+> Content-Type: application/json; charset=utf-8
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+{
+    "status": "active",
+}
+< 201
+< Content-Type: application/json;charset=utf-8
+< Location: https://na.platform.points.com/apps/{id}/live-creds/458934-234980f-kj234h-kj324kh
+{
+    "status": "active",
+    "publicKey": "458934-234980f-kj234h-kj324kh",
+    "sharedSecret": "098341njk309-1jl;jk"
+    "links": {
+        "self": {
+            "href": "https://na.platform.points.com/apps/{id}/live-creds/458934-234980f-kj234h-kj324kh"
+        }
+        "app": {
+            "href": "https://na.platform.points.com/apps/49282939"
         }
     }
 }
 
 Retrieve details about an App Key
-GET /apps/{id}/creds/{id}
+GET /apps/{id}/live-creds/{id}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
 < Content-Type: application/json; charset=utf-8
 {
     "status": "active",
-    "publicKey": "458934-234980f-kj234h-kj324kh",
-    "sharedSecret": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh/SharedSecret"
+    "publicKey": "098341njk309-1jl;jk",
+    "sharedSecret": "https://na.platform.points.com/apps/{id}/live-creds/458934-234980f-kj234h-kj324kh"
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh"
+            "href": "https://na.platform.points.com/apps/{id}/live-creds/458934-234980f-kj234h-kj324kh"
         }
         "app": {
-            "href": "https://na.platform.points.com/accounts/{id}/apps/49282939"
+            "href": "https://na.platform.points.com/apps/49282939"
         }
     }
 }
 
-Initiates an auto-generated email to send the Credentials to Application Owner
-:DAS: I don't understand this.
-</br>**:DS This is to be used when the secret credentials are lost. As the accounts and apps are not directly linked.**
-POST /apps/{id}/creds/{id}
-> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
-> Content-Type: application/json; charset=utf-8
-{
-}
-< 200
-< Content-Type: application/json; charset=utf-8
-{
-    "links": {
-        "creds": {
-            "href": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh"
-        }
-    }
-}
-
-Retrieve all credentials associted to an App
-GET /apps/{id}/creds
-> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
-< 200
-< Content-Type: application/json; charset=utf-8
-< Link: <https://na.platform.points.com/accounts/{id}/apps/{id}/creds?page=2>, rel="next"
-{
-   "results": [
-       {
-           "status": "deactivated"
-           "link": {
-               "self": {
-                   "href": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh"
-               }
-           }
-       },
-       {
-           "status": "active"
-           "link": {
-               "self": {
-                   "href": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds/458934-234980f-kj234h-kj324kh"
-               }
-           }
-       },
-    ],
-    "links": {
-        "self": {
-            "href": "https://na.platform.points.com/accounts/{id}/apps/{id}/creds"
-        }
-    }
-}
 
 Add LPs to Sandbox mode
 PUT /apps/{id}/lp-access/sandbox
