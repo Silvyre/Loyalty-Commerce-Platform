@@ -502,81 +502,46 @@ GET /apps/{id}/live-creds/{id}
 
 
 Add LPs to Sandbox mode
-PUT /apps/{id}/lp-access/sandbox
+POST /apps/{id}/lp-access/sandbox
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Content-Type: application/json; charset=utf-8
 {
-    { 
-        "lpid": "usar"
-        "access": ["mv","points-in"]
-    },
-    {  
-        "lpid": "wynd"
-        "access": ["mv"]
-    }
+    "lpid": "usar"
+    "access": ["mv","points-in"]
 }
 < 201
 < Content-Type: application/json; charset=utf-8
 {
-    "sandbox": [
-        {
-            "name": "US Airways",
-            "partnerID": "usar",
-            "supportedLangs": ["us-en","ca-fr", "ca-en"],
-            "links": {
-                "self": {
-                    "href": "https://sandbox.na.platform.points.com/lp-access/sandbox/{lpid}"
-                }
-        },
-        {
-            "name": "Wyndham",
-            "partnerID": "wynd",
-            "supportedLangs": ["us-en"],
-            "links": {
-                "self": {
-                    "href": "https://sandbox.na.platform.points.com/lp-access/sandbox/{lpid}"
-                }
-        }
-    ],
+    "access": ["mv","points-in"]
+    "name": "US Airways",
+    "partnerID": "usar",
+    "supportedLangs": ["us-en","ca-fr", "ca-en"],
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/apps/{id}/lp-access/sandbox"
+            "href": "https://sandbox.lcp.points.com/apps/{id}/lp-access/sandbox/{id}"
         }
-    } 
 }
 
 Add LPs to Live mode
 PUT /apps/{id}/lp-access/live
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
-> Content-Type: application/json; charset=utf-8
-[    
-    { 
-        "lpid": "usar",
-        "access": ["mv"]
-    }
-]
+> Content-Type: application/json; charset=utf-8  
+{ 
+    "lpid": "usar",
+    "access": ["mv"]
+}
 < 201
 < Content-Type: application/json; charset=utf-8
 {
-    "live": [
-        {
-            "access": ["mv"],
-            "name": "US Airways",
-            "partnerID": "usar",
-            "supportedLangs": ["us-en","ca-fr", "ca-en"],
-            "links": {
-                "self": {
-                    "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/live/{lpid}"
-                }
-        }
-    ],
+    "access": ["mv"],
+    "name": "US Airways",
+    "partnerID": "usar",
+    "supportedLangs": ["us-en","ca-fr", "ca-en"],
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/apps/{id}/lp-access/live"
+            "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/live/{lpid}"
         }
-    } 
 }
-
 
 Retrieve the LP Access for an Application
 GET /apps/{id}/lp-access
@@ -593,7 +558,7 @@ GET /apps/{id}/lp-access
             "supportedLangs": ["us-en","ca-fr", "ca-en"],
             "links": {
                 "self": {
-                    "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/sandbox/{lpid}"
+                    "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/sandbox/{id}"
                 }
         },
         {
@@ -603,7 +568,7 @@ GET /apps/{id}/lp-access
             "supportedLangs": ["us-en"],
             "links": {
                 "self": {
-                    "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/sandbox/{lpid}"
+                    "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/sandbox/{id}"
                 }
         }
     ],
@@ -615,7 +580,7 @@ GET /apps/{id}/lp-access
             "supportedLangs": ["us-en","ca-fr", "ca-en"],
             "links": {
                 "self": {
-                    "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/live/{lpid}"
+                    "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/live/{id}"
                 }
         }
     ],
@@ -624,26 +589,6 @@ GET /apps/{id}/lp-access
             "href": "https://na.platform.points.com/apps/{id}/lp-access"
         }
     } 
-}
-
-LP Can provide a specific app access to a specific LP in live mode
-POST /apps/{id}/lp-access/live
-> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
-> Content-Type: application/json; charset=utf-8
-{
-    "access": "mv"
-}
-< 201
-< Content-Type: application/json; charset=utf-8
-{
-    "access": ["mv"],
-    "name": "US Airways",
-    "partnerID": "usar",
-    "supportedLangs": ["us-en","ca-fr", "ca-en"],
-    "links": {
-    "self": {
-        "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/live/{lpid}"
-    }
 }
 
 --
@@ -781,28 +726,7 @@ GET /lps/{id}
         }
     }
     }
-}
-
-POST /lps/{lpID}/allowedapps
-> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
-> Content-Type:applicaton/json;charset=utf-8
-{
-    "mode": "production",
-    "pstCode": "pts-MNOMOB",
-    "ref": "https://na.platform.points.com/accounts/{id}/apps/{id}"
-}
-< 201
-< Content-Type:applicaton/json;charset=utf-8
-{
-    "mode": "production",
-    "name": "Mano's Other App",
-    "type": "mobile",
-    "links": {
-        "self": {
-            "https://na.platform.points.com/accounts/{id}/apps/9872349178"
-        }
-    }
-}   
+} 
 
 Returns a list of marketing terms & assets (logos etc.) that the application can use to 
 identify the loyalty program within the application.  Also is a set of marketing assets 
@@ -917,7 +841,7 @@ POST /lps/{lpID}/mv-md
     }
     "links": {
         "self": {
-            "href": "https://na.platform.points.com/lps/{lpID}/authentication-requirements/9876"
+            "href": "https://na.platform.points.com/lps/{lpID}/mv-md/9876"
         }
     }
 }
