@@ -814,31 +814,85 @@ GET /lps/{lpID}/marketing-assets
 ]
 }
 
-Add an MV Field
+Add an MV Metadata Contract
 POST /lps/{lpID}/mv-md
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
-    "type": "identifyingFields",
-    "fieldKey": "member_first_name",
-    "validation": "^[A-Za-z]{3,15}$",
-    "name": {
-        "us-en": "First Name"
-    }
-    "description": {
-        "us-en": "Member's First Name"
-    }
+    "identifyingFields": 
+    [
+        {
+            "fieldKey": "member_first_name",
+            "validation": "^[A-Za-z]{3,15}$",
+            "name": {
+                "us-en": "First Name"
+            }
+            "description": {
+                "us-en": "Member's First Name"
+            }
+        },
+        {
+            "fieldKey": "member_last_name",
+            "validation": "^[A-Za-z]{3,15}$",
+            "name": {
+                "us-en": "Last Name"
+            }
+            "description": {
+                "us-en": "Member's Last Name"
+            }
+        }
+    ],
+    "authenticatingFields": 
+    [
+        {
+            "fieldKey": "member_password",
+            "validation": "^[A-Za-z]{3,15}$",
+            "name": {
+                "us-en": "Password"
+            }
+            "description": {
+                "us-en": "Password"
+            }
+        },
+    ]
 }
 < 201
 {
-    "type": "identifyingFields",
-    "fieldKey": "member_first_name",
-    "validation": "^[A-Za-z]{3,15}$",
-    "name": {
-        "us-en": "First Name"
-    }
-    "description": {
-        "us-en": "Member's First Name"
-    }
+    "identifyingFields": 
+    [
+        {
+            "fieldKey": "member_first_name",
+            "validation": "^[A-Za-z]{3,15}$",
+            "name": {
+                "us-en": "First Name"
+            }
+            "description": {
+                "us-en": "Member's First Name"
+            }
+        },
+        {
+            "fieldKey": "member_last_name",
+            "validation": "^[A-Za-z]{3,15}$",
+            "name": {
+                "us-en": "Last Name"
+            }
+            "description": {
+                "us-en": "Member's Last Name"
+            }
+        }
+    ],
+    "authenticatingFields": 
+    [
+        {
+            "fieldKey": "member_password",
+            "validation": "^[A-Za-z]{3,15}$",
+            "name": {
+                "us-en": "Password"
+            }
+            "description": {
+                "us-en": "Password"
+            }
+        },
+    ],
     "links": {
         "self": {
             "href": "https://na.platform.points.com/lps/{lpID}/mv-md/9876"
@@ -846,7 +900,7 @@ POST /lps/{lpID}/mv-md
     }
 }
 
-List the authentication fields for a specific Loyalty Program.
+Returns the newest MV Metadata Contract for a specific Loyalty Program.
 <br> If a LP is not found, return a 404.
 GET /lps/{lpID}/mv-md
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
@@ -916,7 +970,8 @@ POST /lps/{lpID}/mv
     "lastName": "Shapiro",
     "email": "daniel.shapiro@points.com",
     "password": "password",
-    "memberId": "12394123812390"
+    "memberId": "12394123812390",
+    "mvContract": "https://sandbox.lcp.points.com/lps/{lpid}/mv-md/9876"
 }
 < 201
 < Content-Type: application/json;charset=utf-8
