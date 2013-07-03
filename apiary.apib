@@ -959,19 +959,21 @@ GET /lps/{lpID}/mv-md
 }
 
 Create a Member Validation
+mvContract field refers to the specific mv-md contract that this MV is utilizing
+mvType field refers to the type of MV requested, which will set the expiry on the MV
 </br>If invalid fields are passed, return a 400 (Bad Request)
 </br>If LP Service is unavailable for any reason, return a 503 (Service Unavailable)
-
 POST /lps/{lpID}/mv
 > Content-Type: application/json;charset=utf-8
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
-    "firstName": "Daniel",
-    "lastName": "Shapiro",
-    "email": "daniel.shapiro@points.com",
-    "password": "password",
-    "memberId": "12394123812390",
-    "mvContract": "https://sandbox.lcp.points.com/lps/{lpid}/mv-md/9876"
+    "memberFields": {
+        "member_first_name": "Daniel",
+        "member_last_name": "Shapiro",
+        "member_password": "password",
+    }
+    "mvContract": "https://sandbox.lcp.points.com/lps/{lpid}/mv-md/9876",
+    "mvType": "mv" 
 }
 < 201
 < Content-Type: application/json;charset=utf-8
