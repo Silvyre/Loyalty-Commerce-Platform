@@ -544,46 +544,47 @@ PUT /apps/{id}/lp-access/live
 }
 
 Retrieve the LP Access for an Application
+Will return the Sandbox list if using a Sandbox key, and Live list if a Live key
 GET /apps/{id}/lp-access
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 > Content-Type: application/json; charset=utf-8
 < 200
 < Content-Type: application/json;charset=utf-8
 {
-    "sandbox": [
-        {
-            "access": ["mv","points-in"],
-            "name": "US Airways",
-            "partnerID": "usar",
-            "supportedLangs": ["us-en","ca-fr", "ca-en"],
-            "links": {
-                "self": {
-                    "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/sandbox/{id}"
-                }
-        },
-        {
-            "access": ["mv"],
-            "name": "Wyndham",
-            "partnerID": "wynd",
-            "supportedLangs": ["us-en"],
-            "links": {
-                "self": {
-                    "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/sandbox/{id}"
-                }
-        }
-    ],
-    "live": [
-        {
-            "access": ["mv"],
-            "name": "US Airways",
-            "partnerID": "usar",
-            "supportedLangs": ["us-en","ca-fr", "ca-en"],
-            "links": {
-                "self": {
-                    "href": "https://sandbox.na.platform.points.com/apps/{id}/lp-access/live/{id}"
-                }
-        }
-    ],
+[
+    {
+        "access": ["mv","points-in"],
+        "name": "US Airways",
+        "lpsID": "usar",
+        "langs": ["us-en","ca-fr", "ca-en"],
+        "links": {
+            "self": {
+                "href": "https://sandbox.lcp.points.com/apps/{id}/lp-access/sandbox/{id}"
+            }
+            "mv-md": {
+                "href": "https://sandbox.lcp.points.com/lps/{id}/mv-md"
+            }
+            "mvs": {
+                "href": "https://sandbox.lcp.points.com/lps/{id}/mvs"
+            }
+    },
+    {
+        "access": ["mv"],
+        "name": "Wyndham",
+        "lpsID": "wynd",
+        "langs": ["us-en"],
+        "links": {
+            "self": {
+                "href": "https://sandbox.lcp.points.com/apps/{id}/lp-access/sandbox/{id}"
+            }
+            "mv-md": {
+                "href": "https://sandbox.lcp.points.com/lps/{id}/mv-md"
+            }
+            "mvs": {
+                "href": "https://sandbox.lcp.points.com/lps/{id}/mvs"
+            }
+    }
+],
     "links": {
         "self": {
             "href": "https://sandbox.lcp.points.com/apps/{id}/lp-access"
@@ -818,7 +819,7 @@ Add an MV Metadata Contract
 POST /lps/{lpID}/mv-md
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
-    "identifyingFields": 
+    "identifying_factors": 
     [
         {
             "fieldKey": "member_first_name",
@@ -841,7 +842,7 @@ POST /lps/{lpID}/mv-md
             }
         }
     ],
-    "authenticatingFields": 
+    "authenticating_factors": 
     [
         {
             "fieldKey": "member_password",
@@ -857,7 +858,7 @@ POST /lps/{lpID}/mv-md
 }
 < 201
 {
-    "identifyingFields": 
+    "identifying_factors": 
     [
         {
             "fieldKey": "member_first_name",
@@ -880,7 +881,7 @@ POST /lps/{lpID}/mv-md
             }
         }
     ],
-    "authenticatingFields": 
+    "authenticating_factors": 
     [
         {
             "fieldKey": "member_password",
@@ -908,52 +909,45 @@ GET /lps/{lpID}/mv-md
 < 200
 < Content-Type: application/json;charset=utf-8
 {
-    "identifyingFields":
+    "identifying_factors": 
     [
         {
             "fieldKey": "member_first_name",
-            "name": "First Name",
             "validation": "^[A-Za-z]{3,15}$",
-            "description": "Field description"
-            "links": {
-                "self": {
-                    "href": "https://sandbox.lcp.points.com/lps/{lpID}/mv-md/9876"
-                    }
-                }
+            "name": {
+                "us-en": "First Name"
+            }
+            "description": {
+                "us-en": "Member's First Name"
+            }
         },
         {
             "fieldKey": "member_last_name",
-            "name": "Last Name",
             "validation": "^[A-Za-z]{3,15}$",
-            "description": "Field description"
-            "links": {
-                "self": {
-                    "href": "https://sandbox.lcp.points.com/lps/{lpID}/mv-md/46724"
-                    }
-                }
+            "name": {
+                "us-en": "Last Name"
+            }
+            "description": {
+                "us-en": "Member's Last Name"
+            }
         }
-    ]
-    "authenticatingFields":
+    ],
+    "authenticating_factors": 
     [
         {
             "fieldKey": "member_password",
-            "name": "Password",
-            "description": "Password"
-            "validation": "^[A-Za-z0-9]{8,16}$"
-            "links": {
-                "self": {
-                    "href": "https://sandbox.lcp.points.com/lps/{lpID}/mv-md/9876"
-                    }
-                }
-        }
-        ]
+            "validation": "^[A-Za-z]{3,15}$",
+            "name": {
+                "us-en": "Password"
+            }
+            "description": {
+                "us-en": "Password"
+            }
+        },
+    ],
     "links": {
         "self": {
-            "href": "https://sandbox.lcp.points.com/lps/{lpID}/mv-md"
-        }
-        "member-validations":
-        {
-            "href": "https://sandbox.lcp.points.com/lps/{lpID}/mv"
+            "href": "https://sandbox.lcp.points.com/lps/{lpID}/mv-md/9876"
         }
     }
 }
@@ -963,8 +957,9 @@ mvContract field refers to the specific mv-md contract that this MV is utilizing
 mvType field refers to the type of MV requested, which will set the expiry on the MV
 </br>If invalid fields are passed, return a 400 (Bad Request)
 </br>If LP Service is unavailable for any reason, return a 503 (Service Unavailable)
-POST /lps/{lpID}/mv
+POST /lps/{lpID}/mvs
 > Content-Type: application/json;charset=utf-8
+> Accepted-Lang: us-en
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 {
     "memberFields": {
@@ -983,7 +978,7 @@ POST /lps/{lpID}/mv
     "balance": 23000,
     "links": {
         "self": {
-            "href": "https://sandbox.lcp.points.com/lps/{lpID}/mv/948202349"
+            "href": "https://sandbox.lcp.points.com/lps/{lpID}/mvs/948202349"
         }
         "orderId": {
             "href": "https://sandbox.lcp.points.com/orders/{id}"
@@ -992,7 +987,7 @@ POST /lps/{lpID}/mv
 }
 
 Validate a Member Validation
-GET /lps/{lpID}/mv/{mvID}
+GET /lps/{lpID}/mvs/{mvID}
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
 < 200
 < Content-Type: application/json;charset=utf-8
