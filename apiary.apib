@@ -58,6 +58,23 @@ POST /accounts
     "lastName": "",
     "email": "mano@manoscompany.com",
     "phone": "",
+    "apps": [
+        {
+            "app": "https://sandbox.lcp.points.com/apps/{id}",
+            "creds": {
+                "sandbox": {
+                    "macKeyIdentifier": "sandbox_458934234980fkj234hkj324kh",
+                    "macKey": "933n5-4m1n23-m13nn3-l12TYL",
+                    "macAlgorithm": "HMAC-SHA1",
+                    "links": {
+                        "self": {
+                            "href": "https://sandbox.lcp.points.com/apps/{id}/sandbox_458934234980fkj234hkj324kh"
+                        }
+                    }
+                }
+            }
+        }
+    ],
     "links": {
         "self": {
             "href": "https://sandbox.lcp.points.com/accounts/{id}"
@@ -90,7 +107,24 @@ GET /accounts/{id}
     "primaryFirstName": "",
     "primaryLastName": "",
     "primaryEmail": "mano@manoscompany.com",
-    "primaryPhone": ""
+    "primaryPhone": "",
+    "apps": [
+        {
+            "app": "https://sandbox.lcp.points.com/apps/{id}",
+            "creds": {
+                "sandbox": {
+                    "macKeyIdentifier": "sandbox_458934234980fkj234hkj324kh",
+                    "macKey": "933n5-4m1n23-m13nn3-l12TYL",
+                    "macAlgorithm": "HMAC-SHA1",
+                    "links": {
+                        "self": {
+                            "href": "https://sandbox.lcp.points.com/apps/{id}/sandbox_458934234980fkj234hkj324kh"
+                        }
+                    }
+                }
+            }
+        }
+    ],
     "links": {
         "self": {
             "href": "https://sandbox.lcp.points.com/accounts/mano@manoscompany.com",
