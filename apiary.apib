@@ -534,6 +534,30 @@ GET /apps/{id}/live-creds/{id}
     }
 }
 
+Add LPs
+POST /apps/{app-id}/lp-access
+> Authorization: MAC id="...", ts="...", nonce="...", mac="..."
+> Content-Type: application/json; charset=utf-8
+< 201
+< Content-Type: application/json; charset=utf-8
+{
+    "id": "234j4-34j14-pxm134-fhg1234",
+    "name": "",
+    "firstName": "",
+    "lastName": "",
+    "email": "youremail@yourcompany.com",
+    "phone": "",
+    "links": {
+        "self": {
+            "href": "https://sandbox.lcp.points.com/v1/accounts/234j4-34j14-pxm134-fhg1234"
+        },
+        "friendly": {
+            "href": "https://sandbox.lcp.points.com/v1/accounts/youremail@yourcompany.com"
+        }
+        "creds": {
+        }
+    }
+}
 
 Add LPs to Sandbox mode
 POST /apps/{id}/lp-access/sandbox
@@ -850,46 +874,8 @@ GET /lps/{lpID}/marketing-assets
 }
 
 Add an MV Metadata Contract
-POST /lps/{lpID}/mv-md
+POST /lps/{lp-id}/mv-md
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
-{
-    "identifying_factors": 
-    [
-        {
-            "fieldKey": "member_first_name",
-            "validation": "^[A-Za-z]{3,15}$",
-            "name": {
-                "us-en": "First Name"
-            }
-            "description": {
-                "us-en": "Member's First Name"
-            }
-        },
-        {
-            "fieldKey": "member_last_name",
-            "validation": "^[A-Za-z]{3,15}$",
-            "name": {
-                "us-en": "Last Name"
-            }
-            "description": {
-                "us-en": "Member's Last Name"
-            }
-        }
-    ],
-    "authenticating_factors": 
-    [
-        {
-            "fieldKey": "member_password",
-            "validation": "^[A-Za-z]{3,15}$",
-            "name": {
-                "us-en": "Password"
-            }
-            "description": {
-                "us-en": "Password"
-            }
-        },
-    ]
-}
 < 201
 {
     "identifying_factors": 
@@ -930,7 +916,7 @@ POST /lps/{lpID}/mv-md
     ],
     "links": {
         "self": {
-            "href": "https://sandbox.lcp.points.com/lps/{lpID}/mv-md/9876"
+            "href": "https://sandbox.lcp.points.com/lps/{lp-id}/mv-md/9876"
         }
     }
 }
@@ -991,18 +977,15 @@ mvContract field refers to the specific mv-md contract that this MV is utilizing
 mvType field refers to the type of MV requested, which will set the expiry on the MV
 </br>If invalid fields are passed, return a 400 (Bad Request)
 </br>If LP Service is unavailable for any reason, return a 503 (Service Unavailable)
-POST /lps/{lpID}/mvs
+POST /lps/{lp-id}/mvs
 > Content-Type: application/json;charset=utf-8
 > Accepted-Lang: us-en
 > Authorization: MAC id="...", ts="...", nonce="...", mac="..."
-{
-    "memberFields": {
-        "member_first_name": "Daniel",
-        "member_last_name": "Shapiro",
-        "member_password": "password",
-    }
-    "mv-md": "https://sandbox.lcp.points.com/lps/{lpid}/mv-md/9876",
-    "mvType": "mv" 
+{ 
+        "country": "Canada", 
+        "password": "password", 
+        "memberId": "234j4-34j14-pxm134-fhg1234",  
+        "mv-md": "https://sandbox.lcp.points.com/lps/{lp-id}/mv-md/9876"
 }
 < 201
 < Content-Type: application/json;charset=utf-8
@@ -1012,10 +995,7 @@ POST /lps/{lpID}/mvs
     "balance": 23000,
     "links": {
         "self": {
-            "href": "https://sandbox.lcp.points.com/lps/{lpID}/mvs/948202349"
-        }
-        "orderId": {
-            "href": "https://sandbox.lcp.points.com/orders/{id}"
+            "href": "https://sandbox.lcp.points.com/v1/lps/glbl/mvs/123456"
         }
     }
 }
