@@ -1,0 +1,49 @@
+// Default
+.active {
+    > a {
+        .box-sizing(border-box);
+        font-weight: bold;
+    }
+}
+
+// Plain
+// .active {
+//     > a {
+//         &:extend(.toc a:hover, a:hover);
+//     }
+// }
+
+// Dark Theme
+// .active {
+//     > a {
+//         border: solid 1px rgba(0,0,0,0.8);
+//         color: #fff;
+//         #gradient .vertical-four-colors;
+//         padding-top: 6px;
+//         padding-bottom: 6px;
+//         text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+//     }
+// }
+
+// Light Theme
+// .active {
+//     > a {
+//         border: solid 1px rgba(0,0,0,0.2);
+//         border-bottom: solid 1px rgba(0,0,0,0.5);
+//         color: rgba(0,0,0,0.8);
+//         #gradient .vertical-four-colors(@start-color: #ffffff; @second-color: #e3e3e3; @third-color: #d9d9d9; @end-color: #b5b5b5);
+//         padding-top: 6px;
+//         padding-bottom: 6px;
+//         text-shadow: 1px 1px 0 rgba(255,255,255,0.8);
+//     }
+// }
+
+// Blue Theme
+.active {
+    @color-points-blue-dark: darken(@color-points-blue, 30%);
+    > a {
+        color: #fff;
+        #gradient .vertical(@color-points-blue, @color-points-blue-dark);
+        text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+    }
+}

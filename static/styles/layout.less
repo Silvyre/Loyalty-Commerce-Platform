@@ -1,0 +1,55 @@
+// Layout
+
+html, body {
+    min-height: 100%;
+}
+
+#main, #documentation, #table-of-contents {
+    min-height: 100%;
+}
+
+#main {
+    .clearfix();
+}
+
+#main-navigation {
+    width: 200px;
+    min-height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+#documentation {
+    position: relative;
+    margin-left: 200px;
+
+    .dark-bg {
+        position: absolute;
+        height: 100%;
+        width: 50%;
+        right: 0;
+        z-index: 10;
+    }
+}
+
+.content {
+    position: relative;
+    z-index: 100;
+
+    .document {
+        .clearfix();
+
+        & > div {
+            width: 50%;
+        }
+    }
+
+    .for-humans     { float: left; }
+    .for-machines   { float: right; }
+}
+
+.for-humans, .for-machines {
+    .box-sizing(border-box);
+    padding: 30px;
+}

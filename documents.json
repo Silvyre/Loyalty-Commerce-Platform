@@ -1,0 +1,161 @@
+{
+  "baseUrl": "/documents",
+  "articles": [
+    {
+      "title": "Documentation Overview",
+      "url": "/documentation-overview.md",
+      "exampleUrl": "",
+      "parent": ""
+    },
+    {
+      "title": "Accounts",
+      "url": "/accounts.md",
+      "exampleUrl": "/accounts-example.md",
+      "parent": ""
+    },
+    {
+      "title": "Create an Account",
+      "url": "/create-an-account.md",
+      "exampleUrl": "/create-an-account-example.md",
+      "parent": "accounts"
+    },
+    {
+      "title": "Get an Account",
+      "url": "/get-an-account.md",
+      "exampleUrl": "/get-an-account-example.md",
+      "parent": "accounts"
+    },
+    {
+      "title": "Account Credentials",
+      "url": "/account-credentials.md",
+      "exampleUrl": "/account-credentials-example.md",
+      "parent": ""
+    },
+    {
+      "title": "Create Account Credentials",
+      "url": "/create-account-credentials.md",
+      "exampleUrl": "/create-account-credentials-example.md",
+      "parent": "account-credentials"
+    },
+    {
+      "title": "Get Account Credentials",
+      "url": "/get-account-credentials.md",
+      "exampleUrl": "/get-account-credentials-example.md",
+      "parent": "account-credentials"
+    },
+    {
+      "title": "Delete Account Credentials",
+      "url": "/delete-account-credentials.md",
+      "exampleUrl": "/delete-account-credentials-example.md",
+      "parent": "account-credentials"
+    },
+    {
+      "title": "Apps",
+      "url": "/apps.md",
+      "exampleUrl": "/apps-example.md",
+      "parent": ""
+    },
+    {
+      "title": "Create an App",
+      "url": "/create-an-app.md",
+      "exampleUrl": "/create-an-app-example.md",
+      "parent": "apps"
+    },
+    {
+      "title": "Get an App",
+      "url": "/get-an-app.md",
+      "exampleUrl": "/get-an-app-example.md",
+      "parent": "apps"
+    },
+    {
+      "title": "Get an App by MAC Key Identifier",
+      "url": "/get-an-app-by-mac.md",
+      "exampleUrl": "/get-an-app-by-mac-example.md",
+      "parent": "apps"
+    },
+    {
+      "title": "Credits",
+      "url": "/credits.md",
+      "exampleUrl": "/credits-example.md",
+      "parent": ""
+    },
+    {
+      "title": "Create a Credit",
+      "url": "/create-a-credit.md",
+      "exampleUrl": "/create-a-credit-example.md",
+      "parent": "credits"
+    },
+    {
+      "title": "Get a Credit",
+      "url": "/get-a-credit.md",
+      "exampleUrl": "/get-a-credit-example.md",
+      "parent": "credits"
+    },
+    {
+      "title": "Debits",
+      "url": "/debits.md",
+      "exampleUrl": "/debits-example.md",
+      "parent": ""
+    },
+    {
+      "title": "Create a Debit",
+      "url": "/create-a-debit.md",
+      "exampleUrl": "/create-a-debit-example.md",
+      "parent": "debits"
+    },
+    {
+      "title": "Get a Debit",
+      "url": "/get-a-debit.md",
+      "exampleUrl": "/get-a-debit-example.md",
+      "parent": "debits"
+    },
+    {
+      "title": "Live Credentials",
+      "url": "/live-credentials.md",
+      "exampleUrl": "/live-credentials-example.md",
+      "parent": ""
+    },
+    {
+      "title": "Get Live Credentials",
+      "url": "/get-live-credentials.md",
+      "exampleUrl": "/get-live-credentials-example.md",
+      "parent": "live-credentials"
+    },
+    {
+      "title": "Loyalty Programs (LPs)",
+      "url": "/loyalty-programs.md",
+      "exampleUrl": "",
+      "parent": ""
+    },
+    {
+      "title": "Member Validations (MVs)",
+      "url": "/member-validations.md",
+      "exampleUrl": "/member-validations-example.md",
+      "parent": ""
+    },
+    {
+      "title": "Create a MV",
+      "url": "/create-a-mv.md",
+      "exampleUrl": "/create-a-mv-example.md",
+      "parent": "member-validations"
+    },
+    {
+      "title": "Get a MV",
+      "url": "/get-a-mv.md",
+      "exampleUrl": "/get-a-mv-example.md",
+      "parent": "member-validations"
+    },
+    {
+      "title": "Sandbox Credentials",
+      "url": "/sandbox-credentials.md",
+      "exampleUrl": "/sandbox-credentials-example.md",
+      "parent": ""
+    },
+    {
+      "title": "Get Sandbox Credentials",
+      "url": "/get-sandbox-credentials.md",
+      "exampleUrl": "/get-sandbox-credentials-example.md",
+      "parent": "sandbox-credentials"
+    }
+  ]
+}
