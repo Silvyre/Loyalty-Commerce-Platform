@@ -1,6 +1,5 @@
 #### Example Request
 
-    201 CREATED
     POST https://lcp.points.com/v1/accounts/<account-id>/account-credentials/
     Authorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."
 

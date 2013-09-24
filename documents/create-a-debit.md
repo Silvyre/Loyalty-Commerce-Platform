@@ -20,7 +20,7 @@ In sandbox mode, the LCP never communicates with the loyalty program. All operat
         </tr>
         <tr>
             <td>amount</td>
-            <td>The number of points to deduct from the member's account. Must be a positive integer less than the member's balance obtained from the member validation.
+            <td><p>The number of points to deduct from the member's account. Must be a positive integer less than the member's balance obtained from the member validation.</p>
             <p>Sandbox mode: To simulate a failed credit, set the amount to 99.</p></td>
         </tr>
         <tr>

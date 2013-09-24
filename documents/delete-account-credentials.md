@@ -14,7 +14,7 @@ If your account credentials have been compromised or if you no longer wish to us
     <tbody>
         <tr>
             <td>account-id</td>
-            <td>The identifier of the account to add credentials to.</td>
+            <td>The identifier of the account that has the credentials.</td>
         </tr>
         <tr>
             <td>id</td>

@@ -14,7 +14,7 @@ Create a new developer account to get started and obtain your account credential
     <tbody>
         <tr>
             <td>email</td>
-            <td>The email address of the account owner.</td>
+            <td>Your email address. Provide a valid email address so that we can verify you are the owner of the account.</td>
         </tr>
     </tbody>
 </table>
