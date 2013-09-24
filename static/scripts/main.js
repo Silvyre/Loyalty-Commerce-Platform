@@ -1,6 +1,6 @@
 (function() {
   require.config({
-    baseUrl: '/static/scripts/',
+    baseUrl: '/Voyager/static/scripts/',
     waitSeconds: 30,
     shim: {
       'bootstrap.scrollspy': {
