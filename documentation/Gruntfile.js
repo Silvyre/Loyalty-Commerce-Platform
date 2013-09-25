@@ -180,7 +180,7 @@ module.exports = function (grunt) {
             }
           },
 
-          optimize: 'none',
+          optimize: 'uglify',
 
           fileExclusionRegExp: /^(node_modules|.svn)/,
           findNestedDependencies: true,
