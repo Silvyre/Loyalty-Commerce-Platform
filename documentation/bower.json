@@ -7,7 +7,9 @@
         "requirejs": "2.1.x",
         "requirejs-plugins": "*",
         "handlebars.js": "*",
-        "requirejs-handlebars": "git://github.com/jfparadis/requirejs-handlebars"
+        "requirejs-handlebars": "git://github.com/jfparadis/requirejs-handlebars",
+        "fixto": "git://github.com/bbarakaci/fixto",
+        "google-code-prettify": "git://github.com/teddyhwang/google-code-prettify"
     }
 }
 
