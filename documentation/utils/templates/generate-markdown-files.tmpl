@@ -1,0 +1,6 @@
+define [
+<% var path = 'mdown!../../documents/api/'; _.forEach(files, function(file, i) { print('  "'+path+file+'"\n'); }); %>], (
+<% _.forEach(files, function(file, i) { file = file.replace(/\-/g, '_').replace('.md',''); print('  '+file+'\n'); }); %>) ->
+  Markdown =
+<% _.forEach(files, function(file, i) { file = file.replace(/\-/g, '_').replace('.md',''); print('    '+file+':'+file+'\n'); }); %>
+  return Markdown

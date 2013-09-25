@@ -1,0 +1,8 @@
+dist
+app/static/components
+node_modules
+app/static/styles/*.css
+app/static/scripts/*.js
+app/static/scripts/*.map
+app/static/scripts/*/*.js
+app/static/scripts/*/*.map

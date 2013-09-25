@@ -1,0 +1,13 @@
+{
+    "name": "points-documentation",
+    "version": "0.1",
+    "dependencies": {
+        "jquery": "2.0.x",
+        "bootstrap": "3.0.x",
+        "requirejs": "2.1.x",
+        "requirejs-plugins": "*",
+        "handlebars.js": "*",
+        "requirejs-handlebars": "git://github.com/jfparadis/requirejs-handlebars"
+    }
+}
+
