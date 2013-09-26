@@ -1,13 +1,13 @@
 ## Sandbox Credentials
 
-Sanbox credentials authenticate your app to perform actions on the LCP. A set of sandbox credentials is created automatically when you create your app. App credentials are different for sandbox and live mode. Sandbox credentials are available at /apps/<app-id>/sandbox-credentials and are used to sign requests to /lps.
+Sandbox credentials authenticate your app to perform actions on the LCP. A set of sandbox credentials is created automatically when you create your app. App credentials are different for sandbox and live mode. Sandbox credentials are available at /apps/<app-id>/sandbox-credentials and are used to sign requests to /lps.
 
 #### Properties
 
 <table>
     <thead>
         <tr>
-            <th>Field</th>
+            <th>Name</th>
             <th>Description</th>
         </tr>
     </thead>
@@ -22,7 +22,13 @@ Sanbox credentials authenticate your app to perform actions on the LCP. A set of
         </tr>
         <tr>
             <td>macKeyIdentifier</td>
-            <td>The MAC key identifier uniques identifies the MAC key. The MAC key identifier is sent with each request to tell the server which MAC key was used to sign the request.</td>
+            <td>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier is sent with each request to tell the server which MAC key was used to sign the request.</td>
         </tr>
     </tbody>
 </table>
+
+
+
+
+
+

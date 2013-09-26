@@ -7,7 +7,7 @@ An account is your own personal developer account on the LCP system. It is tied 
 <table>
     <thead>
         <tr>
-            <th>Field</th>
+            <th>Name</th>
             <th>Description</th>
         </tr>
     </thead>
@@ -22,4 +22,6 @@ An account is your own personal developer account on the LCP system. It is tied 
         </tr>
     </tbody>
 </table>
+
+
 

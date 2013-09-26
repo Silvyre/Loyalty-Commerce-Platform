@@ -7,7 +7,7 @@ A credit is a transaction that adds points to a loyalty program member's account
 <table>
     <thead>
         <tr>
-            <th>Field</th>
+            <th>Name</th>
             <th>Description</th>
         </tr>
     </thead>
@@ -30,3 +30,5 @@ A credit is a transaction that adds points to a loyalty program member's account
         </tr>
     </tbody>
 </table>
+
+
