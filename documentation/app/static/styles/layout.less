@@ -12,12 +12,12 @@ html, body {
   .clearfix();
 }
 
-#main-navigation {
+#doc-navigation {
   width: 200px;
   min-height: 100%;
   position: absolute;
   left: 0;
-  top: 0;
+  top: 30px;
 }
 
 #documentation {
@@ -54,6 +54,17 @@ html, body {
   padding: 30px;
 }
 
+#points-brand {
+  position: fixed;
+  bottom: 20px;
+  left: 50px;
+  background: url(../images/logo-points-vertical.jpg) no-repeat 0 bottom;
+  background-size: 100px auto;
+  width: 100px;
+  height: 596px;
+  opacity: 0.4;
+}
+
 @media (max-width: @screen-sm-max) {
 
   #documentation {
@@ -74,7 +85,7 @@ html, body {
 
 @media (max-width: @screen-md-max) {
 
-  #main-navigation {
+  #doc-navigation, #points-brand {
     display: none;
   }
 

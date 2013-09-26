@@ -2,10 +2,10 @@ define ['bootstrap.scrollspy'], (__scrollSpy) ->
   class Scrollspy
     init: ->
       $('body').scrollspy
-        target: '#main-navigation'
+        target: '#doc-navigation'
         offest: 0
 
-      $('#main-navigation').on 'activate.bs.scrollspy', (evt) ->
+      $('#doc-navigation').on 'activate.bs.scrollspy', (evt) ->
         $ct = $(evt.currentTarget)
         $active = $ct.find '.active'
         $navLi = $('.nav li')

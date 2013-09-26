@@ -195,15 +195,20 @@ module.exports = function (grunt) {
 
   grunt.registerTask('generate-markdown-list', function() {
     var files = []
+      , paths =[]
       , data = {}
       , template = grunt.file.read('utils/templates/generate-markdown-files.tmpl')
       , writeTo = 'app/static/scripts/modules/load-markdown-documents.coffee';
 
-    grunt.file.recurse('app/static/documents/api/', function(abspath, rootdir, subdir, filename) {
+    grunt.file.recurse('app/static/documents/', function(abspath, rootdir, subdir, filename) {
+      abspath = abspath.replace('app/static', 'mdown!../..')
+      filename = filename.replace(/\-/g, '_').replace('.md','');
+
       files.push(filename);
+      paths.push(abspath);
     });
 
-    data = { files: files };
+    data = { files: files, paths: paths };
 
     grunt.file.write(writeTo, grunt.template.process(template, {data: data}));
   });
