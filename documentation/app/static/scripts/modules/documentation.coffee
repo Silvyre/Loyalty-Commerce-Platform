@@ -17,9 +17,16 @@ define [
 ) ->
 
   class Documentation extends ProcessDocumentation
+    urlQueryResult: (name) ->
+      name = name.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]')
+      regex = new RegExp '[\\?&]' + name + '=([^&#]*)'
+      results = regex.exec location.search
+
+      decodeURIComponent(results[1].replace(/\+/g, " ")) if results isnt null
+
     attachArticleAndNav: (id, parent) ->
       if parent is ''
-        $('.nav').append tmplNavigation @oneArticle
+        $('#doc-navigation .nav').append tmplNavigation @oneArticle
         $('#documentation').append tmplSection @oneArticle
         $('#section-'+id).append tmplArticle @oneArticle
       else
@@ -43,7 +50,8 @@ define [
 
       @attachArticleAndNav(id, parent)
 
-    load: ->
+    loadApiDocs: ->
+      $('body').addClass 'api-docs'
       $.each documents.articles, (i, article) =>
 
         id = article.id.replace(/\-/g, '_')
@@ -55,5 +63,9 @@ define [
 
         @createArticle(article, content, example)
         if (i+1) is documents.articles.length then @initProcess()
+
+    init: ->
+      @doc = @urlQueryResult 'doc'
+      if @doc is 'api-reference' then @loadApiDocs()
 
   return Documentation

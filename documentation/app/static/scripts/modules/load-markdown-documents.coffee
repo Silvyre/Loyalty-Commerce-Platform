@@ -49,6 +49,7 @@ define [
   "mdown!../../documents/api/member-validations.md"
   "mdown!../../documents/api/sandbox-credentials-example.md"
   "mdown!../../documents/api/sandbox-credentials.md"
+  "mdown!../../documents/getting-started.md"
 ], (
   account_credentials_example
   account_credentials
@@ -100,57 +101,59 @@ define [
   member_validations
   sandbox_credentials_example
   sandbox_credentials
+  getting_started
 ) ->
   Markdown =
-    account_credentials_example:account_credentials_example
-    account_credentials:account_credentials
-    accounts_example:accounts_example
-    accounts:accounts
-    apps_example:apps_example
-    apps:apps
-    create_a_credit_example:create_a_credit_example
-    create_a_credit:create_a_credit
-    create_a_debit_example:create_a_debit_example
-    create_a_debit:create_a_debit
-    create_a_mv_example:create_a_mv_example
-    create_a_mv:create_a_mv
-    create_account_credentials_example:create_account_credentials_example
-    create_account_credentials:create_account_credentials
-    create_an_account_example:create_an_account_example
-    create_an_account:create_an_account
-    create_an_app_example:create_an_app_example
-    create_an_app:create_an_app
-    credits_example:credits_example
-    credits:credits
-    debits_example:debits_example
-    debits:debits
-    delete_account_credentials_example:delete_account_credentials_example
-    delete_account_credentials:delete_account_credentials
-    documentation_overview:documentation_overview
-    get_a_credit_example:get_a_credit_example
-    get_a_credit:get_a_credit
-    get_a_debit_example:get_a_debit_example
-    get_a_debit:get_a_debit
-    get_a_mv_example:get_a_mv_example
-    get_a_mv:get_a_mv
-    get_account_credentials_example:get_account_credentials_example
-    get_account_credentials:get_account_credentials
-    get_an_account_example:get_an_account_example
-    get_an_account:get_an_account
-    get_an_app_by_mac_example:get_an_app_by_mac_example
-    get_an_app_by_mac:get_an_app_by_mac
-    get_an_app_example:get_an_app_example
-    get_an_app:get_an_app
-    get_live_credentials_example:get_live_credentials_example
-    get_live_credentials:get_live_credentials
-    get_sandbox_credentials_example:get_sandbox_credentials_example
-    get_sandbox_credentials:get_sandbox_credentials
-    live_credentials_example:live_credentials_example
-    live_credentials:live_credentials
-    loyalty_programs:loyalty_programs
-    member_validations_example:member_validations_example
-    member_validations:member_validations
-    sandbox_credentials_example:sandbox_credentials_example
-    sandbox_credentials:sandbox_credentials
+    account_credentials_example: account_credentials_example
+    account_credentials: account_credentials
+    accounts_example: accounts_example
+    accounts: accounts
+    apps_example: apps_example
+    apps: apps
+    create_a_credit_example: create_a_credit_example
+    create_a_credit: create_a_credit
+    create_a_debit_example: create_a_debit_example
+    create_a_debit: create_a_debit
+    create_a_mv_example: create_a_mv_example
+    create_a_mv: create_a_mv
+    create_account_credentials_example: create_account_credentials_example
+    create_account_credentials: create_account_credentials
+    create_an_account_example: create_an_account_example
+    create_an_account: create_an_account
+    create_an_app_example: create_an_app_example
+    create_an_app: create_an_app
+    credits_example: credits_example
+    credits: credits
+    debits_example: debits_example
+    debits: debits
+    delete_account_credentials_example: delete_account_credentials_example
+    delete_account_credentials: delete_account_credentials
+    documentation_overview: documentation_overview
+    get_a_credit_example: get_a_credit_example
+    get_a_credit: get_a_credit
+    get_a_debit_example: get_a_debit_example
+    get_a_debit: get_a_debit
+    get_a_mv_example: get_a_mv_example
+    get_a_mv: get_a_mv
+    get_account_credentials_example: get_account_credentials_example
+    get_account_credentials: get_account_credentials
+    get_an_account_example: get_an_account_example
+    get_an_account: get_an_account
+    get_an_app_by_mac_example: get_an_app_by_mac_example
+    get_an_app_by_mac: get_an_app_by_mac
+    get_an_app_example: get_an_app_example
+    get_an_app: get_an_app
+    get_live_credentials_example: get_live_credentials_example
+    get_live_credentials: get_live_credentials
+    get_sandbox_credentials_example: get_sandbox_credentials_example
+    get_sandbox_credentials: get_sandbox_credentials
+    live_credentials_example: live_credentials_example
+    live_credentials: live_credentials
+    loyalty_programs: loyalty_programs
+    member_validations_example: member_validations_example
+    member_validations: member_validations
+    sandbox_credentials_example: sandbox_credentials_example
+    sandbox_credentials: sandbox_credentials
+    getting_started: getting_started
 
   return Markdown
