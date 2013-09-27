@@ -39,7 +39,7 @@ define [
 
     buildNav: (obj, regularArticleNav, parent) ->
       if $(obj).is('h2')
-        $('#doc-navigation .nav').append tmplNavigation regularArticleNav
+        $(@elements.nav).append tmplNavigation regularArticleNav
       else
         $parentLink = $('a[href="#'+parent+'"]')
 
@@ -75,7 +75,7 @@ define [
       @regularArticle = $(tmplArticle content)
       @cleanUpAndCreateNav()
 
-      $('#documentation').append @regularArticle
+      $(@elements.doc).append @regularArticle
       @initProcess()
 
     init: ->

@@ -21,8 +21,8 @@ define [
 
     attachArticleAndNav: (id, parent) ->
       if parent is ''
-        $('#doc-navigation .nav').append tmplNavigation @oneArticle
-        $('#documentation').append tmplApiSection @oneArticle
+        $(@elements.nav).append tmplNavigation @oneArticle
+        $(@elements.doc).append tmplApiSection @oneArticle
         $('#section-'+id).append tmplApiArticle @oneArticle
       else
         $parentLink = $('a[href="#'+parent+'"]')

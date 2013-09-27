@@ -5,9 +5,9 @@ For Points Loyalty Commerce Platform - Version 1.0
 
 This document contains an in-depth description of the Points Loyalty Commerce
 Platform (LCP). You will find below descriptions of the platform,
-authentication, and error codes. This document assumes have read the LCP Getting
-Started Guide for Developers. For a detailed description of the API, see the LCP
-API Reference.
+authentication, and error codes. This document assumes have read the [LCP Getting
+Started Guide for Developers](index.html). For a detailed description of the API, see the [LCP
+API Reference](index.html?doc=api-reference).
 
 ## Sandbox vs Live
 
@@ -56,7 +56,8 @@ quickly and in the background so as not to delay processing of your requests.
 Since your requests typically hit the same data center, replication is generally
 invisible to your application. This characteristic of the LCP is called eventual
 consistency. For more background information on this topic please reference
-Eventually Consistent - Revisited.
+[Eventually Consistent -
+Revisited](http://www.allthingsdistributed.com/2008/12/eventually_consistent.html).
 
 In the unlikely event of a data center failing, the LCP will automatically
 failover to a secondary data center. This may result in recently created
@@ -68,23 +69,28 @@ to wait and resend your request to access recently created or modified data.
 ## Authorization
 
 The LCP uses OAuth 2.0 Message Authentication Code (MAC) Tokens to authenticate
-requests to the platform. This version of the LCP API matches draft 02 of the
-OAuth 2.0 MAC Token specification. We have provided a set of LCP Client
-Libraries to help you get started with OAuth 2.0 MAC authentication.
+requests to the platform. This version of the LCP API matches [draft 02 of the
+OAuth 2.0 MAC Token
+specification](http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02). We
+have provided a set of [LCP Client
+Libraries](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util)
+to help you get started with OAuth 2.0 MAC authentication.
 
 ### Types of Credentials
 
 There are three types of MAC credentials used in the LCP:
 
-1. Account credentials are used to authenticate you when accessing `/accounts` and
+1. [Account credentials](index.html?doc=api-reference#account-credentials) are
+   used to authenticate you when accessing `/accounts` and
    `/apps` resources. Account credentials are created automatically when you
    create an account.
-1. Sandbox credentials are used by your app to authenticate its requests to the
-   `/lps` resource in the sandbox environment. Sandbox credentials are created
-   automatically when you create an app.
-1. Live credentials are used by your app to authenticate its requests to the
-   `/lps` resource in the live environment. Live credentials are managed by
-   Points.
+1. [Sandbox credentials](index.html?doc=api-reference#sandbox-credentials) are
+   used by your app to authenticate its requests to the `/lps` resource in the
+   sandbox environment. Sandbox credentials are created automatically when you
+   create an app.
+1. [Live credentials](index.html?doc=api-reference#live-credentials) are used by
+   your app to authenticate its requests to the `/lps` resource in the live
+   environment. Live credentials are managed by Points.
 
 Each set of credentials include a MAC key identifier, a MAC key and a MAC
 algorithm. The MAC key identifier uniquely identifies the MAC key. The MAC key
@@ -100,10 +106,11 @@ to create the signature. It is always set to `HMAC-SHA1`.
       "macAlgorithm": "HMAC-SHA1"
     }
 
-NOTE: The MAC key is Base64 encoded using a URL-safe alphabet, which substitutes
-`-` instead of `+` and `_` instead of `/` in the standard Base64 alphabet. The
-MAC key also may not contain padding (represented with the `=` character). Prior
-to using the MAC key, decode it from Base64.
+NOTE: The MAC key is [Base64](http://tools.ietf.org/html/rfc4648) encoded using
+a URL-safe alphabet, which substitutes `-` instead of `+` and `_` instead of `/`
+in the standard Base64 alphabet. TheMAC key also may not contain padding
+(represented with the `=` character). Prior to using the MAC key, decode it from
+Base64.
 
 ### The Authorization Header
 
@@ -230,8 +237,9 @@ line):
   with the request body and hash it with SHA1.
 
 This normalized request string and the MAC key are fed into the HMAC-SHA1
-algorithm to obtained the binary MAC signature. The binary signature is Base64
-encoded for inclusion in the authorization header for the request.
+algorithm to obtained the binary MAC signature. The binary signature is
+[Base64](http://tools.ietf.org/html/rfc4648) encoded for inclusion in the
+[authorization header](#the-authorization-header) for the request.
 
 Here is an example of using the HMAC-SHA1 algorithm to generate the signature in Python:
 

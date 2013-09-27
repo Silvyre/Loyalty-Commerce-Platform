@@ -28,17 +28,21 @@ define [
         $(obj).fixTo $document, mind: el.header
 
     addTableWrapper: ->
-      $('#documentation').find('table').wrap '<div class="definitions" />'
+      $(@elements.doc).find('table').wrap '<div class="definitions" />'
 
     centerImages: ->
-      $('#documentation').find('img').parent().addClass('center')
+      $(@elements.doc).find('img').parent().addClass('center')
 
-    scrollToHash: ->
-      hash = window.location.hash
-
-      if hash isnt ''
+    scrollToHash: (hash, time) ->
+      if hash
         $('html, body').animate
-          scrollTop: $(hash).offset().top, 50
+          scrollTop: $(hash).offset().top, time
+
+    bindDocNavEvents: ->
+      $(@elements.nav).find('a').on 'click', (evt) =>
+        evt.preventDefault()
+        hash = $(evt.currentTarget).attr('href')
+        @scrollToHash(hash, 0)
 
     activateTopNav: ->
       if @doc is undefined
@@ -51,9 +55,24 @@ define [
       @centerImages()
       @initPrettyPrint()
       @initFixTo()
+      @activateTopNav()
+      @bindDocNavEvents()
 
       scrollSpy = new Scrollspy()
-      scrollSpy.init()
+      hash = window.location.hash
 
-      @scrollToHash()
-      @activateTopNav()
+      $imgs = $(@elements.doc).find 'img'
+      imgLength = $imgs.length
+      imgLoaded = 0
+
+      if imgLength is 0
+        scrollSpy.init()
+        @scrollToHash(hash, 50)
+      else
+        $imgs.on 'load', =>
+          imgLoaded++
+
+          if imgLoaded is imgLength
+            scrollSpy.init()
+            @scrollToHash(hash)
+
