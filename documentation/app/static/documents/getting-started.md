@@ -65,7 +65,7 @@ secure communication. When consuming APIs in the LCP, developers must use [OAuth
 02)](http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02) to authenticate
 themselves. [Utilities](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util)
 are available to simplify the request signing process.
-See the [Security](#heading=h.utp1iw8xn649) section of this document for more
+See the [Security](#security) section of this document for more
 details.
 
 ## Things You Should Know About Using the LCP
@@ -110,7 +110,7 @@ has a couple of benefits:
 
 **All requests include an HTTP Authorization header** to enable the LCP to
 validate the sender’s identity. [OAuth 2.0 Message Authentication Code (MAC)
-Tokens](http://www.google.com/url?q=http%3A%2F%2Ftools.ietf.org%2Fhtml%2Fdraft-ietf-oauth-v2-http-mac-02&sa=D&sntz=1&usg=AFQjCNGGyGvwlQukC7hK65FOmdUGkf9aHA)
+Tokens](http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02)
 are used to sign all requests to the LCP after you’ve created your account.
 OAuth 2.0 MAC is an evolving variant of OAuth 2.0.
 
@@ -292,7 +292,7 @@ this resource:
 
 To sign requests, you need to include an authorization header in your request.
 Building this header for OAuth 2.0 MAC is described in [Appendix A: Signing
-Requests](#heading=h.tnz4af2e6x7p). To get started faster, you can use the
+Requests](#appendix-a-signing-requests). To get started faster, you can use the
 `lcp_curl.py` Python script provided in the
 [utilities](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util).
 
@@ -711,5 +711,7 @@ your own module to sign requests.
         mac_key += '=' * (4 - len(mac_key) % 4)    mac_key = base64.urlsafe_b64decode(mac_key)    ## Step 6: Generate the signature    signature = hmac.new(mac_key, normalized_request_string, hashlib.sha1)    ## Step 7: Base64 encode the result    mac = base64.b64encode(signature.digest())
         ## Step 8: Build Authorization header
         return 'MAC id="{0}", ts="{1}", nonce="{2}", ext="{3}", mac="{4}"'.format(mac_key_identifier, ts, nonce, ext, mac)
+
+
 
 
