@@ -7,7 +7,7 @@ A debit is a transaction that takes points out of a loyalty program member’s a
 <table>
     <thead>
         <tr>
-            <th>Field</th>
+            <th>Name</th>
             <th>Description</th>
         </tr>
     </thead>
@@ -30,3 +30,5 @@ A debit is a transaction that takes points out of a loyalty program member’s a
         </tr>
     </tbody>
 </table>
+
+

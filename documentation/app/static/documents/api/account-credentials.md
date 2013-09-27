@@ -7,7 +7,7 @@ Account credentials authenticate you to perform actions on your developer accoun
 <table>
     <thead>
         <tr>
-            <th>Field</th>
+            <th>Name</th>
             <th>Description</th>
         </tr>
     </thead>
@@ -22,7 +22,11 @@ Account credentials authenticate you to perform actions on your developer accoun
         </tr>
         <tr>
             <td>macKeyIdentifier</td>
-            <td>The MAC key identifier uniques identifies the MAC key. The MAC key identifier is sent with each request to tell the server which MAC key was used to sign the request.</td>
+            <td>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier is sent with each request to tell the server which MAC key was used to sign the request.</td>
         </td>
     </tbody>
 </table>
+
+
+
+

@@ -7,7 +7,7 @@ Apps allow you to communicate with one or more loyalty programs. Apps are stored
 <table>
     <thead>
         <tr>
-            <th>Field</th>
+            <th>Name</th>
             <th>Description</th>
         </tr>
     </thead>
@@ -30,3 +30,5 @@ Apps allow you to communicate with one or more loyalty programs. Apps are stored
         </tr>
     </tbody>
 </table>
+
+

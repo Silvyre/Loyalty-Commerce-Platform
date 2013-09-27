@@ -7,7 +7,7 @@ A member validation (MV) authenticates a member of a loyalty program and retriev
 <table>
     <thead>
         <tr>
-            <th>Field</th>
+            <th>Name</th>
             <th>Description</th>
         </tr>
     </thead>
@@ -34,3 +34,5 @@ A member validation (MV) authenticates a member of a loyalty program and retriev
         </tr>
     </tbody>
 </table>
+
+
