@@ -34,7 +34,7 @@ module.exports = function (grunt) {
         },
         files: [
           '<%= points.app %>/**/*.html',
-          '<%= points.app %>/{,*/}*.md',
+          '<%= points.static %>/documents/{,*/}*.md',
           '<%= points.static %>/styles/{,*/}*.css',
           '<%= points.static %>/scripts/{,*/}*.js',
           '<%= points.static %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}'
