@@ -28,7 +28,10 @@ define [
         $(obj).fixTo $document, mind: el.header
 
     addTableWrapper: ->
-      $('.content').find('table').wrap '<div class="definitions" />'
+      $('#documentation').find('table').wrap '<div class="definitions" />'
+
+    centerImages: ->
+      $('#documentation').find('img').parent().addClass('center')
 
     scrollToHash: ->
       hash = window.location.hash
@@ -45,6 +48,7 @@ define [
 
     initProcess: ->
       @addTableWrapper()
+      @centerImages()
       @initPrettyPrint()
       @initFixTo()
 
