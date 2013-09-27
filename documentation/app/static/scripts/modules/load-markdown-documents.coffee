@@ -50,6 +50,7 @@ define [
   "mdown!../../documents/api/sandbox-credentials-example.md"
   "mdown!../../documents/api/sandbox-credentials.md"
   "mdown!../../documents/getting-started.md"
+  "mdown!../../documents/reference-manual.md"
 ], (
   account_credentials_example
   account_credentials
@@ -102,6 +103,7 @@ define [
   sandbox_credentials_example
   sandbox_credentials
   getting_started
+  reference_manual
 ) ->
   Markdown =
     account_credentials_example: account_credentials_example
@@ -155,5 +157,6 @@ define [
     sandbox_credentials_example: sandbox_credentials_example
     sandbox_credentials: sandbox_credentials
     getting_started: getting_started
+    reference_manual: reference_manual
 
   return Markdown

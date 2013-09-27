@@ -1,17 +1,13 @@
 
-LCP Getting Started Guide for Developers
+# LCP Getting Started Guide for Developers
 
 For Points Loyalty Commerce Platform - Version 1.0 Beta 1
 
-# Table of Contents
-
-[[TOC]]
-
-# Document Overview
+## Document Overview
 
 The purpose of this document is to provide a beginner’s guide to the Points Loyalty Commerce Platform (LCP). You will find below an introduction to the LCP, things you need to know before you get started and a step-by-step guide on how to use the APIs to check member balances. To accomplish this, this document will introduce you to the /accounts, /apps and /lps resources that are exposed in the API. The sample code provided uses [cURL](http://en.wikipedia.org/wiki/CURL) to communicate with the LCP. For a more detailed description of the LCP and its capabilities see the [LCP Reference Manual](https://docs.google.com/a/points.com/document/d/1LQ2pZiJ_cYEhOyf1i8godGmiTrsokdu4Hzas6sP9n6g/) and the [LCP API Reference](https://docs.google.com/a/points.com/document/d/1UYwUiw1v9kP-TGLIJkjr5N7hFTiFBBij9N8vb4ncZNo/).
 
-# Introducing the Loyalty Commerce Platform API
+## Introducing the Loyalty Commerce Platform API
 
 The LCP's capabilities are exposed to developers through a [RESTful web API](https://en.wikipedia.org/wiki/Representational_state_transfer#RESTful_web_APIs). The API consists of a set of resources that can be operated on using standard HTTP methods. The top-level resources in the LCP are accounts, apps, and lps.
 
@@ -33,19 +29,19 @@ Some actions can be performed on the collection of resources, while others must 
 
 All request and response payloads are [UTF8](http://en.wikipedia.org/wiki/UTF8) encoded [JSON](http://en.wikipedia.org/wiki/JSON). [HTTPS](http://en.wikipedia.org/wiki/Https) is used for all requests to ensure secure communication. When consuming APIs in the LCP, developers must use [OAuth 2.0 Message Authentication Code (MAC) Tokens (draft 02)](http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02) to authenticate themselves. [Libraries](https://github.com/Points/Voyager/tree/master/libraries) are available in a variety of languages to simplify the request signing process. See the [Security](#heading=h.utp1iw8xn649) section of this document for more details.
 
-# Things You Should Know About Using the LCP
+## Things You Should Know About Using the LCP
 
 The Loyalty Commerce Platform (LCP) allows you to write apps that can access many loyalty programs. The LCP handles the complexity of working with each loyalty partner, creating one simple interface for working with any number of partners.
 
 ![image alt text](image_0.png)
 
-## Sandbox vs. Live Mode
+### Sandbox vs. Live Mode
 
 The LCP supports two different modes of operation: sandbox mode and live mode. During development, your application will operate in sandbox mode so that it doesn’t make changes to any loyalty program member’s account. In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. When you're ready to deploy your application, Points will promote your application to live mode.
 
 Sandbox mode is accessed through [https://sandbox.lcp.points.com](https://sandbox.lcp.points.com/) while live mode through [https://lcp.points.com](https://lcp.points.com). Each app has two sets of credentials to access the LCP: one set for sandbox mode and another set for live mode. When accessing the LCP in sandbox mode, the sandbox credentials must be used. When your app is promoted to live mode, Points will provide you with live mode credentials.
 
-## Security
+### Security
 
 This section describes things you will need to know about LCP security to get you started with building applications on the LCP.
 
@@ -101,7 +97,7 @@ The LCP defines 2 different types of credentials:
 
 If your credentials are compromised, you can create additional credentials and delete your existing credentials. See the [LCP API Reference](https://docs.google.com/a/points.com/document/d/1UYwUiw1v9kP-TGLIJkjr5N7hFTiFBBij9N8vb4ncZNo/) for details.
 
-## HATEOAS
+### HATEOAS
 
 HATEOAS or [Hypermedia as the Engine of Application State](http://en.wikipedia.org/wiki/HATEOAS) is a characteristic of REST APIs. In practical terms, it means each response from the LCP contains URLs to other resources that are relevant to the current resource. This helps makes the API discoverable and means you don’t need to know how to construct URLs to access the LCP platform after the first request. In addition, if resource locations are moved in a later version of the API, your application can automatically follow the new links without modification. All the information necessary to navigate the API is in the resource itself.
 
@@ -122,7 +118,7 @@ All links sections provided by the LCP contain a "self" link that represents a U
 
 Some calls also return a URL called "friendly" which contains a more user-friendly and readable URL to consume a particular resource.
 
-# Getting Started
+## Getting Started
 
 Now that you’ve read through some of the background information and familiarized yourself with some of the key principles, you’re ready to dive in. In this section you’ll find a set of steps needed to start working with the Loyalty Commerce Platform (LCP). By following these steps, you’ll have everything you’d need to to build a universal balance checker to retrieve member balances across multiple loyalty programs. The steps needed are:
 
@@ -134,7 +130,7 @@ Now that you’ve read through some of the background information and familiariz
 
 4. Perform a member validation (MV)
 
-## Create an Account
+### Create an Account
 
 In order to create a universal balance checker, your first step is to create an account. An account is your own personal developer account on the LCP system. It is tied to your email address and gives you access credentials to the LCP. It also enables you to create one or more applications that interface with the LCP.
 
@@ -173,7 +169,7 @@ HTTP/1.1 201 CREATED
 
 From this response data, it’s important to record the "accountCredentials" resource that is returned. These are your credentials for accessing your account and apps on the LCP. The macKey is a shared secret key between you and the platform. Keep it safe as you would for a private cryptographic key. It should never be shared with anyone or sent to the LCP.
 
-## Sign Requests
+### Sign Requests
 
 Now that you have an account and its credentials, all future requests to the LCP need to be signed with your MAC key. For example, let’s see what happens if we try to get the account created above:
 
@@ -234,7 +230,7 @@ HTTP/1.1 200 OK
 
 If you still received 401 unauthorized, check that your computer’s time is accurate or is synced with an internet time server. lcp_curl.py adds a timestamp to each request and the LCP verifies that the timestamp is within 30 seconds of the server’s time to prevent replay attacks.
 
-## Create an App
+### Create an App
 
 Now that we can sign requests, the next step in creating a universal balance checker is to create an application on the LCP. Apps are stored under the /apps endpoint. To create the application, POST the application name and description to **/**apps and sign the request with your account credentials.
 
@@ -279,7 +275,7 @@ HTTP/1.1 200 OK
   "macKeyIdentifier": "d8b9ca1904a348e491884a9c44843d25"
 }
 
-## Perform a Member Validation (MV)
+### Perform a Member Validation (MV)
 
 The final step in creating a universal balance checker is to retrieve the balance in a loyalty program member’s account. This is done by performing a member validation or MV. An MV authenticates a member of a loyalty program and retrieves their balance. Authenticating a member requires a specific set of fields, defined by the specific loyalty program you wish to communicate with. For example, some loyalty programs may require a member ID and password, while others require a member ID, last name and password. To keep things simple for now, the LCP currently only interacts with loyalty programs that require first name, last name and member ID.
 
@@ -362,7 +358,7 @@ Congratulations, you’ve successfully performed a member validation. This is al
 
 To learn more about the capabilities of the LCP, including moving points in and out of member accounts, refer to the [LCP Reference Manual](https://docs.google.com/a/points.com/document/d/1LQ2pZiJ_cYEhOyf1i8godGmiTrsokdu4Hzas6sP9n6g/) and the [LCP API Reference](https://docs.google.com/a/points.com/document/d/1UYwUiw1v9kP-TGLIJkjr5N7hFTiFBBij9N8vb4ncZNo/).
 
-# Appendix A: Signing Requests
+## Appendix A: Signing Requests
 
 This appendix contains the a step-by-step guide for signing requests with OAuth 2.0 MAC tokens as well as sample code. Follow these steps if you want to write your own module to sign requests.
 
@@ -416,7 +412,7 @@ Authorization: MAC id="97ee420faaa343d4a04b7378b319b48b",
                    ext="",
                    mac="fNDgr0NduMKd6/T/lgPw7Fc6NFs="
 
-**Example C# code:**
+**Example C## code:**
 
 using System.Security.Cryptography;
 
@@ -503,13 +499,13 @@ def generate_authorization_header_value(
         else:
             port = httplib.HTTP_PORT
 
-    # Step 1: Generate timestamp 
+    ## Step 1: Generate timestamp 
     ts = str(int(time.time()))
 
-    # Step 2: Generate nonce
+    ## Step 2: Generate nonce
     nonce = base64.b64encode(os.urandom(8))
 
-    # Step 3: Generate ext
+    ## Step 3: Generate ext
     if content_type is not None and body is not None and len(content_type) > 0 and len(body) > 0:
         content_type_plus_body = content_type + body
         content_type_plus_body_hash = hashlib.sha1(content_type_plus_body)
@@ -517,7 +513,7 @@ def generate_authorization_header_value(
     else:
         ext = ""
 
-    # Step 4: Build normalized request string
+    ## Step 4: Build normalized request string
     normalized_request_string = (
         ts + '\n' +
         nonce + '\n' +
@@ -528,10 +524,10 @@ def generate_authorization_header_value(
         ext + '\n'
     )
 
-    # Step 5: Base64 decode the MAC key from URL-safe alphabet
-    # and add padding if needed
-    mac_key += '=' * (4 - len(mac_key) % 4)    mac_key = base64.urlsafe_b64decode(mac_key)    # Step 6: Generate the signature    signature = hmac.new(mac_key, normalized_request_string, hashlib.sha1)    # Step 7: Base64 encode the result    mac = base64.b64encode(signature.digest())
-    # Step 8: Build Authorization header
+    ## Step 5: Base64 decode the MAC key from URL-safe alphabet
+    ## and add padding if needed
+    mac_key += '=' * (4 - len(mac_key) % 4)    mac_key = base64.urlsafe_b64decode(mac_key)    ## Step 6: Generate the signature    signature = hmac.new(mac_key, normalized_request_string, hashlib.sha1)    ## Step 7: Base64 encode the result    mac = base64.b64encode(signature.digest())
+    ## Step 8: Build Authorization header
     return 'MAC id="{0}", ts="{1}", nonce="{2}", ext="{3}", mac="{4}"'.format(mac_key_identifier, ts, nonce, ext, mac)
 
 

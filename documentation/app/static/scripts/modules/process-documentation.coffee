@@ -38,7 +38,10 @@ define [
           scrollTop: $(hash).offset().top, 50
 
     activateTopNav: ->
-      if @doc isnt undefined then $('a[href="index.html?doc='+@doc).parent().addClass 'active'
+      if @doc is undefined
+        $('#lcp-nav').find('li:first').addClass 'active'
+      else
+        $('a[href="index.html?doc='+@doc).parent().addClass 'active'
 
     initProcess: ->
       @addTableWrapper()
