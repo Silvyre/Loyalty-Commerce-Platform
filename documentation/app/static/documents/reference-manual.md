@@ -73,7 +73,7 @@ requests to the platform. This version of the LCP API matches [draft 02 of the
 OAuth 2.0 MAC Token
 specification](http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02). We
 have provided a set of [LCP Client
-Libraries](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util)
+Utilities](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util)
 to help you get started with OAuth 2.0 MAC authentication.
 
 ### Types of Credentials
@@ -471,3 +471,5 @@ Each link has an href property that contains the link. For example:
         }
       }
     }
+
+
