@@ -21,4 +21,6 @@ Retrieves the details of an existing app.
 
 #### Returns
 
-The app object if it exists, otherwise returns an error.
+The app object if it exists, otherwise returns an [error](index.html?doc=reference-manual#errors).
+
+

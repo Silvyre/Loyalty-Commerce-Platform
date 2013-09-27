@@ -21,4 +21,6 @@ Account credentials are automatically created when you create your account. Howe
 
 #### Returns
 
-The account credentials object if it was created successfully. Returns an error if you are not authorized to create new account credentials on this account.
+The account credentials object if it was created successfully. Returns an [error](index.html?doc=reference-manual#errors) if you are not authorized to create new account credentials on this account.
+
+

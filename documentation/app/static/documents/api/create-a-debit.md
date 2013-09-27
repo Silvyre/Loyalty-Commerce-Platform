@@ -1,6 +1,6 @@
 ### Create a Debit
 
-Create a debit object to attempt to deduct points from a loyalty program member's account. A debit first requires a successful member validation that has not been used previously with another transaction. To create a new debit, POST a link to the member validation and the amount to deduct from the member's account under the debits endpoint for the loyalty program. Requests must be signed with your app's credentials.
+Create a debit object to attempt to deduct points from a loyalty program member's account. A debit first requires a successful [member validation](#member-validations) that has not been used previously with another transaction. To create a new debit, POST a link to the member validation and the amount to deduct from the member's account under the debits endpoint for the loyalty program. Requests must be signed with your app's credentials.
 
 In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a debit.
 
@@ -32,4 +32,6 @@ In sandbox mode, the LCP never communicates with the loyalty program. All operat
 
 #### Returns
 
-The debit object if it was created successfully. Returns an error if the member validation is not valid or if the amount is greater than the balance in the member validation.
+The debit object if it was created successfully. Returns an [error](index.html?doc=reference-manual#errors) if the member validation is not valid or if the amount is greater than the balance in the member validation.
+
+

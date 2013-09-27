@@ -24,4 +24,6 @@ Retrieves an existing set of sandbox credentials.
 
 #### Returns
 
-The sandbox credentials object if it exists and you're authorized to access it, otherwise returns an error.
+The sandbox credentials object if it exists and you're authorized to access it, otherwise returns an [error](index.html?doc=reference-manual#errors).
+
+

@@ -41,4 +41,6 @@ In this version of the API, the list of LPs is fixed and your app cannot get the
     </tbody>
 </table>
 
-Use the LP IDs above when performing member validations (MVs), debits, and credits on the loyalty programs.
+Use the LP IDs above when performing [member validations (MVs)](#member-validations), [debits](#debits), and [credits](#credits) on the loyalty programs.
+
+

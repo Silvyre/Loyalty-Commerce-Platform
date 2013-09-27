@@ -1,6 +1,6 @@
 ### Create a Credit
 
-Create a credit object to attempt to add points to a loyalty program member's account. A credit first requires a successful member validation that has not been used previously with another transaction. To create a new credit, POST a link to the member validation and the amount to add to the member's account under the credits endpoint for the loyalty program. Requests must be signed with your app's credentials.
+Create a credit object to attempt to add points to a loyalty program member's account. A credit first requires a successful [member validation](#member-validations) that has not been used previously with another transaction. To create a new credit, POST a link to the member validation and the amount to add to the member's account under the credits endpoint for the loyalty program. Requests must be signed with your app's credentials.
 
 In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a credit.
 
@@ -32,4 +32,8 @@ In sandbox mode, the LCP never communicates with the loyalty program. All operat
 
 #### Returns
 
-The credit object if it was created successfully. Returns an error if the member validation is not valid.
+The credit object if it was created successfully. Returns an [error](index.html?doc=reference-manual#errors) if the member validation is not valid.
+
+
+
+

@@ -1,6 +1,6 @@
 ### Delete Account Credentials
 
-If your account credentials have been compromised or if you no longer wish to use one of them, you can delete them. However, you must have at least one set of account credentials. You cannot delete your only set. If you want to replace your current set of credentials, first create a new set of credentials before deleting your current set.
+If your account credentials have been compromised or if you no longer wish to use one of them, you can delete them. However, you must have at least one set of account credentials. You cannot delete your only set. If you want to replace your current set of credentials, first [create a new set of credentials](#create-account-credentials) before deleting your current set.
 
 #### Parameters
 
@@ -25,4 +25,8 @@ If your account credentials have been compromised or if you no longer wish to us
 
 #### Returns
 
-HTTP status code 204 (No Content) if successful. Otherwise, returns an error.
+HTTP status code 204 (No Content) if successful. Otherwise, returns an [error](index.html?doc=reference-manual#errors).
+
+
+
+

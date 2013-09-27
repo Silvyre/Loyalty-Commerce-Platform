@@ -25,4 +25,6 @@ Retrieves the details of a previous credit. This retrieves a historical record o
 
 #### Returns
 
-The credit object if it exists, otherwise returns an error.
+The credit object if it exists, otherwise returns an [error](index.html?doc=reference-manual#errors).
+
+

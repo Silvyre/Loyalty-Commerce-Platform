@@ -25,4 +25,6 @@ Retrieves the details of a previous MV. This retrieves the MV and member's balan
 
 #### Returns
 
-The MV object if it exists, otherwise returns an error.
+The MV object if it exists, otherwise returns an [error](index.html?doc=reference-manual#errors).
+
+
