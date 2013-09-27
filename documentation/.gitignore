@@ -6,3 +6,4 @@ app/static/scripts/*.js
 app/static/scripts/*.map
 app/static/scripts/*/*.js
 app/static/scripts/*/*.map
+.DS_Store
