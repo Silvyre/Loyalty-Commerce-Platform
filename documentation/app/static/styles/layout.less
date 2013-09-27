@@ -96,10 +96,6 @@ html, body {
 @media (max-width: @screen-sm-max) {
 
   #documentation {
-    .dark-bg {
-      display: none;
-    }
-
     .for-humans {
       width: 100%;
     }
@@ -119,6 +115,27 @@ html, body {
 
   #documentation {
     margin-left: 0;
+  }
+
+  .one-markdown {
+    padding: 20px;
+
+    img {
+      max-width: 100%;
+    }
+  }
+
+  .content-one-md {
+    margin: 0;
+
+    pre {
+      padding: 10px 20px;
+      overflow: auto;
+    }
+
+    .document {
+      padding: 5px 0;
+    }
   }
 
 }

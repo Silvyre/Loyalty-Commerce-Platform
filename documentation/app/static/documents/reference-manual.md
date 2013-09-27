@@ -184,37 +184,31 @@ line):
   <tbody>
     <tr>
       <td>
-        <pre>
-Timestamp\n
-Nonce\n
-HTTP Method (all caps)\n
-Path\n
-Hostname\n
-Port\n
-Extension\n
-        </pre>
+        Timestamp\n<br>
+        Nonce\n<br>
+        HTTP Method (all caps)\n<br>
+        Path\n<br>
+        Hostname\n<br>
+        Port\n<br>
+        Extension\n<br>
       </td>
       <td>
-        <pre>
-1377721336\n
-4FvtoumTybo=\n
-GET\n
-/v1/apps/\n
-lcp.points.com\n
-443\n
-\n
-        </pre>
+        1377721336\n<br>
+        4FvtoumTybo=\n<br>
+        GET\n<br>
+        /v1/apps/\n<br>
+        lcp.points.com\n<br>
+        443\n<br>
+        \n<br>
       </td>
       <td>
-        <pre>
-1377724146\n
-u8BNUfE5Gu8=\n
-POST\n
-/v1/apps/\n
-lcp.points.com\n
-443\n
-a9d46382c97bd4b0475b5b152dddaf2d61c0a30d\n
-        </pre>
+        1377724146\n<br>
+        u8BNUfE5Gu8=\n<br>
+        POST\n<br>
+        /v1/apps/\n<br>
+        lcp.points.com\n<br>
+        443\n<br>
+        a9d46382c97bd4b0475b5b152dddaf2d61c0a30d\n<br>
       </td>
     </tr>
   </tbody>

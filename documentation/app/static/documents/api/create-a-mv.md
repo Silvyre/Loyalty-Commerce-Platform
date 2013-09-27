@@ -25,7 +25,7 @@ Authenticating a member requires a specific set of fields, defined by the specif
         <tr>
             <td>lastName</td>
             <td><p>The last name of the loyalty program member.</p>
-                <p>Sandbox mode: To simulate a non-zero balance, append a space and a positive integer to the lastName field. For example, to simulate a balance of 2000 for John Doe, set lastName to âDoe 2000â.</p></td>
+                <p>Sandbox mode: To simulate a non-zero balance, append a space and a positive integer to the lastName field. For example, to simulate a balance of 2000 for John Doe, set lastName to "Doe 2000".</p></td>
         </tr>
         <tr>
             <td>memberId</td>
