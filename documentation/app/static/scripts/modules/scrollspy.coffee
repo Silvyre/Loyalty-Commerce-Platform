@@ -25,7 +25,7 @@ define ['bootstrap.scrollspy'], (__scrollSpy) ->
         # Remove the ID from the DOM to prevent the window from scrolling as
         # hash in the URL is being changed
         $dom.attr('id','')
-        window.location.hash = hash
+        location.replace(hash)
         # Then add the ID back into the DOM from where it was removed
         $dom.attr('id',id)
 
