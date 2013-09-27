@@ -1,7 +1,5 @@
-
-# LCP Getting Started Guide for Developers
-
-For Points Loyalty Commerce Platform - Version 1.0 Beta 1
+# LCP Getting Started Guide
+For Points Loyalty Commerce Platform - Version 1.0
 
 ## Document Overview
 
@@ -28,36 +26,36 @@ HTTP methods. The top-level resources in the LCP are accounts, apps, and lps.
 under /accounts. Once you create your account you can access it at
 `/accounts/<account-id>`
 
-**Apps** - Your apps are stored under the `/apps` endpoint. Each app will be given
+**Apps** - Your apps are stored under the /apps endpoint. Each app will be given
 a unique ID under `/apps`.
 
 **LPs** - Loyalty programs (LPs) are stored under /lps. Each LP will have it’s
-own ID under /lps.
+own ID under `/lps`.
 
 Some actions can be performed on the collection of resources, while others must
 be performed on individual resources. Resources can be created, read, updated,
 and deleted using standard HTTP methods.
 
 **POST** - Used to create a resource by sending resource data to the collection.
-If successful, returns a 201 (Created) status code with a Location header that
+If successful, returns a `201 (Created)` status code with a Location header that
 specifies the location of the newly created resource. All method parameters must
 be passed as part of request body using JSON.
 
 **GET** - Used to retrieve a resource from the LCP. This operation is
 [idempotent](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.1.2) and
 has no side effects from submitting the same request multiple times. If
-successful, returns a 200 (OK) status code with the resource content.
+successful, returns a `200 (OK)` status code with the resource content.
 
 **PUT** - Used to update an existing resource. This operation is
 [idempotent](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.1.2) and
 has no side effects from submitting the same request multiple times. If
-successful, returns a 200 (OK) status code with the resource content. All method
+successful, returns a `200 (OK)` status code with the resource content. All method
 parameters must be passed as part of request body using JSON.
 
 **DELETE** - Used to delete a resource. This operation is
 [idempotent](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.7) and
 has no side effects from submitting same request multiple times. If successful,
-returns a 204 (No Content) status code with an empty response body.
+returns a `204 (No Content)` status code with an empty response body.
 
 All request and response payloads are [UTF8](http://en.wikipedia.org/wiki/UTF8)
 encoded [JSON](http://en.wikipedia.org/wiki/JSON).
@@ -104,10 +102,13 @@ you started with building applications on the LCP.
 **All requests to and responses from the LCP are made using HTTPS.** Using HTTPS
 has a couple of benefits:
 
-1. HTTPS protects network traffic from eavesdropping by encrypting all traffic to and from the LCP so that only the sender and receiver are able to read requests and responses. 
-1. HTTPS permits clients to verify the identity of the server to ensure the correct server is receiving its requests.
+1. HTTPS protects network traffic from eavesdropping by encrypting all traffic
+   to and from the LCP so that only the sender and receiver are able to read
+   requests and responses.
+1. HTTPS permits clients to verify the identity of the server to ensure the
+   correct server is receiving its requests.
 
-**All requests include an HTTP Authorization header **to enable the LCP to
+**All requests include an HTTP Authorization header** to enable the LCP to
 validate the sender’s identity. [OAuth 2.0 Message Authentication Code (MAC)
 Tokens](http://www.google.com/url?q=http%3A%2F%2Ftools.ietf.org%2Fhtml%2Fdraft-ietf-oauth-v2-http-mac-02&sa=D&sntz=1&usg=AFQjCNGGyGvwlQukC7hK65FOmdUGkf9aHA)
 are used to sign all requests to the LCP after you’ve created your account.
@@ -139,9 +140,9 @@ MAC key and a MAC algorithm. Below is an example of a JSON document representing
 the credentials for use with MAC authentication.
 
     {
-        "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b",
-        "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",
-        "macAlgorithm": "HMAC-SHA1"
+      "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b",
+      "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",
+      "macAlgorithm": "HMAC-SHA1"
     }
 
 The MAC key identifier uniquely identifies the MAC key. The MAC key identifier
@@ -157,16 +158,15 @@ The LCP defines 2 different types of credentials:
   - Account credentials authenticate you to perform actions on your developer account.
   - A set of account credentials is created automatically when you create your developer account.
   - Account credentials are the same for both sandbox and live mode.
-  - They are available at /accounts/<account-id>.
+  - They are available at `/accounts/<account-id>`.
   - They are used to sign requests to /accounts and /apps.
-
 1. **Application credentials**
   - Application credentials authenticate your app to perform actions on the LCP.
   - Each app has two sets of application credentials: one for sandbox mode and one for live mode.
   - A set of sandbox credentials is created automatically when you create an app.
   - Live credentials are created by Points when your app is promoted to live mode.
-  - Application credentials are available at /apps/<app-id>.
-  - They are used to sign requests to /lps.
+  - Application credentials are available at `/apps/<app-id>`.
+  - They are used to sign requests to `/lps`.
 
 If your credentials are compromised, you can create additional credentials and
 delete your existing credentials. See the [LCP API
@@ -190,14 +190,14 @@ This property contains URLs that help you consume further resources within the
 LCP REST API. For example:
 
     {
-       "links": {
-          "self": {
-             "href": "https://lcp.points.com/v1beta1/accounts/1234"
-          },
-          "friendly": {
-             "href": "https://lcp.points.com/v1beta1/accounts/email@company.com"
-          }
-       }
+      "links": {
+        "self": {
+          "href": "https://lcp.points.com/v1/accounts/1234"
+        },
+        "friendly": {
+          "href": "https://lcp.points.com/v1/accounts/email@company.com"
+        }
+      }
     }
 
 All links sections provided by the LCP contain a "self" link that represents a
@@ -227,36 +227,36 @@ account. An account is your own personal developer account on the LCP system. It
 is tied to your email address and gives you access credentials to the LCP. It
 also enables you to create one or more applications that interface with the LCP.
 
-To create your developer account, POST to the /accounts resource with your email
+To create your developer account, `POST` to the `/accounts` resource with your email
 address:
 
     curl -v -X POST -H "Content-Type: application/json" \
     -d '{"email": "youremail@yourcompany.com"}' \
-    https://lcp.points.com/v1beta1/accounts/
+    https://lcp.points.com/v1/accounts/
 
 If the above request is successful, the LCP will respond with the following:
 
     HTTP/1.1 201 CREATED
     {
-      "accountCredentials":[
+      "accountCredentials": [
         {
           "links": {
             "self": {
-              "href": "https://lcp.points.com/v1beta1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5/account-credentials/63ac7619-0073-4aa7-a996-0acae9f9bfb9"
+              "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5/account-credentials/63ac7619-0073-4aa7-a996-0acae9f9bfb9"
             }
           },
-          "macAlgorithm":"HMAC-SHA1",
-          "macKey":"NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",
-          "macKeyIdentifier":"97ee420faaa343d4a04b7378b319b48b"
+          "macAlgorithm": "HMAC-SHA1",
+          "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",
+          "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b"
         }
       ],
-      "email":"youremail@yourcompany.com",
-      "links":{
-        "friendly":{
-    "href":"https://lcp.points.com/v1beta1/accounts/youremail%40yourcompany.com"
-        }
-        "self":{
-    "href":"https://lcp.points.com/v1beta1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5"
+      "email": "youremail@yourcompany.com",
+      "links": {
+        "friendly": {
+          "href": "https://lcp.points.com/v1/accounts/youremail%40yourcompany.com"
+        },
+        "self": {
+          "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5"
         }
       }
     }
@@ -274,7 +274,7 @@ need to be signed with your MAC key. For example, let’s see what happens if we
 try to get the account created above:
 
     curl -v \
-    https://lcp.points.com/v1beta1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5
+    https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5
 
 The server returns a 401 status code indicating you are not authorized to access
 this resource:
@@ -302,44 +302,46 @@ generate the MAC signature and the authorization header. It passes all other
 arguments on to curl. Let’s try to get the account resource again using
 `lcp_curl.py`:
 
-    lcp_curl.py -v -u \ 97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \
-    https://lcp.points.com/v1beta1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5
+    lcp_curl.py -v -u \
+    97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \
+    https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5
 
 `lcp_curl.py` generates the MAC signature, builds the authorization header, and
 includes it in a call to curl:
 
     curl -v -H \
-    'Authorization: MAC id="97ee420faaa343d4a04b7378b319b48b", ts="1379540931", nonce="5zuky2vOeG4=", ext="", mac="fNDgr0NduMKd6/T/lgPw7Fc6NFs="' \ https://lcp.points.com/v1beta1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5
+    'Authorization: MAC id="97ee420faaa343d4a04b7378b319b48b", ts="1379541939", nonce="OK3HY80lkQ0=", ext="", mac="EmYShgBbKjp7XB3gbZq9e0zZy+8="' \
+    https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5
 
 Now the account resource is returned in full:
 
     HTTP/1.1 200 OK
     {
-      "accountCredentials":[
+      "accountCredentials": [
         {
           "links": {
             "self": {
-              "href": "https://lcp.points.com/v1beta1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5/account-credentials/63ac7619-0073-4aa7-a996-0acae9f9bfb9"
+              "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5/account-credentials/63ac7619-0073-4aa7-a996-0acae9f9bfb9"
             }
           },
-          "macAlgorithm":"HMAC-SHA1"
-          "macKey":"NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",
-          "macKeyIdentifier":"97ee420faaa343d4a04b7378b319b48b",
+          "macAlgorithm": "HMAC-SHA1",
+          "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",
+          "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b",
         }
       ],
-      "email":"youremail@yourcompany.com",
-      "links":{
-        "friendly":{
-    "href":"https://lcp.points.com/v1beta1/accounts/youremail%40yourcompany.com"
-        }
-        "self":{
-    "href":"https://lcp.points.com/v1beta1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5"
+      "email": "youremail@yourcompany.com",
+      "links": {
+        "friendly": {
+          "href": "https://lcp.points.com/v1/accounts/youremail%40yourcompany.com"
+        },
+        "self": {
+          "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5"
         },
       }
     }
 
 If you still received 401 unauthorized, check that your computer’s time is
-accurate or is synced with an internet time server. lcp_curl.py adds a timestamp
+accurate or is synced with an internet time server. `lcp_curl.py` adds a timestamp
 to each request and the LCP verifies that the timestamp is within 30 seconds of
 the server’s time to prevent replay attacks.
 
@@ -347,11 +349,13 @@ the server’s time to prevent replay attacks.
 
 Now that we can sign requests, the next step in creating a universal balance
 checker is to create an application on the LCP. Apps are stored under the /apps
-endpoint. To create the application, POST the application name and description
-to **/**apps and sign the request with your account credentials.
+endpoint. To create the application, `POST` the application name and description
+to `/apps` and sign the request with your account credentials.
 
-    lcp_curl.py -v -u \ 97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \ -X POST -d '{"name": "UBC", "description": "Universal balance checker"}' \
-    https://lcp.points.com/v1beta1/apps/
+    lcp_curl.py -v -u \
+    97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \
+    -X POST -d '{"name": "UBC", "description": "Universal balance checker"}' \
+    https://lcp.points.com/v1/apps/
 
 This creates the app and returns the following JSON response that contains the
 app name and description you provided.
@@ -361,13 +365,13 @@ app name and description you provided.
       "description": "Universal balance checker",
       "links": {
         "self": {
-          "href": "https://lcp.points.com/v1beta1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc"
+          "href": "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc"
         }
       },
       "liveCredentials": [],
       "name": "UBC",
       "sandboxCredentials": [
-    "https://lcp.points.com/v1beta1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"
+    "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"
       ]
     }
 
@@ -381,8 +385,9 @@ credentials from Points.
 
 We’re going to need the app’s sandbox credentials, so let’s get them now:
 
-    lcp_curl.py -v -u \ 97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \
-    "https://lcp.points.com/v1beta1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"
+    lcp_curl.py -v -u \
+    97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \
+    "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"
 
 This returns the sandbox credentials for the app:
 
@@ -390,7 +395,7 @@ This returns the sandbox credentials for the app:
     {
       "links": {
         "self": {
-          "href": "https://lcp.points.com/v1beta1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"
+          "href": "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"
         }
       },
       "macAlgorithm": "HMAC-SHA1",
@@ -406,13 +411,14 @@ member validation or MV. An MV authenticates a member of a loyalty program and
 retrieves their balance. Authenticating a member requires a specific set of
 fields, defined by the specific loyalty program you wish to communicate with.
 For example, some loyalty programs may require a member ID and password, while
-others require a member ID, last name and password. To keep things simple for
+others require a member ID, last name, and password. To keep things simple for
 now, the LCP currently only interacts with loyalty programs that require first
-name, last name and member ID.
+name, last name, and member ID or first name, last name, member ID, and
+password.
 
-In the beta timeframe, there is no way for your app to get a list of the loyalty
-programs that are supported. Here is the list of loyalty programs that are
-accessible in the beta:
+In the current version of the LCP, there is no way for your app to get a list of
+the loyalty programs that are supported. Here is the list of loyalty programs
+that are accessible in this version:
 
 <table>
   <thead>
@@ -455,12 +461,14 @@ accessible in the beta:
 
 For example, to perform a member validation for Southwest in sandbox mode, POST
 to
-[https://sandbox.lcp.points.com/v1beta1/lps/1814ce64-0c56-411a-989a-a6b0e7cec03b/mvs/](https://sandbox.lcp.points.com/v1beta1/lps/1814ce64-0c56-411a-989a-a6b0e7cec03b/mvs/)
+[https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/](https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/)
 with the member’s first name, last name, and member ID and sign the request
 using your app’s sandbox credentials:
 
-    lcp_curl.py -v -X POST -u \ d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \ -d '{"firstName": "John", "lastName": "Doe", "memberId": "1234"}' \
-    "https://sandbox.lcp.points.com/v1beta1/lps/1814ce64-0c56-411a-989a-a6b0e7cec03b/mvs/"
+    lcp_curl.py -v -X POST -u \
+    d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \
+    -d '{"firstName": "John", "lastName": "Doe", "memberId": "1234"}' \
+    "https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/"
 
 Since there is no member named John Doe with member ID 1234 in the sandbox, the
 LCP returns an error:
@@ -480,8 +488,10 @@ program, we have provided a way to simulate a successful member validation. To
 simulate a successful member validation, provide the loyalty program’s partner
 ID from the table above in place of the member ID:
 
-    lcp_curl.py -v -X POST -u \ d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \ -d '{"firstName": "John", "lastName": "Doe", "memberId": "fEMi"}' \
-    "https://sandbox.lcp.points.com/v1beta1/lps/1814ce64-0c56-411a-989a-a6b0e7cec03b/mvs/"
+    lcp_curl.py -v -X POST -u \
+    d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \
+    -d '{"firstName": "John", "lastName": "Doe", "memberId": "OfMq"}' \
+    "https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/"
 
 This creates a successful MV:
 
@@ -492,18 +502,20 @@ This creates a successful MV:
       "lastName": "Doe",
       "links": {
         "self": {
-          "href": "https://sandbox.lcp.points.com/v1beta1/lps/1814ce64-0c56-411a-989a-a6b0e7cec03b/mvs/1261b5f814d011e382d152540006e04e"
+          "href": "https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/1261b5f814d011e382d152540006e04e"
         }
       },
-      "memberId": "fEMi"
+      "memberId": "OfMq"
     }
 
 The points balance is always zero in sandbox mode since it does not communicate
 with the loyalty program. To simulate a non-zero balance, add the desired
 balance to the lastName field:
 
-    lcp_curl.py -v -X POST -u \ d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \ -d '{"firstName": "John", "lastName": "Doe 2000", "memberId": "fEMi"}' \
-    "https://sandbox.lcp.points.com/v1beta1/lps/1814ce64-0c56-411a-989a-a6b0e7cec03b/mvs/"
+    lcp_curl.py -v -X POST -u \
+    d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \
+    -d '{"firstName": "John", "lastName": "Doe 2000", "memberId": "OfMq"}' \
+    "https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/"
 
 The balance is now 2000:
 
@@ -514,10 +526,10 @@ The balance is now 2000:
       "lastName": "Doe 2000",
       "links": {
         "self": {
-          "href": "https://sandbox.lcp.points.com/v1beta1/lps/1814ce64-0c56-411a-989a-a6b0e7cec03b/mvs/fe3e1a4e14cf11e38f68525400a02ac6"
+          "href": "https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/fe3e1a4e14cf11e38f68525400a02ac6"
         }
       },
-      "memberId": "fEMi"
+      "memberId": "OfMq"
     }
 
 You can retrieve a previous MV by performing a GET on the self link. This
@@ -549,45 +561,38 @@ your own module to sign requests.
    Content-Type header (e.g. "application/json") with the request body and hash
    it with SHA1.
 1. Build the normalized request string as follows:
-
-        Format
-        GET Example
-        POST ExampleTimestamp\n
-        Nonce\n
-        HTTP Method (all caps)\n
-        Path\n
-        Hostname\n
-        Port\n
-        Extension\n
-        1377721336\n
-        4FvtoumTybo=\n
-        GET\n
-        /v1beta1/apps/\n
-        lcp.points.com\n
-        443\n
-        \n
-        1377724146\n
-        u8BNUfE5Gu8=\n
-        POST\n
-        /v1beta1/apps/\n
-        lcp.points.com\n
-        443\n
-        a9d46382c97bd4b0475b5b152dddaf2d61c0a30d\n
-
-1. Decode the MAC key from Base64 if you haven’t already. The MAC key is encoded in Base64 using a URL-safe alphabet. You may need to add padding to the MAC key to decode it.
-1. Generate the signature by using the HMAC-SHA1 algorithm and the MAC key over the normalized request string.
-1. Encode the signature in Base64. You do not need to use the URL-safe alphabet.
-1. Generate the authorization header for the request.
+<table>
+  <thead>
+    <tr>
+      <th>Format</th>
+      <th>GET Example</th>
+      <th>POST Example</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><pre>Timestamp\n<br>Nonce\n<br>HTTP Method (all caps)\n<br>Path\n<br>Hostname\n<br>Port\n<br>Extension\n</pre></td>
+      <td><pre>1377721336\n<br>4FvtoumTybo=\n<br>GET\n<br>/v1/apps/\n<br>lcp.points.com\n<br>443\n<br>\n</pre></td>
+      <td><pre>1377724146\n<br>u8BNUfE5Gu8=\n<br>POST\n<br>/v1/apps/\n<br>lcp.points.com\n<br>443\n<br>a9d46382c97bd4b0475b5b152dddaf2d61c0a30d\n</pre></td>
+    </tr>
+  </tbody>
+</table>
+<ol start="5">
+  <li>Decode the MAC key from Base64 if you haven’t already. The MAC key is encoded in Base64 using a URL-safe alphabet. You may need to add padding to the MAC key to decode it.</li>
+  <li>Generate the signature by using the HMAC-SHA1 algorithm and the MAC key over the normalized request string.</li>
+  <li>Encode the signature in Base64. You do not need to use the URL-safe alphabet.</li>
+  <li>Generate the authorization header for the request.</li>
+</ol>
 
 #### Example request:
 
-    GET /v1beta1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5 HTTP/1.1
+    GET /v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5 HTTP/1.1
     Host: lcp.points.com
     Authorization: MAC id="97ee420faaa343d4a04b7378b319b48b",
-                       ts="1379540931",
-                       nonce="5zuky2vOeG4=",
+                       ts="1379541939",
+                       nonce="OK3HY80lkQ0=",
                        ext="",
-                       mac="fNDgr0NduMKd6/T/lgPw7Fc6NFs="
+                       mac="EmYShgBbKjp7XB3gbZq9e0zZy+8="
 
 #### Example C## code:
 
@@ -706,4 +711,3 @@ your own module to sign requests.
         mac_key += '=' * (4 - len(mac_key) % 4)    mac_key = base64.urlsafe_b64decode(mac_key)    ## Step 6: Generate the signature    signature = hmac.new(mac_key, normalized_request_string, hashlib.sha1)    ## Step 7: Base64 encode the result    mac = base64.b64encode(signature.digest())
         ## Step 8: Build Authorization header
         return 'MAC id="{0}", ts="{1}", nonce="{2}", ext="{3}", mac="{4}"'.format(mac_key_identifier, ts, nonce, ext, mac)
-

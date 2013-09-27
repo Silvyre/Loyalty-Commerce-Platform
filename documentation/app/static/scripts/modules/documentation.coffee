@@ -12,7 +12,7 @@ define [
 
   class Documentation extends ApiDocumentation
     groupHtml = (obj, el) ->
-      id = $(obj).text().replace(/[\. ,():-]+/g, '-').toLowerCase()
+      id = $(obj).text().replace(/[\. ,#():-]+/g, '-').toLowerCase()
       $set = $()
       $set.push obj
       next = obj.nextSibling
@@ -56,7 +56,7 @@ define [
         groupHtml obj, 'h3'
 
       @regularArticle.find('h2, h3').each (i, obj) =>
-        id = $(obj).text().replace(/[\. ,():-]+/g, '-').toLowerCase()
+        id = $(obj).text().replace(/[\. ,#():-]+/g, '-').toLowerCase()
         title = $(obj).text()
         parent = $(obj).parents('section').attr('id').replace('section-', '')
 

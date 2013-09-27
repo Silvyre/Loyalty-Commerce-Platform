@@ -7,7 +7,7 @@ This document contains an in-depth description of the Points Loyalty Commerce
 Platform (LCP). You will find below descriptions of the platform,
 authentication, and error codes. This document assumes have read the LCP Getting
 Started Guide for Developers. For a detailed description of the API, see the LCP
-API Reference.
+API Reference.
 
 ## Sandbox vs Live
 
@@ -76,14 +76,14 @@ Libraries to help you get started with OAuth 2.0 MAC authentication.
 
 There are three types of MAC credentials used in the LCP:
 
-1. Account credentials are used to authenticate you when accessing /accounts and
-   /apps resources. Account credentials are created automatically when you
+1. Account credentials are used to authenticate you when accessing `/accounts` and
+   `/apps` resources. Account credentials are created automatically when you
    create an account.
 1. Sandbox credentials are used by your app to authenticate its requests to the
-   /lps resource in the sandbox environment. Sandbox credentials are created
+   `/lps` resource in the sandbox environment. Sandbox credentials are created
    automatically when you create an app.
 1. Live credentials are used by your app to authenticate its requests to the
-   /lps resource in the live environment. Live credentials are managed by
+   `/lps` resource in the live environment. Live credentials are managed by
    Points.
 
 Each set of credentials include a MAC key identifier, a MAC key and a MAC
@@ -92,7 +92,7 @@ identifier is sent with each request to tell the server which MAC key was used
 to sign the request. The MAC key is the shared secret key. It should never be
 shared with anyone or transmitted in any request. Keep this key secure as you
 would any private key. Finally, the MAC algorithm describes the algorithm used
-to create the signature. It is always set to HMAC-SHA1.
+to create the signature. It is always set to `HMAC-SHA1`.
 
     {
       "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b",
