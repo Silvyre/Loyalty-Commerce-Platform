@@ -63,8 +63,8 @@ encoded [JSON](http://en.wikipedia.org/wiki/JSON).
 secure communication. When consuming APIs in the LCP, developers must use [OAuth
 2.0 Message Authentication Code (MAC) Tokens (draft
 02)](http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02) to authenticate
-themselves. [Libraries](https://github.com/Points/Voyager/tree/master/libraries)
-are available in a variety of languages to simplify the request signing process.
+themselves. [Utilities](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util)
+are available to simplify the request signing process.
 See the [Security](#heading=h.utp1iw8xn649) section of this document for more
 details.
 
@@ -132,8 +132,8 @@ limited support at this time. This version of the LCP complies with [draft 02 of
 the OAuth 2.0 MAC
 standard](http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02). When
 using this scheme it is highly recommended that you use one of the [LCP Client
-Libraries](https://github.com/Points/Voyager/tree/master/libraries) to issue
-platform requests because these libraries will compute MACs for you.
+Utilities](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util) to issue
+platform requests because these utilities will compute MACs for you.
 
 The credentials required for MAC authentication include a MAC key identifier, a
 MAC key and a MAC algorithm. Below is an example of a JSON document representing
@@ -294,7 +294,7 @@ To sign requests, you need to include an authorization header in your request.
 Building this header for OAuth 2.0 MAC is described in [Appendix A: Signing
 Requests](#heading=h.tnz4af2e6x7p). To get started faster, you can use the
 `lcp_curl.py` Python script provided in the
-[libraries](https://github.com/Points/Voyager/tree/master/libraries).
+[utilities](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util).
 
 `lcp_curl.py` is a wrapper around curl to add the MAC authorization header. It
 requires a -u parameter with your macKeyIdentifier and macKey, which it uses to
@@ -711,3 +711,5 @@ your own module to sign requests.
         mac_key += '=' * (4 - len(mac_key) % 4)    mac_key = base64.urlsafe_b64decode(mac_key)    ## Step 6: Generate the signature    signature = hmac.new(mac_key, normalized_request_string, hashlib.sha1)    ## Step 7: Base64 encode the result    mac = base64.b64encode(signature.digest())
         ## Step 8: Build Authorization header
         return 'MAC id="{0}", ts="{1}", nonce="{2}", ext="{3}", mac="{4}"'.format(mac_key_identifier, ts, nonce, ext, mac)
+
+
