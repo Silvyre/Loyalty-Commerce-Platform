@@ -75,7 +75,7 @@ many loyalty programs. The LCP handles the complexity of working with each
 loyalty partner, creating one simple interface for working with any number of
 partners.
 
-![Getting Started](static/images/getting-started.jpg)
+<!--- ![Getting Started](static/images/getting-started.jpg) -->
 
 ### Sandbox vs. Live Mode
 
@@ -420,6 +420,7 @@ In the current version of the LCP, there is no way for your app to get a list of
 the loyalty programs that are supported. Here is the list of loyalty programs
 that are accessible in this version:
 
+<! ---
 <table>
   <thead>
     <tr>
@@ -457,6 +458,7 @@ that are accessible in this version:
     </tr>
   </tbody>
 </table>
+-->
 
 
 For example, to perform a member validation for Southwest in sandbox mode, POST
