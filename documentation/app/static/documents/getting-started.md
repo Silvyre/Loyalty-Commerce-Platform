@@ -417,10 +417,10 @@ name, last name, and member ID or first name, last name, member ID, and
 password.
 
 In the current version of the LCP, there is no way for your app to get a list of
-the loyalty programs that are supported. Here is the list of loyalty programs
-that are accessible in this version:
+the loyalty programs that are supported. <!--- Here is the list of loyalty programs
+that are accessible in this version:-->
 
-<! ---
+<!---
 <table>
   <thead>
     <tr>
