@@ -1,15 +1,23 @@
+@import 'documentation/nav.less';
 
 #documentation {
   background: @gray-lighter;
   font-size: 1.2em;
   line-height: 1.8em;
+  position: relative;
+  margin-left: 200px;
 
   .dark-bg {
-    background: @color-code-bg;
     display: none;
 
     .api-docs & {
+      background: @color-code-bg;
       display: block;
+      position: absolute;
+      height: 100%;
+      width: 50%;
+      right: 0;
+      z-index: 10;
     }
   }
 
@@ -33,25 +41,9 @@
       border-radius: none;
     }
   }
-}
 
-.one-markdown {
-  background: #fff;
-  border-left: solid 1px #bbb;
-  border-right: solid 1px #bbb;
-
-  pre {
-    border-radius: 5px;
-  }
-
-  table {
-    margin-bottom: 1.8em;
-    width: 100%;
-
-    th, td {
-      border: solid 1px #ccc;
-      padding: 10px;
-    }
+  h4 {
+    margin: 1em 0;
   }
 }
 
@@ -59,86 +51,14 @@
   text-align: center;
 }
 
-.content-one-md {
-  border-bottom: solid 1px rgba(0,0,0,0.2);
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.content {
-  border-top: solid 1px rgba(255,255,255,0.1);
-  border-bottom: solid 1px rgba(0,0,0,0.4);
-  position: relative;
-
-  // Create border effect just for the lighter "for human" side
-  &:after {
-    content: '';
-    border-top: solid 1px #fff;
-    width: 50%;
-    position: absolute;
-    top: -1px;
-  }
-
-  &:before {
-    content: '';
-    border-top: solid 1px #d2d2d2;
-    position: absolute;
-    width: 50%;
-    top: -2px;
-  }
-}
-
-.for-machines {
-  color: #fff;
-  text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
-}
-
-.document {
-  h4 {
-    margin: 1em 0;
-  }
-}
-
-.api-docs .definitions {
-  border-top: solid 1px #d2d2d2;
-  border-bottom: solid 1px #d2d2d2;
-  padding: 10px 0;
-  margin-bottom: 2em;
-
-  table {
-    width: 100%;
-
-    td, th {
-      padding: 10px 5px;
-      vertical-align: top;
-      text-align: left;
-
-      &:first-child {
-        width: 140px;
-        text-align: right;
-        font-weight: bold;
-      }
-    }
-
-    th {
-      border-bottom: solid 1px #e2e2e2;
-      padding: 15px 5px 5px 5px;
-    }
-  }
-}
-
 @media (max-width: @screen-md-max) {
-
   #documentation {
     font-size: 1.4em;
+    margin-left: 0;
   }
-
 }
 
 @media (max-width: @screen-sm-max) {
-
   #documentation {
     font-size: 1.6em;
 
@@ -148,25 +68,7 @@
       }
     }
   }
-
-  .content {
-    &:after, &:before {
-      width: 100%;
-    }
-
-    &:before {
-      width: 100%;
-    }
-  }
-
-  .definitions {
-    table {
-      td, th {
-        &:first-child {
-          width: auto;
-        }
-      }
-    }
-  }
-
 }
+
+@import 'documentation/one-document.less';
+@import 'documentation/api-documents.less';

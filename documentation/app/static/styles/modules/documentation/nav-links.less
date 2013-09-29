@@ -1,0 +1,27 @@
+a {
+  display: block;
+  padding: 7px 15px;
+  text-decoration: none;
+  border-bottom: solid 1px @gray-lighter;
+
+  &:hover {
+    background: @gray-lighter;
+  }
+
+  &:active {
+    background: @gray-light;
+    color: #fff;
+  }
+}
+
+.active {
+  @color-points-blue-dark: darken(@color-points-blue, 30%);
+  > a {
+    .box-sizing(border-box);
+    font-weight: bold;
+    color: #fff;
+    #gradient .vertical(@color-points-blue, @color-points-blue-dark);
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+    border-bottom: @color-points-blue-dark;
+  }
+}
