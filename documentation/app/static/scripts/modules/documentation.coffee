@@ -25,7 +25,7 @@ define [
           break
 
       if el is 'h2'
-        $set.wrapAll '<section id="section-'+id+'" class="content-one-md" />'
+        $set.wrapAll '<section id="section-'+id+'" class="documents" />'
       else
         $set.wrapAll '<article class="document" id="'+id+'">'
 
@@ -35,7 +35,6 @@ define [
       results = regex.exec location.search
 
       decodeURIComponent(results[1].replace(/\+/g, " ")) if results isnt null
-
 
     buildNav: (obj, regularArticleNav, parent) ->
       if $(obj).is('h2')
@@ -65,7 +64,6 @@ define [
           title: title
 
         @buildNav(obj, regularArticleNav, parent)
-
 
     loadDoc: (doc) ->
       id = doc.replace(/\-/g, '_')

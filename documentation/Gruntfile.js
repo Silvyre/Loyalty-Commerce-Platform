@@ -25,7 +25,7 @@ module.exports = function (grunt) {
         tasks: ['coffee:dev']
       },
       styles: {
-        files: ['<%= points.static %>/styles/{,*/}*.less'],
+        files: ['<%= points.static %>/styles/**/*.less'],
         tasks: ['less:dev']
       },
       livereload: {

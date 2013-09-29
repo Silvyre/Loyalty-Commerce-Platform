@@ -46,7 +46,7 @@ define [
       @attachArticleAndNav(id, parent)
 
     loadApiDocs: ->
-      $('body').addClass 'api-docs'
+      $('body').addClass 'api-page'
       $.each documents.articles, (i, article) =>
 
         id = article.id.replace(/\-/g, '_')
