@@ -45,6 +45,49 @@
   h4 {
     margin: 1em 0;
   }
+
+  table {
+    display: block;
+  }
+
+  .list-from-table {
+    display: none;
+
+    padding: 0;
+
+    li {
+      padding: 0;
+      margin: 0 0 1.8em;
+      list-style-type: none;
+    }
+
+    dl {
+      .clearfix();
+      margin: 0;
+
+      dt {
+        font-weight: bold;
+        float: left;
+        text-align: right;
+        position: relative;
+        width: 100px;
+        margin-right: -100px;
+        margin-bottom: 10px;
+        word-wrap: break-word;
+        z-index: 50;
+        clear: left;
+      }
+
+      dd {
+        width: 100%;
+        padding-left: 110px;
+        float: left;
+        .box-sizing(border-box);
+        z-index: 25;
+        margin: 0 0 10px;
+      }
+    }
+  }
 }
 
 .center {
@@ -65,6 +108,19 @@
     .dark-bg {
       .api-page & {
         display: none;
+      }
+    }
+
+    table {
+      display: none;
+    }
+
+    .list-from-table {
+      display: block;
+
+      dl {
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
       }
     }
   }
