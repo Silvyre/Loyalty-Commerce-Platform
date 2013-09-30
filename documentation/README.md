@@ -17,9 +17,9 @@ of the documentation are created in Markdown and then converted into HTML.
 1. Download a copy of the `gh-pages` branch (this is where the build of the
    static files go into):
 
-      git clone git@github.com:Points/Loyalty-Commerce-Platform.git dist
-      cd dist
-      git checkout gh-pages
+         git clone git@github.com:Points/Loyalty-Commerce-Platform.git dist
+         cd dist
+         git checkout gh-pages
 
 ## Usage
 
