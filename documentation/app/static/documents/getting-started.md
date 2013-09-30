@@ -75,7 +75,7 @@ many loyalty programs. The LCP handles the complexity of working with each
 loyalty program, creating one simple interface for working with any number of
 programs.
 
-![Getting Started](static/images/getting-started.jpg)
+![Getting Started](static/images/getting-started.png)
 
 ### Sandbox vs. Live Mode
 
@@ -673,6 +673,10 @@ your own module to sign requests.
         mac_key += '=' * (4 - len(mac_key) % 4)    mac_key = base64.urlsafe_b64decode(mac_key)    ## Step 6: Generate the signature    signature = hmac.new(mac_key, normalized_request_string, hashlib.sha1)    ## Step 7: Base64 encode the result    mac = base64.b64encode(signature.digest())
         ## Step 8: Build Authorization header
         return 'MAC id="{0}", ts="{1}", nonce="{2}", ext="{3}", mac="{4}"'.format(mac_key_identifier, ts, nonce, ext, mac)
+
+
+
+
 
 
 
