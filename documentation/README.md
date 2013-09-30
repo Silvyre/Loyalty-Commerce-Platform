@@ -30,3 +30,9 @@ of the documentation are created in Markdown and then converted into HTML.
 - Any single markdown file can be loaded by creating a markdown file within the
   `app/static/documentation/` folder and then loading it via the URL:
   http://localhost:9000/index.html?doc=[your-markdown-filename]
+
+## Deploy
+
+The tool benefits from using [Github pages](http://pages.github.com/). Simply go
+into the `dist` folder and push your changes into Git. This folder should be a
+separate checkout of the repository in the `gh-pages` branch.
