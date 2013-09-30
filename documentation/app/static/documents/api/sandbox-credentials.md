@@ -1,6 +1,6 @@
 ## Sandbox Credentials
 
-Sandbox credentials authenticate your app to perform actions on the LCP. A set of sandbox credentials is created automatically when you create your app. App credentials are different for sandbox and live mode. Sandbox credentials are available at /apps/<app-id>/sandbox-credentials and are used to sign requests to /lps.
+Sandbox credentials authenticate your app to perform actions on the LCP. A set of sandbox credentials is created automatically when you create your app. App credentials are different for sandbox and live mode. Sandbox credentials are available at `/apps/<app-id>/sandbox-credentials` and are used to sign requests to `/lps`.
 
 #### Properties
 
@@ -26,6 +26,8 @@ Sandbox credentials authenticate your app to perform actions on the LCP. A set o
         </tr>
     </tbody>
 </table>
+
+
 
 
 

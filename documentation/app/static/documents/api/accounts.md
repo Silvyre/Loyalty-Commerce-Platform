@@ -14,7 +14,7 @@ An account is your own personal developer account on the LCP system. It is tied 
     <tbody>
         <tr>
             <td>accountCredentials</td>
-            <td>An array of account credential objects that can be used to access this account.</td>
+            <td>An array of <a href="#account-credentials">account credential</a> objects that can be used to access this account.</td>
         </tr>
         <tr>
             <td>email</td>
@@ -22,6 +22,12 @@ An account is your own personal developer account on the LCP system. It is tied 
         </tr>
     </tbody>
 </table>
+
+
+
+
+
+
 
 
 

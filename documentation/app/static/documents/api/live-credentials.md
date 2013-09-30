@@ -1,6 +1,6 @@
 ## Live Credentials
 
-Live credentials authenticate your app to perform actions on the LCP in live mode. App credentials are different for sandbox and live mode. Live credentials are created by Points when your app is promoted to live mode. Live credentials are available at /apps/<app-id>/live-credentials and are used to sign requests to /lps in live mode. You cannot create or delete live credentials.
+Live credentials authenticate your app to perform actions on the LCP in live mode. App credentials are different for sandbox and live mode. Live credentials are created by Points when your app is promoted to live mode. Live credentials are available at `/apps/<app-id>/live-credentials` and are used to sign requests to `/lps` in live mode. You cannot create or delete live credentials.
 
 #### Properties
 
@@ -26,6 +26,8 @@ Live credentials authenticate your app to perform actions on the LCP in live mod
         </tr>
     </tbody>
 </table>
+
+
 
 
 

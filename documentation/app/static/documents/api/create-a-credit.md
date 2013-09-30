@@ -16,12 +16,12 @@ In sandbox mode, the LCP never communicates with the loyalty program. All operat
     <tbody>
         <tr>
             <td>lp-id</td>
-            <td>The identifier of the loyalty program (LP).</td>
+            <td>The identifier of the <a href="#loyalty-programs">loyalty program</a> (LP).</td>
         </tr>
         <tr>
             <td>amount</td>
             <td><p>The number of points to add to the member's account. Must be a positive integer.</p>
-            <p>Sandbox mode: To simulate a failed credit, set the amount to 99.</p></td>
+            <p><strong>Sandbox mode</strong>: To simulate a failed credit, set the amount to 99.</p></td>
         </tr>
         <tr>
             <td>memberValidation</td>
@@ -33,6 +33,10 @@ In sandbox mode, the LCP never communicates with the loyalty program. All operat
 #### Returns
 
 The credit object if it was created successfully. Returns an [error](index.html?doc=reference-manual#errors) if the member validation is not valid.
+
+
+
+
 
 
 

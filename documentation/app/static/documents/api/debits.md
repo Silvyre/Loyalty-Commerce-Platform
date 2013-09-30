@@ -1,6 +1,6 @@
 ## Debits
 
-A debit is a transaction that takes points out of a loyalty program member’s account. Creating a debit object triggers the removal of points. A record of the debit is kept that can later be retrieved. A debit requires a member validation that has not been previously used for another transaction. Debits are stored for each loyalty program under /lps/<lp-id>/debits/.
+A debit is a transaction that takes points out of a loyalty program member’s account. Creating a debit object triggers the removal of points. A record of the debit is kept that can later be retrieved. A debit requires a member validation that has not been previously used for another transaction. Debits are stored for each loyalty program under `/lps/<lp-id>/debits/`.
 
 #### Properties
 
@@ -30,5 +30,9 @@ A debit is a transaction that takes points out of a loyalty program member’s a
         </tr>
     </tbody>
 </table>
+
+
+
+
 
 

@@ -1,6 +1,6 @@
 ### Get an App by MAC Key Identifier
 
-If you don't remember your app's ID, you can also retrieve it by querying the /apps endpoint with your app's MAC key identifier.
+If you don't remember your app's ID, you can also retrieve it by querying the `/apps` endpoint with your app's MAC key identifier.
 
 #### Parameters
 
@@ -22,3 +22,5 @@ If you don't remember your app's ID, you can also retrieve it by querying the /a
 #### Returns
 
 A list of apps. If an app was found with the given MAC key identifier, the app is included in the list. Otherwise, the list is empty. The returned app object does not include links to live and sandbox credentials. Get the self link to retrieve links to your app's credentials.
+
+
