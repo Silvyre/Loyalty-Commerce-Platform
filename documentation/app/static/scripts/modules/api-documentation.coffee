@@ -25,7 +25,7 @@ define [
         $(@elements.doc).append tmplApiSection @oneArticle
         $('#section-'+id).append tmplApiArticle @oneArticle
       else
-        $parentLink = $('a[href="#'+parent+'"]')
+        $parentLink = $(@elements.nav).find('a[href="#'+parent+'"]')
 
         if $parentLink.parent().children('ul').length is 0
           $parentLink.parent().append '<ul />'
