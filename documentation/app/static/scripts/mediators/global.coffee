@@ -10,4 +10,7 @@ define ['jquery', 'modules/documentation'], ($, Documentation) ->
         machines: '.for-machines'
 
     documentation.init()
+    documentation.initScrollSpy()
+    documentation.bindHeaderNavEvents()
+    documentation.bindPopstate()
 

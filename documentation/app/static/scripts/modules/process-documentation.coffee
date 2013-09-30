@@ -27,6 +27,37 @@ define [
         $document = $(obj).parents '.document'
         $(obj).fixTo $document, mind: el.header
 
+    destroyFixTo: ->
+      el = @elements
+
+      $(el.header).fixTo 'destroy'
+      $(el.nav).fixTo 'destroy'
+
+    initScrollSpy: ->
+      scrollSpy = new Scrollspy()
+      hash = window.location.hash
+
+      $imgs = $(@elements.doc).find 'img'
+      imgLength = $imgs.length
+    initScrollSpy: ->
+      scrollSpy = new Scrollspy()
+      hash = window.location.hash
+
+      $imgs = $(@elements.doc).find 'img'
+      imgLength = $imgs.length
+      imgLoaded = 0
+
+      if imgLength is 0
+        scrollSpy.init()
+        @scrollToHash(hash, 50)
+      else
+        $imgs.on 'load', =>
+          imgLoaded++
+
+          if imgLoaded is imgLength
+            scrollSpy.init()
+            @scrollToHash(hash)
+
     addTableWrapper: ->
       $(@elements.doc).find('table').wrap '<div class="definitions" />'
 
@@ -40,24 +71,45 @@ define [
 
     bindHeaderNavEvents: ->
       $(@elements.header).find('a').on 'click', (evt) =>
-        evt.preventDefault()
+        if history.pushState
+          evt.preventDefault()
 
-        $ct = $(evt.currentTarget)
-        currentUrl = $(@elements.header).find('.active a').attr 'href'
-        url = $ct.attr 'href'
-        title = $ct.text
+          $ct = $(evt.currentTarget)
+          currentUrl = $(@elements.header).find('.active a').attr 'href'
+          url = $ct.attr 'href'
+          title = $ct.text
+
+          $(@elements.header).find('li').removeClass 'active'
+          $ct.parent().addClass 'active'
+          $('body').removeClass 'api-page'
+
+          history.pushState(url: currentUrl, title, url)
+
+          $(@elements.nav).empty()
+          $(@elements.doc).empty()
+          window.scrollTo(0,0)
+
+          @destroyFixTo()
+          @init()
+          $('body').scrollspy 'refresh'
+
+    bindPopstate: ->
+      $activeLink = $(@elements.header).find('a[href="'+url+'"]')
+      title = $activeLink.text()
+      url = $activeLink.attr 'href'
+      history.pushState(url: url, title, url)
+
+      $(window).on 'popstate', (evt) =>
+        url = evt.originalEvent.state.url
 
         $(@elements.header).find('li').removeClass 'active'
-        $ct.parent().addClass 'active'
         $('body').removeClass 'api-page'
-
-        history.replaceState(url: currentUrl, title, url)
-
         $(@elements.nav).empty()
         $(@elements.doc).empty()
-        window.scrollTo(0,0)
 
+        @destroyFixTo()
         @init()
+        $('body').scrollspy 'refresh'
 
     bindDocNavEvents: ->
       $(@elements.nav).find('a').on 'click', (evt) =>
@@ -113,23 +165,3 @@ define [
       @initFixTo()
       @activateTopNav()
       @bindDocNavEvents()
-      @bindHeaderNavEvents()
-
-      scrollSpy = new Scrollspy()
-      hash = window.location.hash
-
-      $imgs = $(@elements.doc).find 'img'
-      imgLength = $imgs.length
-      imgLoaded = 0
-
-      if imgLength is 0
-        scrollSpy.init()
-        @scrollToHash(hash, 50)
-      else
-        $imgs.on 'load', =>
-          imgLoaded++
-
-          if imgLoaded is imgLength
-            scrollSpy.init()
-            @scrollToHash(hash)
-
