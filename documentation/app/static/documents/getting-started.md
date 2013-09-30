@@ -531,8 +531,8 @@ your own module to sign requests.
   </thead>
   <tbody>
     <tr>
-      <td>>Timestamp\n<br>Nonce\n<br>HTTP Method (all caps)\n<br>Path\n<br>Hostname\n<br>Port\n<br>Extension\n</td>
-      <td>1377721336\n<br>4FvtoumTybo=\n<br>GET\n<br>/v1/apps/\n<br>lcp.points.com\n<br>443\n<br>\n></td>
+      <td>Timestamp\n<br>Nonce\n<br>HTTP Method (all caps)\n<br>Path\n<br>Hostname\n<br>Port\n<br>Extension\n</td>
+      <td>1377721336\n<br>4FvtoumTybo=\n<br>GET\n<br>/v1/apps/\n<br>lcp.points.com\n<br>443\n<br>\n</td>
       <td>1377724146\n<br>u8BNUfE5Gu8=\n<br>POST\n<br>/v1/apps/\n<br>lcp.points.com\n<br>443\n<br>a9d46382c97bd4b0475b5b152dddaf2d61c0a30d\n</td>
     </tr>
   </tbody>

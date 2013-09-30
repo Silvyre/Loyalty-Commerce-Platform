@@ -27,6 +27,12 @@ define [
         $document = $(obj).parents '.document'
         $(obj).fixTo $document, mind: el.header
 
+    destroyFixTo: ->
+      el = @elements
+
+      $(el.header).fixTo 'destroy'
+      $(el.nav).fixTo 'destroy'
+
     addTableWrapper: ->
       $(@elements.doc).find('table').wrap '<div class="definitions" />'
 
@@ -38,11 +44,51 @@ define [
         $('html, body').animate
           scrollTop: $(hash).offset().top, time
 
+    bindHeaderNavEvents: ->
+      $(@elements.header).find('a').on 'click', (evt) =>
+        evt.preventDefault()
+
+        $ct = $(evt.currentTarget)
+        currentUrl = $(@elements.header).find('.active a').attr 'href'
+        url = $ct.attr 'href'
+        title = $ct.text
+
+        $(@elements.header).find('li').removeClass 'active'
+        $ct.parent().addClass 'active'
+        $('body').removeClass 'api-page'
+
+        history.pushState(url: currentUrl, title, url)
+
+        $(@elements.nav).empty()
+        $(@elements.doc).empty()
+        window.scrollTo(0,0)
+
+        @destroyFixTo()
+        @init()
+
     bindDocNavEvents: ->
       $(@elements.nav).find('a').on 'click', (evt) =>
         evt.preventDefault()
         hash = $(evt.currentTarget).attr('href')
         @scrollToHash(hash, 0)
+
+    bindPopstate: ->
+      $activeLink = $(@elements.header).find('.active a')
+      currentUrl = $activeLink.attr 'href'
+      title = $activeLink.text()
+
+      history.pushState(url: currentUrl, title, currentUrl)
+
+      $(window).on 'popstate', (evt) =>
+        $(@elements.header).find('li').removeClass 'active'
+        $('body').removeClass 'api-page'
+
+        $(@elements.nav).empty()
+        $(@elements.doc).empty()
+        window.scrollTo(0,0)
+
+        @destroyFixTo()
+        @init()
 
     activateTopNav: ->
       if @doc is undefined
@@ -92,6 +138,8 @@ define [
       @initFixTo()
       @activateTopNav()
       @bindDocNavEvents()
+      # @bindHeaderNavEvents()
+      # @bindPopstate()
 
       scrollSpy = new Scrollspy()
       hash = window.location.hash

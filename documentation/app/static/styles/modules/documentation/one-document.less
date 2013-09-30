@@ -6,30 +6,6 @@
   border-left: solid 1px #bbb;
   border-right: solid 1px #bbb;
 
-  pre {
-    border-radius: 5px;
-  }
-
-  table {
-    margin-bottom: 1.8em;
-    width: 100%;
-
-    th, td {
-      border: solid 1px #ccc;
-      padding: 10px;
-      overflow: scroll;
-    }
-
-    th {
-      background: #ddd;
-      border: solid 1px #aaa;
-    }
-
-    tr:nth-child(2n) {
-      background: @gray-lighter;
-    }
-  }
-
   > h1, > p {
     padding: 0 30px;
   }
@@ -46,20 +22,42 @@
 
   pre {
     padding: 20px;
+    border-radius: 5px;
+    .box-shadow(inset 0 0 12px rgba(0,0,0,0.8));
   }
 
   p, ul, ol, pre {
     margin-bottom: 1.8em;
   }
 
-  .document {
-    padding: 20px 0 0;
-  }
-
   ul, ol {
     ul, ol, p {
       margin-bottom: 10px;
     }
+  }
+
+  table {
+    margin-bottom: 1.8em;
+    width: 100%;
+
+    th, td {
+      border: solid 1px #ccc;
+      padding: 10px;
+      overflow: auto;
+    }
+
+    th {
+      background: #ddd;
+      border: solid 1px #aaa;
+    }
+
+    tr:nth-child(2n) {
+      background: @gray-lighter;
+    }
+  }
+
+  .document {
+    padding: 20px 0 0;
   }
 }
 

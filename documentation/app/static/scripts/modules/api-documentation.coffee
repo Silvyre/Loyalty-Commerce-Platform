@@ -47,6 +47,8 @@ define [
 
     loadApiDocs: ->
       $('body').addClass 'api-page'
+      $('#documentation').html '<div class="dark-bg" />'
+
       $.each documents.articles, (i, article) =>
 
         id = article.id.replace(/\-/g, '_')
