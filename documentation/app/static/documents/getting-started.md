@@ -7,7 +7,7 @@ The purpose of this document is to provide a beginner’s guide to the Points
 Loyalty Commerce Platform (LCP). You will find below an introduction to the LCP,
 things you need to know before you get started and a step-by-step guide on how
 to use the APIs to check member balances. To accomplish this, this document will
-introduce you to the /accounts, /apps and /lps resources that are exposed in the
+introduce you to the `/accounts`, `/apps` and `/lps` resources that are exposed in the
 API. The sample code provided uses [cURL](http://en.wikipedia.org/wiki/CURL) to
 communicate with the LCP. For a more detailed description of the LCP and its
 capabilities see the [LCP Reference
