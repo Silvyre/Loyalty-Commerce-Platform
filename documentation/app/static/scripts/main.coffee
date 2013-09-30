@@ -22,11 +22,11 @@ require.config
     'bootstrap.scrollspy' : '../components/bootstrap/js/scrollspy'
 
     # RequireJS Plugins
-    # 'async'               : '../components/requirejs-plugins/src/async'
     # 'font'                : '../components/requirejs-plugins/src/font'
     # 'goog'                : '../components/requirejs-plugins/src/goog'
     # 'image'               : '../components/requirejs-plugins/src/image'
     # 'noext'               : '../components/requirejs-plugins/src/noext'
+    'async'               : '../components/requirejs-plugins/src/async'
     'json'                : '../components/requirejs-plugins/src/json'
     'mdown'               : '../components/requirejs-plugins/src/mdown'
     'text'                : '../components/requirejs-plugins/lib/text'

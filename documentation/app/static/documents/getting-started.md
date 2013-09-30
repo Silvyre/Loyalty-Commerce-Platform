@@ -75,8 +75,6 @@ many loyalty programs. The LCP handles the complexity of working with each
 loyalty partner, creating one simple interface for working with any number of
 partners.
 
-<!--- ![Getting Started](static/images/getting-started.jpg) -->
-
 ### Sandbox vs. Live Mode
 
 The LCP supports two different modes of operation: sandbox mode and live mode.
@@ -417,53 +415,13 @@ name, last name, and member ID or first name, last name, member ID, and
 password.
 
 In the current version of the LCP, there is no way for your app to get a list of
-the loyalty programs that are supported. <!--- Here is the list of loyalty programs
-that are accessible in this version:-->
-
-<!---
-<table>
-  <thead>
-    <tr>
-      <th>Loyalty Program</th>
-      <th>Partner ID</th>
-      <th>MV Resource</th>
-    </tr>
-  </thead>
-  <tbody>
-  <tbody>
-    <tr>
-      <td>Delta</td>
-      <td>sNQC</td>
-      <td><code>/lps/505d8be5-bf28-4edd-b543-0d1cd064c7b5/mvs/</code></td>
-    </tr>
-    <tr>
-      <td>Southwest</td>
-      <td>OfMq</td>
-      <td><code>/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/</code></td>
-    </tr>
-    <tr>
-      <td>USAirways</td>
-      <td>UVmr</td>
-      <td><code>/lps/15946ac0-8cd0-4948-9f7e-6f96bee68bb3/mvs/</code></td>
-    </tr>
-    <tr>
-      <td>Virgin Atlantic</td>
-      <td>KtuR</td>
-      <td><code>/lps/15dc4d30-b1e6-42de-b7cb-3e3c12f10769/mvs/</code></td>
-    </tr>
-    <tr>
-      <td>Wyndham</td>
-      <td>YPyM</td>
-      <td><code>/lps/1a33c991-f51b-49a4-a853-dcb0db1a3e8f/mvs/</code></td>
-    </tr>
-  </tbody>
-</table>
--->
-
+the loyalty programs that are supported.
 
 For example, to perform a member validation for Southwest in sandbox mode, POST
-to
-[https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/](https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/)
+to:
+
+    https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/
+
 with the member’s first name, last name, and member ID and sign the request
 using your app’s sandbox credentials:
 

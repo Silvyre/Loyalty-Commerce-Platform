@@ -3,11 +3,13 @@ define [
   'jquery'
   'hbars!../../templates/navigation'
   'hbars!../../templates/article'
+  # 'text!/static/documents/tmp/getting-started.html'
 ], (
   ApiDocumentation
   $
   tmplNavigation
   tmplArticle
+  # gettingStartedHtml
 ) ->
 
   class Documentation extends ApiDocumentation

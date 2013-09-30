@@ -5,6 +5,8 @@ var lrSnippet = require('connect-livereload')({ port: LIVERELOAD_PORT });
 var mountFolder = function (connect, dir) {
   return connect.static(require('path').resolve(dir));
 };
+var cheerio = require('cheerio');
+var async = require('async');
 
 module.exports = function (grunt) {
   require('load-grunt-tasks')(grunt);
@@ -190,6 +192,81 @@ module.exports = function (grunt) {
           out: '<%= points.dist %>/static/scripts/app.js'
         }
       }
+    },
+    markdown: {
+      all: {
+        files: [{
+          cwd: '<%= points.static %>/documents',
+          src: ['*.md'],
+          expand: true,
+          dest: '<%= points.static %>/documents/tmp',
+          ext: '.html'
+        }],
+        options: {
+          template: 'utils/templates/markdown.tmpl',
+          postCompile: function(src, context) {
+            var $ = cheerio.load(src);
+
+            function processHtml(stage) {
+              var next, newHtml, current, id;
+
+              return function(i, obj) {
+                id = $(obj).text().replace(/[\. ,#():-]+/g, '-').toLowerCase();
+                next = $(obj).next();
+                newHtml = $(obj);
+                current = obj;
+
+                async.whilst(
+                  function() {
+                    if (stage === 'create-sections') {
+                      return !next.is('h2') && next.length > 0
+                    } else if (stage === 'create-subsections') {
+                      return !next.is('h3') && next.length > 0
+                    } else {
+                      return !next.is('h3') && !next.is('h2') && next.length > 0
+                    }
+                  },
+                  function(callback) {
+                      newHtml += '\n'+next;
+                      next = next.next();
+                      next.prev().remove();
+                      callback();
+                  },
+                  function() {
+                    var update;
+
+                    if (stage === 'create-sections') {
+                      update = '<section id="section-'+id+'" class="documents">\n'+newHtml+'\n</section>';
+                    } else {
+                      update = '<article id="'+id+'" class="document">\n'+newHtml+'\n</article>'
+                    }
+
+                    $(current).replaceWith(update)
+                  }
+                );
+              }
+            }
+            async.series([
+              function (callback) {
+                $('h2').each(processHtml('create-sections'));
+                $('h2').each(processHtml('create-h2-subsections'));
+                $('h3').each(processHtml('create-subsections'));
+
+                callback();
+              },
+              function (callback) {
+                $('section').each(function(i, obj) {
+                  $(obj).children().last().remove();
+                });
+                $('section').last().next().remove();
+                callback();
+              }
+            ]);
+
+            return $.html()
+          }
+        }
+      }
     }
   });
 
@@ -212,6 +289,10 @@ module.exports = function (grunt) {
 
     grunt.file.write(writeTo, grunt.template.process(template, {data: data}));
   });
+
+  grunt.registerTask('build-html', [
+    'markdown:all'
+  ]);
 
   grunt.registerTask('server', function (target) {
     grunt.task.run([

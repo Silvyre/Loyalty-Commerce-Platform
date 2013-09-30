@@ -3,7 +3,10 @@
   "description"     : "A Points documentation generator for the API",
   "version"         : "0.0.0",
   "author"          : "Teddy Hwang <teddy.hwang@points.com>",
-  "dependencies"    : {},
+  "dependencies"    : {
+    "cheerio"                 : "~0.12.2",
+    "async"                   : "*"
+  },
   "devDependencies": {
     "grunt"                   : "~0.4.1",
     "grunt-contrib-copy"      : "~0.4.1",
@@ -21,6 +24,7 @@
     "grunt-concurrent"        : "~0.3.0",
     "grunt-html-snapshot"     : "~0.3.0",
     "grunt-prettify"          : "*",
+    "grunt-markdown"          : "*",
     "load-grunt-tasks"        : "~0.1.0",
     "connect-livereload"      : "~0.2.0",
     "time-grunt"              : "~0.1.0"
