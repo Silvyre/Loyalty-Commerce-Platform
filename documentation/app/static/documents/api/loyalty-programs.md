@@ -4,6 +4,7 @@ A loyalty program (LP) allows you to perform member validations, debits, and cre
 
 In this version of the API, the list of LPs is fixed and your app cannot get the list of the loyalty programs that are supported. Instead, here is the list of loyalty programs that are available in this version:
 
+<!--
 <table>
     <thead>
         <tr>
@@ -40,6 +41,7 @@ In this version of the API, the list of LPs is fixed and your app cannot get the
         </tr>
     </tbody>
 </table>
+-->
 
 Use the LP IDs above when performing [member validations (MVs)](#member-validations), [debits](#debits), and [credits](#credits) on the loyalty programs.
 
