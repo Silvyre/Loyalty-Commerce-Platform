@@ -12,8 +12,8 @@ API Reference](index.html?doc=api-reference).
 ## Sandbox vs Live
 
 The LCP operates in two modes: sandbox mode and live mode. Sandbox mode is
-accessed at https://sandbox.lcp.points.com while live mode is accessed at
-https://lcp.points.com. Each has a separate set of credentials for
+accessed at `https://sandbox.lcp.points.com` while live mode is accessed at
+`https://lcp.points.com`. Each has a separate set of credentials for
 authentication. When you create an application, you will get a set of sandbox
 credentials for use in the sandbox environment. Live mode credentials are issued
 by Points when you’re ready to deploy your application.
@@ -27,7 +27,7 @@ mode that your app will experience in live mode.
 
 To go live, you’ll need to request live credentials from Points. Once your
 receive them, you’ll need to update your application to use the live credentials
-and the live endpoint located at https://lcp.points.com. Only Live credentials
+and the live endpoint located at `https://lcp.points.com`. Only Live credentials
 have permission to access this endpoint. Once in the live environment, we
 recommend you run additional tests using live test accounts for each of the
 loyalty programs your app interacts.
@@ -35,8 +35,8 @@ loyalty programs your app interacts.
 ## Versioning
 
 The LCP uses version numbering in the URI. To access the version of the API
-described in this document use https://sandbox.lcp.points.com/v1/ or
-https://lcp.points.com/v1/. New versions will be created for backwards
+described in this document use `https://sandbox.lcp.points.com/v1/` or
+`https://lcp.points.com/v1/`. New versions will be created for backwards
 incompatible changes to the API. We will notify you of new versions of the API
 and give you time to transition to the new version before discontinuing support
 for the old version.
@@ -471,5 +471,7 @@ Each link has an href property that contains the link. For example:
         }
       }
     }
+
+
 
 
