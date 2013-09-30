@@ -29,7 +29,7 @@ of the documentation are created in Markdown and then converted into HTML.
   in the `app/static/documentation/` folder.
 - Any single markdown file can be loaded by creating a markdown file within the
   `app/static/documentation/` folder and then loading it via the URL:
-  http://localhost:9000/index.html?doc=[your-markdown-filename]
+  `http://localhost:9000/index.html?doc=[your-markdown-filename]`
 
 ## Deploy
 
