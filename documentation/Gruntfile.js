@@ -199,11 +199,11 @@ module.exports = function (grunt) {
           cwd: '<%= points.static %>/documents',
           src: ['*.md'],
           expand: true,
-          dest: '<%= points.static %>/documents/tmp',
+          dest: '<%= points.static %>/tmp',
           ext: '.html'
         }],
         options: {
-          template: 'utils/templates/markdown.tmpl',
+          template: 'utils/templates/markdown.html',
           postCompile: function(src, context) {
             var $ = cheerio.load(src);
 
@@ -274,15 +274,17 @@ module.exports = function (grunt) {
     var files = []
       , paths =[]
       , data = {}
-      , template = grunt.file.read('utils/templates/generate-markdown-files.tmpl')
+      , template = grunt.file.read('utils/templates/generate-markdown-files.html')
       , writeTo = 'app/static/scripts/modules/load-markdown-documents.coffee';
 
     grunt.file.recurse('app/static/documents/', function(abspath, rootdir, subdir, filename) {
       abspath = abspath.replace('app/static', 'mdown!../..')
-      filename = filename.replace(/\-/g, '_').replace('.md','');
+      filename = filename.replace(/\-/g, '_').replace('.md','').replace('.html', '');
 
-      files.push(filename);
-      paths.push(abspath);
+      if (filename !== '.DS_Store') {
+        files.push(filename);
+        paths.push(abspath);
+      }
     });
 
     data = { files: files, paths: paths };
