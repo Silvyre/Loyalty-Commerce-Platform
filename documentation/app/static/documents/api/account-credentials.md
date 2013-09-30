@@ -1,6 +1,6 @@
 ## Account Credentials
 
-Account credentials authenticate you to perform actions on your developer account. A set of account credentials is created automatically when you create your developer account. Account credentials are the same for both sandbox and live mode. They are available at /accounts/<account-id>/account-credentials and are used to sign requests to /accounts and /apps.
+Account credentials authenticate you to perform actions on your developer account. A set of account credentials is created automatically when you create your developer account. Account credentials are the same for both sandbox and live mode. They are available at `/accounts/<account-id>/account-credentials` and are used to sign requests to `/accounts` and `/apps`.
 
 #### Properties
 
@@ -26,6 +26,12 @@ Account credentials authenticate you to perform actions on your developer accoun
         </td>
     </tbody>
 </table>
+
+
+
+
+
+
 
 
 

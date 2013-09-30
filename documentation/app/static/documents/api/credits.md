@@ -1,6 +1,6 @@
 ## Credits
 
-A credit is a transaction that adds points to a loyalty program member's account. Creating a credit object triggers the addition of points. A record of the credit is kept that can later be retrieved. A credit requires a member validation that has not been previously used for another transaction. Credits are stored for each loyalty program under /lps/<lp-id>/credits/.
+A credit is a transaction that adds points to a loyalty program member's account. Creating a credit object triggers the addition of points. A record of the credit is kept that can later be retrieved. A credit requires a member validation that has not been previously used for another transaction. Credits are stored for each loyalty program under `/lps/<lp-id>/credits/`.
 
 #### Properties
 
@@ -30,5 +30,11 @@ A credit is a transaction that adds points to a loyalty program member's account
         </tr>
     </tbody>
 </table>
+
+
+
+
+
+
 
 

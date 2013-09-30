@@ -23,13 +23,13 @@ The API consists of a set of resources that can be operated on using standard
 HTTP methods. The top-level resources in the LCP are accounts, apps, and lps.
 
 **Accounts** - Your developer account information and credentials are stored
-under /accounts. Once you create your account you can access it at
+under `/accounts`. Once you create your account you can access it at
 `/accounts/<account-id>`
 
-**Apps** - Your apps are stored under the /apps endpoint. Each app will be given
+**Apps** - Your apps are stored under the `/apps` endpoint. Each app will be given
 a unique ID under `/apps`.
 
-**LPs** - Loyalty programs (LPs) are stored under /lps. Each LP will have it’s
+**LPs** - Loyalty programs (LPs) are stored under `/lps`. Each LP will have it’s
 own ID under `/lps`.
 
 Some actions can be performed on the collection of resources, while others must
@@ -87,8 +87,8 @@ simulated. When you're ready to deploy your application, Points will promote
 your application to live mode.
 
 Sandbox mode is accessed through
-[https://sandbox.lcp.points.com](https://sandbox.lcp.points.com/) while live
-mode through [https://lcp.points.com](https://lcp.points.com). Each app has two
+`https://sandbox.lcp.points.com` while live
+mode through `https://lcp.points.com`. Each app has two
 sets of credentials to access the LCP: one set for sandbox mode and another set
 for live mode. When accessing the LCP in sandbox mode, the sandbox credentials
 must be used. When your app is promoted to live mode, Points will provide you
@@ -159,7 +159,7 @@ The LCP defines 2 different types of credentials:
   - A set of account credentials is created automatically when you create your developer account.
   - Account credentials are the same for both sandbox and live mode.
   - They are available at `/accounts/<account-id>`.
-  - They are used to sign requests to /accounts and /apps.
+  - They are used to sign requests to `/accounts` and `/apps`.
 1. **Application credentials**
   - Application credentials authenticate your app to perform actions on the LCP.
   - Each app has two sets of application credentials: one for sandbox mode and one for live mode.
@@ -348,7 +348,7 @@ the server’s time to prevent replay attacks.
 ### Create an App
 
 Now that we can sign requests, the next step in creating a universal balance
-checker is to create an application on the LCP. Apps are stored under the /apps
+checker is to create an application on the LCP. Apps are stored under the `/apps`
 endpoint. To create the application, `POST` the application name and description
 to `/apps` and sign the request with your account credentials.
 
@@ -556,7 +556,7 @@ your own module to sign requests.
                        ext="",
                        mac="EmYShgBbKjp7XB3gbZq9e0zZy+8="
 
-#### Example C## code:
+#### Example C# code:
 
     using System.Security.Cryptography;
 
@@ -643,13 +643,13 @@ your own module to sign requests.
             else:
                 port = httplib.HTTP_PORT
 
-        ## Step 1: Generate timestamp 
+        # Step 1: Generate timestamp 
         ts = str(int(time.time()))
 
-        ## Step 2: Generate nonce
+        # Step 2: Generate nonce
         nonce = base64.b64encode(os.urandom(8))
 
-        ## Step 3: Generate ext
+        # Step 3: Generate ext
         if content_type is not None and body is not None and len(content_type) > 0 and len(body) > 0:
             content_type_plus_body = content_type + body
             content_type_plus_body_hash = hashlib.sha1(content_type_plus_body)
@@ -657,7 +657,7 @@ your own module to sign requests.
         else:
             ext = ""
 
-        ## Step 4: Build normalized request string
+        # Step 4: Build normalized request string
         normalized_request_string = (
             ts + '\n' +
             nonce + '\n' +
@@ -668,11 +668,25 @@ your own module to sign requests.
             ext + '\n'
         )
 
-        ## Step 5: Base64 decode the MAC key from URL-safe alphabet
-        ## and add padding if needed
-        mac_key += '=' * (4 - len(mac_key) % 4)    mac_key = base64.urlsafe_b64decode(mac_key)    ## Step 6: Generate the signature    signature = hmac.new(mac_key, normalized_request_string, hashlib.sha1)    ## Step 7: Base64 encode the result    mac = base64.b64encode(signature.digest())
-        ## Step 8: Build Authorization header
+        # Step 5: Base64 decode the MAC key from URL-safe alphabet
+        # and add padding if needed
+        mac_key += '=' * (4 - len(mac_key) % 4)
+        mac_key = base64.urlsafe_b64decode(mac_key)
+
+        # Step 6: Generate the signature
+        signature = hmac.new(mac_key, normalized_request_string, hashlib.sha1)
+
+        # Step 7: Base64 encode the result
+        mac = base64.b64encode(signature.digest())
+
+        # Step 8: Build Authorization header
         return 'MAC id="{0}", ts="{1}", nonce="{2}", ext="{3}", mac="{4}"'.format(mac_key_identifier, ts, nonce, ext, mac)
+
+
+
+
+
+
 
 
 

@@ -16,7 +16,7 @@ Authenticating a member requires a specific set of fields, defined by the specif
     <tbody>
         <tr>
             <td>lp-id</td>
-            <td>The identifier of the loyalty program (LP).</td>
+            <td>The identifier of the <a href="#loyalty-programs">loyalty program</a> (LP).</td>
         </tr>
         <tr>
             <td>firstName</td>
@@ -25,12 +25,12 @@ Authenticating a member requires a specific set of fields, defined by the specif
         <tr>
             <td>lastName</td>
             <td><p>The last name of the loyalty program member.</p>
-                <p>Sandbox mode: To simulate a non-zero balance, append a space and a positive integer to the lastName field. For example, to simulate a balance of 2000 for John Doe, set lastName to "Doe 2000".</p></td>
+                <p><strong>Sandbox mode</strong>: To simulate a non-zero balance, append a space and a positive integer to the lastName field. For example, to simulate a balance of 2000 for John Doe, set lastName to "Doe 2000".</p></td>
         </tr>
         <tr>
             <td>memberId</td>
             <td><p>The member ID of the loyalty program member.</p>
-                <p>Sandbox mode: To simulate a successful MV, set the memberId to one of the following depending on the loyalty program:
+                <p><strong>Sandbox mode</strong>: To simulate a successful MV, set the memberId to one of the following depending on the loyalty program:
                 <ul>
                     <li>Delta: sNQC</li>
                     <li>Southwest: OfMq</li>
@@ -50,5 +50,7 @@ Authenticating a member requires a specific set of fields, defined by the specif
 #### Returns
 
 The MV object if it was created successfully. Returns an [error](index.html?doc=reference-manual#errors) if the firstName, lastName or memberId is not provided or if the member could not be validated for the given loyalty program.
+
+
 
 
