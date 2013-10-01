@@ -1,8 +1,416 @@
+
 /**
  * almond 0.2.6 Copyright (c) 2011-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/jrburke/almond for details
  */
+//Going sloppy to avoid 'use strict' string cost, but strict practices should
+//be followed.
+/*jslint sloppy: true */
+/*global setTimeout: false */
+
+var requirejs, require, define;
+(function (undef) {
+    var main, req, makeMap, handlers,
+        defined = {},
+        waiting = {},
+        config = {},
+        defining = {},
+        hasOwn = Object.prototype.hasOwnProperty,
+        aps = [].slice;
+
+    function hasProp(obj, prop) {
+        return hasOwn.call(obj, prop);
+    }
+
+    /**
+     * Given a relative module name, like ./something, normalize it to
+     * a real name that can be mapped to a path.
+     * @param {String} name the relative name
+     * @param {String} baseName a real name that the name arg is relative
+     * to.
+     * @returns {String} normalized name
+     */
+    function normalize(name, baseName) {
+        var nameParts, nameSegment, mapValue, foundMap,
+            foundI, foundStarMap, starI, i, j, part,
+            baseParts = baseName && baseName.split("/"),
+            map = config.map,
+            starMap = (map && map['*']) || {};
+
+        //Adjust any relative paths.
+        if (name && name.charAt(0) === ".") {
+            //If have a base name, try to normalize against it,
+            //otherwise, assume it is a top-level require that will
+            //be relative to baseUrl in the end.
+            if (baseName) {
+                //Convert baseName to array, and lop off the last part,
+                //so that . matches that "directory" and not name of the baseName's
+                //module. For instance, baseName of "one/two/three", maps to
+                //"one/two/three.js", but we want the directory, "one/two" for
+                //this normalization.
+                baseParts = baseParts.slice(0, baseParts.length - 1);
+
+                name = baseParts.concat(name.split("/"));
+
+                //start trimDots
+                for (i = 0; i < name.length; i += 1) {
+                    part = name[i];
+                    if (part === ".") {
+                        name.splice(i, 1);
+                        i -= 1;
+                    } else if (part === "..") {
+                        if (i === 1 && (name[2] === '..' || name[0] === '..')) {
+                            //End of the line. Keep at least one non-dot
+                            //path segment at the front so it can be mapped
+                            //correctly to disk. Otherwise, there is likely
+                            //no path mapping for a path starting with '..'.
+                            //This can still fail, but catches the most reasonable
+                            //uses of ..
+                            break;
+                        } else if (i > 0) {
+                            name.splice(i - 1, 2);
+                            i -= 2;
+                        }
+                    }
+                }
+                //end trimDots
+
+                name = name.join("/");
+            } else if (name.indexOf('./') === 0) {
+                // No baseName, so this is ID is resolved relative
+                // to baseUrl, pull off the leading dot.
+                name = name.substring(2);
+            }
+        }
+
+        //Apply map config if available.
+        if ((baseParts || starMap) && map) {
+            nameParts = name.split('/');
+
+            for (i = nameParts.length; i > 0; i -= 1) {
+                nameSegment = nameParts.slice(0, i).join("/");
+
+                if (baseParts) {
+                    //Find the longest baseName segment match in the config.
+                    //So, do joins on the biggest to smallest lengths of baseParts.
+                    for (j = baseParts.length; j > 0; j -= 1) {
+                        mapValue = map[baseParts.slice(0, j).join('/')];
+
+                        //baseName segment has  config, find if it has one for
+                        //this name.
+                        if (mapValue) {
+                            mapValue = mapValue[nameSegment];
+                            if (mapValue) {
+                                //Match, update name to the new value.
+                                foundMap = mapValue;
+                                foundI = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (foundMap) {
+                    break;
+                }
+
+                //Check for a star map match, but just hold on to it,
+                //if there is a shorter segment match later in a matching
+                //config, then favor over this star map.
+                if (!foundStarMap && starMap && starMap[nameSegment]) {
+                    foundStarMap = starMap[nameSegment];
+                    starI = i;
+                }
+            }
+
+            if (!foundMap && foundStarMap) {
+                foundMap = foundStarMap;
+                foundI = starI;
+            }
+
+            if (foundMap) {
+                nameParts.splice(0, foundI, foundMap);
+                name = nameParts.join('/');
+            }
+        }
+
+        return name;
+    }
+
+    function makeRequire(relName, forceSync) {
+        return function () {
+            //A version of a require function that passes a moduleName
+            //value for items that may need to
+            //look up paths relative to the moduleName
+            return req.apply(undef, aps.call(arguments, 0).concat([relName, forceSync]));
+        };
+    }
+
+    function makeNormalize(relName) {
+        return function (name) {
+            return normalize(name, relName);
+        };
+    }
+
+    function makeLoad(depName) {
+        return function (value) {
+            defined[depName] = value;
+        };
+    }
+
+    function callDep(name) {
+        if (hasProp(waiting, name)) {
+            var args = waiting[name];
+            delete waiting[name];
+            defining[name] = true;
+            main.apply(undef, args);
+        }
+
+        if (!hasProp(defined, name) && !hasProp(defining, name)) {
+            throw new Error('No ' + name);
+        }
+        return defined[name];
+    }
+
+    //Turns a plugin!resource to [plugin, resource]
+    //with the plugin being undefined if the name
+    //did not have a plugin prefix.
+    function splitPrefix(name) {
+        var prefix,
+            index = name ? name.indexOf('!') : -1;
+        if (index > -1) {
+            prefix = name.substring(0, index);
+            name = name.substring(index + 1, name.length);
+        }
+        return [prefix, name];
+    }
+
+    /**
+     * Makes a name map, normalizing the name, and using a plugin
+     * for normalization if necessary. Grabs a ref to plugin
+     * too, as an optimization.
+     */
+    makeMap = function (name, relName) {
+        var plugin,
+            parts = splitPrefix(name),
+            prefix = parts[0];
+
+        name = parts[1];
+
+        if (prefix) {
+            prefix = normalize(prefix, relName);
+            plugin = callDep(prefix);
+        }
+
+        //Normalize according
+        if (prefix) {
+            if (plugin && plugin.normalize) {
+                name = plugin.normalize(name, makeNormalize(relName));
+            } else {
+                name = normalize(name, relName);
+            }
+        } else {
+            name = normalize(name, relName);
+            parts = splitPrefix(name);
+            prefix = parts[0];
+            name = parts[1];
+            if (prefix) {
+                plugin = callDep(prefix);
+            }
+        }
+
+        //Using ridiculous property names for space reasons
+        return {
+            f: prefix ? prefix + '!' + name : name, //fullName
+            n: name,
+            pr: prefix,
+            p: plugin
+        };
+    };
+
+    function makeConfig(name) {
+        return function () {
+            return (config && config.config && config.config[name]) || {};
+        };
+    }
+
+    handlers = {
+        require: function (name) {
+            return makeRequire(name);
+        },
+        exports: function (name) {
+            var e = defined[name];
+            if (typeof e !== 'undefined') {
+                return e;
+            } else {
+                return (defined[name] = {});
+            }
+        },
+        module: function (name) {
+            return {
+                id: name,
+                uri: '',
+                exports: defined[name],
+                config: makeConfig(name)
+            };
+        }
+    };
+
+    main = function (name, deps, callback, relName) {
+        var cjsModule, depName, ret, map, i,
+            args = [],
+            usingExports;
+
+        //Use name if no relName
+        relName = relName || name;
+
+        //Call the callback to define the module, if necessary.
+        if (typeof callback === 'function') {
+
+            //Pull out the defined dependencies and pass the ordered
+            //values to the callback.
+            //Default to [require, exports, module] if no deps
+            deps = !deps.length && callback.length ? ['require', 'exports', 'module'] : deps;
+            for (i = 0; i < deps.length; i += 1) {
+                map = makeMap(deps[i], relName);
+                depName = map.f;
+
+                //Fast path CommonJS standard dependencies.
+                if (depName === "require") {
+                    args[i] = handlers.require(name);
+                } else if (depName === "exports") {
+                    //CommonJS module spec 1.1
+                    args[i] = handlers.exports(name);
+                    usingExports = true;
+                } else if (depName === "module") {
+                    //CommonJS module spec 1.1
+                    cjsModule = args[i] = handlers.module(name);
+                } else if (hasProp(defined, depName) ||
+                           hasProp(waiting, depName) ||
+                           hasProp(defining, depName)) {
+                    args[i] = callDep(depName);
+                } else if (map.p) {
+                    map.p.load(map.n, makeRequire(relName, true), makeLoad(depName), {});
+                    args[i] = defined[depName];
+                } else {
+                    throw new Error(name + ' missing ' + depName);
+                }
+            }
+
+            ret = callback.apply(defined[name], args);
+
+            if (name) {
+                //If setting exports via "module" is in play,
+                //favor that over return value and exports. After that,
+                //favor a non-undefined return value over exports use.
+                if (cjsModule && cjsModule.exports !== undef &&
+                        cjsModule.exports !== defined[name]) {
+                    defined[name] = cjsModule.exports;
+                } else if (ret !== undef || !usingExports) {
+                    //Use the return value from the function.
+                    defined[name] = ret;
+                }
+            }
+        } else if (name) {
+            //May just be an object definition for the module. Only
+            //worry about defining if have a module name.
+            defined[name] = callback;
+        }
+    };
+
+    requirejs = require = req = function (deps, callback, relName, forceSync, alt) {
+        if (typeof deps === "string") {
+            if (handlers[deps]) {
+                //callback in this case is really relName
+                return handlers[deps](callback);
+            }
+            //Just return the module wanted. In this scenario, the
+            //deps arg is the module name, and second arg (if passed)
+            //is just the relName.
+            //Normalize module name, if it contains . or ..
+            return callDep(makeMap(deps, callback).f);
+        } else if (!deps.splice) {
+            //deps is a config object, not an array.
+            config = deps;
+            if (callback.splice) {
+                //callback is an array, which means it is a dependency list.
+                //Adjust args if there are dependencies
+                deps = callback;
+                callback = relName;
+                relName = null;
+            } else {
+                deps = undef;
+            }
+        }
+
+        //Support require(['a'])
+        callback = callback || function () {};
+
+        //If relName is a function, it is an errback handler,
+        //so remove it.
+        if (typeof relName === 'function') {
+            relName = forceSync;
+            forceSync = alt;
+        }
+
+        //Simulate async callback;
+        if (forceSync) {
+            main(undef, deps, callback, relName);
+        } else {
+            //Using a non-zero value because of concern for what old browsers
+            //do, and latest browsers "upgrade" to 4 if lower value is used:
+            //http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#dom-windowtimers-settimeout:
+            //If want a value immediately, use require('id') instead -- something
+            //that works in almond on the global level, but not guaranteed and
+            //unlikely to work in other AMD implementations.
+            setTimeout(function () {
+                main(undef, deps, callback, relName);
+            }, 4);
+        }
+
+        return req;
+    };
+
+    /**
+     * Just drops the config on the floor, but returns req in case
+     * the config return value is used.
+     */
+    req.config = function (cfg) {
+        config = cfg;
+        if (config.deps) {
+            req(config.deps, config.callback);
+        }
+        return req;
+    };
+
+    /**
+     * Expose module registry for debugging and tooling
+     */
+    requirejs._defined = defined;
+
+    define = function (name, deps, callback) {
+
+        //This module may not have dependencies
+        if (!deps.splice) {
+            //deps is not an array, so probably means
+            //an object literal or factory function for
+            //the value. Adjust args.
+            callback = deps;
+            deps = [];
+        }
+
+        if (!hasProp(defined, name) && !hasProp(waiting, name)) {
+            waiting[name] = [name, deps, callback];
+        }
+    };
+
+    define.amd = {
+        jQuery: true
+    };
+}());
+
+define("almond", function(){});
 
 /*!
  * jQuery JavaScript Library v2.0.3
@@ -17,7 +425,859 @@
  *
  * Date: 2013-07-03T13:30Z
  */
+(function( window, undefined ) {
 
+// Can't do this because several apps including ASP.NET trace
+// the stack via arguments.caller.callee and Firefox dies if
+// you try to trace through "use strict" call chains. (#13335)
+// Support: Firefox 18+
+//
+var
+	// A central reference to the root jQuery(document)
+	rootjQuery,
+
+	// The deferred used on DOM ready
+	readyList,
+
+	// Support: IE9
+	// For `typeof xmlNode.method` instead of `xmlNode.method !== undefined`
+	core_strundefined = typeof undefined,
+
+	// Use the correct document accordingly with window argument (sandbox)
+	location = window.location,
+	document = window.document,
+	docElem = document.documentElement,
+
+	// Map over jQuery in case of overwrite
+	_jQuery = window.jQuery,
+
+	// Map over the $ in case of overwrite
+	_$ = window.$,
+
+	// [[Class]] -> type pairs
+	class2type = {},
+
+	// List of deleted data cache ids, so we can reuse them
+	core_deletedIds = [],
+
+	core_version = "2.0.3",
+
+	// Save a reference to some core methods
+	core_concat = core_deletedIds.concat,
+	core_push = core_deletedIds.push,
+	core_slice = core_deletedIds.slice,
+	core_indexOf = core_deletedIds.indexOf,
+	core_toString = class2type.toString,
+	core_hasOwn = class2type.hasOwnProperty,
+	core_trim = core_version.trim,
+
+	// Define a local copy of jQuery
+	jQuery = function( selector, context ) {
+		// The jQuery object is actually just the init constructor 'enhanced'
+		return new jQuery.fn.init( selector, context, rootjQuery );
+	},
+
+	// Used for matching numbers
+	core_pnum = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source,
+
+	// Used for splitting on whitespace
+	core_rnotwhite = /\S+/g,
+
+	// A simple way to check for HTML strings
+	// Prioritize #id over <tag> to avoid XSS via location.hash (#9521)
+	// Strict HTML recognition (#11290: must start with <)
+	rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/,
+
+	// Match a standalone tag
+	rsingleTag = /^<(\w+)\s*\/?>(?:<\/\1>|)$/,
+
+	// Matches dashed string for camelizing
+	rmsPrefix = /^-ms-/,
+	rdashAlpha = /-([\da-z])/gi,
+
+	// Used by jQuery.camelCase as callback to replace()
+	fcamelCase = function( all, letter ) {
+		return letter.toUpperCase();
+	},
+
+	// The ready event handler and self cleanup method
+	completed = function() {
+		document.removeEventListener( "DOMContentLoaded", completed, false );
+		window.removeEventListener( "load", completed, false );
+		jQuery.ready();
+	};
+
+jQuery.fn = jQuery.prototype = {
+	// The current version of jQuery being used
+	jquery: core_version,
+
+	constructor: jQuery,
+	init: function( selector, context, rootjQuery ) {
+		var match, elem;
+
+		// HANDLE: $(""), $(null), $(undefined), $(false)
+		if ( !selector ) {
+			return this;
+		}
+
+		// Handle HTML strings
+		if ( typeof selector === "string" ) {
+			if ( selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 ) {
+				// Assume that strings that start and end with <> are HTML and skip the regex check
+				match = [ null, selector, null ];
+
+			} else {
+				match = rquickExpr.exec( selector );
+			}
+
+			// Match html or make sure no context is specified for #id
+			if ( match && (match[1] || !context) ) {
+
+				// HANDLE: $(html) -> $(array)
+				if ( match[1] ) {
+					context = context instanceof jQuery ? context[0] : context;
+
+					// scripts is true for back-compat
+					jQuery.merge( this, jQuery.parseHTML(
+						match[1],
+						context && context.nodeType ? context.ownerDocument || context : document,
+						true
+					) );
+
+					// HANDLE: $(html, props)
+					if ( rsingleTag.test( match[1] ) && jQuery.isPlainObject( context ) ) {
+						for ( match in context ) {
+							// Properties of context are called as methods if possible
+							if ( jQuery.isFunction( this[ match ] ) ) {
+								this[ match ]( context[ match ] );
+
+							// ...and otherwise set as attributes
+							} else {
+								this.attr( match, context[ match ] );
+							}
+						}
+					}
+
+					return this;
+
+				// HANDLE: $(#id)
+				} else {
+					elem = document.getElementById( match[2] );
+
+					// Check parentNode to catch when Blackberry 4.6 returns
+					// nodes that are no longer in the document #6963
+					if ( elem && elem.parentNode ) {
+						// Inject the element directly into the jQuery object
+						this.length = 1;
+						this[0] = elem;
+					}
+
+					this.context = document;
+					this.selector = selector;
+					return this;
+				}
+
+			// HANDLE: $(expr, $(...))
+			} else if ( !context || context.jquery ) {
+				return ( context || rootjQuery ).find( selector );
+
+			// HANDLE: $(expr, context)
+			// (which is just equivalent to: $(context).find(expr)
+			} else {
+				return this.constructor( context ).find( selector );
+			}
+
+		// HANDLE: $(DOMElement)
+		} else if ( selector.nodeType ) {
+			this.context = this[0] = selector;
+			this.length = 1;
+			return this;
+
+		// HANDLE: $(function)
+		// Shortcut for document ready
+		} else if ( jQuery.isFunction( selector ) ) {
+			return rootjQuery.ready( selector );
+		}
+
+		if ( selector.selector !== undefined ) {
+			this.selector = selector.selector;
+			this.context = selector.context;
+		}
+
+		return jQuery.makeArray( selector, this );
+	},
+
+	// Start with an empty selector
+	selector: "",
+
+	// The default length of a jQuery object is 0
+	length: 0,
+
+	toArray: function() {
+		return core_slice.call( this );
+	},
+
+	// Get the Nth element in the matched element set OR
+	// Get the whole matched element set as a clean array
+	get: function( num ) {
+		return num == null ?
+
+			// Return a 'clean' array
+			this.toArray() :
+
+			// Return just the object
+			( num < 0 ? this[ this.length + num ] : this[ num ] );
+	},
+
+	// Take an array of elements and push it onto the stack
+	// (returning the new matched element set)
+	pushStack: function( elems ) {
+
+		// Build a new jQuery matched element set
+		var ret = jQuery.merge( this.constructor(), elems );
+
+		// Add the old object onto the stack (as a reference)
+		ret.prevObject = this;
+		ret.context = this.context;
+
+		// Return the newly-formed element set
+		return ret;
+	},
+
+	// Execute a callback for every element in the matched set.
+	// (You can seed the arguments with an array of args, but this is
+	// only used internally.)
+	each: function( callback, args ) {
+		return jQuery.each( this, callback, args );
+	},
+
+	ready: function( fn ) {
+		// Add the callback
+		jQuery.ready.promise().done( fn );
+
+		return this;
+	},
+
+	slice: function() {
+		return this.pushStack( core_slice.apply( this, arguments ) );
+	},
+
+	first: function() {
+		return this.eq( 0 );
+	},
+
+	last: function() {
+		return this.eq( -1 );
+	},
+
+	eq: function( i ) {
+		var len = this.length,
+			j = +i + ( i < 0 ? len : 0 );
+		return this.pushStack( j >= 0 && j < len ? [ this[j] ] : [] );
+	},
+
+	map: function( callback ) {
+		return this.pushStack( jQuery.map(this, function( elem, i ) {
+			return callback.call( elem, i, elem );
+		}));
+	},
+
+	end: function() {
+		return this.prevObject || this.constructor(null);
+	},
+
+	// For internal use only.
+	// Behaves like an Array's method, not like a jQuery method.
+	push: core_push,
+	sort: [].sort,
+	splice: [].splice
+};
+
+// Give the init function the jQuery prototype for later instantiation
+jQuery.fn.init.prototype = jQuery.fn;
+
+jQuery.extend = jQuery.fn.extend = function() {
+	var options, name, src, copy, copyIsArray, clone,
+		target = arguments[0] || {},
+		i = 1,
+		length = arguments.length,
+		deep = false;
+
+	// Handle a deep copy situation
+	if ( typeof target === "boolean" ) {
+		deep = target;
+		target = arguments[1] || {};
+		// skip the boolean and the target
+		i = 2;
+	}
+
+	// Handle case when target is a string or something (possible in deep copy)
+	if ( typeof target !== "object" && !jQuery.isFunction(target) ) {
+		target = {};
+	}
+
+	// extend jQuery itself if only one argument is passed
+	if ( length === i ) {
+		target = this;
+		--i;
+	}
+
+	for ( ; i < length; i++ ) {
+		// Only deal with non-null/undefined values
+		if ( (options = arguments[ i ]) != null ) {
+			// Extend the base object
+			for ( name in options ) {
+				src = target[ name ];
+				copy = options[ name ];
+
+				// Prevent never-ending loop
+				if ( target === copy ) {
+					continue;
+				}
+
+				// Recurse if we're merging plain objects or arrays
+				if ( deep && copy && ( jQuery.isPlainObject(copy) || (copyIsArray = jQuery.isArray(copy)) ) ) {
+					if ( copyIsArray ) {
+						copyIsArray = false;
+						clone = src && jQuery.isArray(src) ? src : [];
+
+					} else {
+						clone = src && jQuery.isPlainObject(src) ? src : {};
+					}
+
+					// Never move original objects, clone them
+					target[ name ] = jQuery.extend( deep, clone, copy );
+
+				// Don't bring in undefined values
+				} else if ( copy !== undefined ) {
+					target[ name ] = copy;
+				}
+			}
+		}
+	}
+
+	// Return the modified object
+	return target;
+};
+
+jQuery.extend({
+	// Unique for each copy of jQuery on the page
+	expando: "jQuery" + ( core_version + Math.random() ).replace( /\D/g, "" ),
+
+	noConflict: function( deep ) {
+		if ( window.$ === jQuery ) {
+			window.$ = _$;
+		}
+
+		if ( deep && window.jQuery === jQuery ) {
+			window.jQuery = _jQuery;
+		}
+
+		return jQuery;
+	},
+
+	// Is the DOM ready to be used? Set to true once it occurs.
+	isReady: false,
+
+	// A counter to track how many items to wait for before
+	// the ready event fires. See #6781
+	readyWait: 1,
+
+	// Hold (or release) the ready event
+	holdReady: function( hold ) {
+		if ( hold ) {
+			jQuery.readyWait++;
+		} else {
+			jQuery.ready( true );
+		}
+	},
+
+	// Handle when the DOM is ready
+	ready: function( wait ) {
+
+		// Abort if there are pending holds or we're already ready
+		if ( wait === true ? --jQuery.readyWait : jQuery.isReady ) {
+			return;
+		}
+
+		// Remember that the DOM is ready
+		jQuery.isReady = true;
+
+		// If a normal DOM Ready event fired, decrement, and wait if need be
+		if ( wait !== true && --jQuery.readyWait > 0 ) {
+			return;
+		}
+
+		// If there are functions bound, to execute
+		readyList.resolveWith( document, [ jQuery ] );
+
+		// Trigger any bound ready events
+		if ( jQuery.fn.trigger ) {
+			jQuery( document ).trigger("ready").off("ready");
+		}
+	},
+
+	// See test/unit/core.js for details concerning isFunction.
+	// Since version 1.3, DOM methods and functions like alert
+	// aren't supported. They return false on IE (#2968).
+	isFunction: function( obj ) {
+		return jQuery.type(obj) === "function";
+	},
+
+	isArray: Array.isArray,
+
+	isWindow: function( obj ) {
+		return obj != null && obj === obj.window;
+	},
+
+	isNumeric: function( obj ) {
+		return !isNaN( parseFloat(obj) ) && isFinite( obj );
+	},
+
+	type: function( obj ) {
+		if ( obj == null ) {
+			return String( obj );
+		}
+		// Support: Safari <= 5.1 (functionish RegExp)
+		return typeof obj === "object" || typeof obj === "function" ?
+			class2type[ core_toString.call(obj) ] || "object" :
+			typeof obj;
+	},
+
+	isPlainObject: function( obj ) {
+		// Not plain objects:
+		// - Any object or value whose internal [[Class]] property is not "[object Object]"
+		// - DOM nodes
+		// - window
+		if ( jQuery.type( obj ) !== "object" || obj.nodeType || jQuery.isWindow( obj ) ) {
+			return false;
+		}
+
+		// Support: Firefox <20
+		// The try/catch suppresses exceptions thrown when attempting to access
+		// the "constructor" property of certain host objects, ie. |window.location|
+		// https://bugzilla.mozilla.org/show_bug.cgi?id=814622
+		try {
+			if ( obj.constructor &&
+					!core_hasOwn.call( obj.constructor.prototype, "isPrototypeOf" ) ) {
+				return false;
+			}
+		} catch ( e ) {
+			return false;
+		}
+
+		// If the function hasn't returned already, we're confident that
+		// |obj| is a plain object, created by {} or constructed with new Object
+		return true;
+	},
+
+	isEmptyObject: function( obj ) {
+		var name;
+		for ( name in obj ) {
+			return false;
+		}
+		return true;
+	},
+
+	error: function( msg ) {
+		throw new Error( msg );
+	},
+
+	// data: string of html
+	// context (optional): If specified, the fragment will be created in this context, defaults to document
+	// keepScripts (optional): If true, will include scripts passed in the html string
+	parseHTML: function( data, context, keepScripts ) {
+		if ( !data || typeof data !== "string" ) {
+			return null;
+		}
+		if ( typeof context === "boolean" ) {
+			keepScripts = context;
+			context = false;
+		}
+		context = context || document;
+
+		var parsed = rsingleTag.exec( data ),
+			scripts = !keepScripts && [];
+
+		// Single tag
+		if ( parsed ) {
+			return [ context.createElement( parsed[1] ) ];
+		}
+
+		parsed = jQuery.buildFragment( [ data ], context, scripts );
+
+		if ( scripts ) {
+			jQuery( scripts ).remove();
+		}
+
+		return jQuery.merge( [], parsed.childNodes );
+	},
+
+	parseJSON: JSON.parse,
+
+	// Cross-browser xml parsing
+	parseXML: function( data ) {
+		var xml, tmp;
+		if ( !data || typeof data !== "string" ) {
+			return null;
+		}
+
+		// Support: IE9
+		try {
+			tmp = new DOMParser();
+			xml = tmp.parseFromString( data , "text/xml" );
+		} catch ( e ) {
+			xml = undefined;
+		}
+
+		if ( !xml || xml.getElementsByTagName( "parsererror" ).length ) {
+			jQuery.error( "Invalid XML: " + data );
+		}
+		return xml;
+	},
+
+	noop: function() {},
+
+	// Evaluates a script in a global context
+	globalEval: function( code ) {
+		var script,
+				indirect = eval;
+
+		code = jQuery.trim( code );
+
+		if ( code ) {
+			// If the code includes a valid, prologue position
+			// strict mode pragma, execute code by injecting a
+			// script tag into the document.
+			if ( code.indexOf("use strict") === 1 ) {
+				script = document.createElement("script");
+				script.text = code;
+				document.head.appendChild( script ).parentNode.removeChild( script );
+			} else {
+			// Otherwise, avoid the DOM node creation, insertion
+			// and removal by using an indirect global eval
+				indirect( code );
+			}
+		}
+	},
+
+	// Convert dashed to camelCase; used by the css and data modules
+	// Microsoft forgot to hump their vendor prefix (#9572)
+	camelCase: function( string ) {
+		return string.replace( rmsPrefix, "ms-" ).replace( rdashAlpha, fcamelCase );
+	},
+
+	nodeName: function( elem, name ) {
+		return elem.nodeName && elem.nodeName.toLowerCase() === name.toLowerCase();
+	},
+
+	// args is for internal usage only
+	each: function( obj, callback, args ) {
+		var value,
+			i = 0,
+			length = obj.length,
+			isArray = isArraylike( obj );
+
+		if ( args ) {
+			if ( isArray ) {
+				for ( ; i < length; i++ ) {
+					value = callback.apply( obj[ i ], args );
+
+					if ( value === false ) {
+						break;
+					}
+				}
+			} else {
+				for ( i in obj ) {
+					value = callback.apply( obj[ i ], args );
+
+					if ( value === false ) {
+						break;
+					}
+				}
+			}
+
+		// A special, fast, case for the most common use of each
+		} else {
+			if ( isArray ) {
+				for ( ; i < length; i++ ) {
+					value = callback.call( obj[ i ], i, obj[ i ] );
+
+					if ( value === false ) {
+						break;
+					}
+				}
+			} else {
+				for ( i in obj ) {
+					value = callback.call( obj[ i ], i, obj[ i ] );
+
+					if ( value === false ) {
+						break;
+					}
+				}
+			}
+		}
+
+		return obj;
+	},
+
+	trim: function( text ) {
+		return text == null ? "" : core_trim.call( text );
+	},
+
+	// results is for internal usage only
+	makeArray: function( arr, results ) {
+		var ret = results || [];
+
+		if ( arr != null ) {
+			if ( isArraylike( Object(arr) ) ) {
+				jQuery.merge( ret,
+					typeof arr === "string" ?
+					[ arr ] : arr
+				);
+			} else {
+				core_push.call( ret, arr );
+			}
+		}
+
+		return ret;
+	},
+
+	inArray: function( elem, arr, i ) {
+		return arr == null ? -1 : core_indexOf.call( arr, elem, i );
+	},
+
+	merge: function( first, second ) {
+		var l = second.length,
+			i = first.length,
+			j = 0;
+
+		if ( typeof l === "number" ) {
+			for ( ; j < l; j++ ) {
+				first[ i++ ] = second[ j ];
+			}
+		} else {
+			while ( second[j] !== undefined ) {
+				first[ i++ ] = second[ j++ ];
+			}
+		}
+
+		first.length = i;
+
+		return first;
+	},
+
+	grep: function( elems, callback, inv ) {
+		var retVal,
+			ret = [],
+			i = 0,
+			length = elems.length;
+		inv = !!inv;
+
+		// Go through the array, only saving the items
+		// that pass the validator function
+		for ( ; i < length; i++ ) {
+			retVal = !!callback( elems[ i ], i );
+			if ( inv !== retVal ) {
+				ret.push( elems[ i ] );
+			}
+		}
+
+		return ret;
+	},
+
+	// arg is for internal usage only
+	map: function( elems, callback, arg ) {
+		var value,
+			i = 0,
+			length = elems.length,
+			isArray = isArraylike( elems ),
+			ret = [];
+
+		// Go through the array, translating each of the items to their
+		if ( isArray ) {
+			for ( ; i < length; i++ ) {
+				value = callback( elems[ i ], i, arg );
+
+				if ( value != null ) {
+					ret[ ret.length ] = value;
+				}
+			}
+
+		// Go through every key on the object,
+		} else {
+			for ( i in elems ) {
+				value = callback( elems[ i ], i, arg );
+
+				if ( value != null ) {
+					ret[ ret.length ] = value;
+				}
+			}
+		}
+
+		// Flatten any nested arrays
+		return core_concat.apply( [], ret );
+	},
+
+	// A global GUID counter for objects
+	guid: 1,
+
+	// Bind a function to a context, optionally partially applying any
+	// arguments.
+	proxy: function( fn, context ) {
+		var tmp, args, proxy;
+
+		if ( typeof context === "string" ) {
+			tmp = fn[ context ];
+			context = fn;
+			fn = tmp;
+		}
+
+		// Quick check to determine if target is callable, in the spec
+		// this throws a TypeError, but we will just return undefined.
+		if ( !jQuery.isFunction( fn ) ) {
+			return undefined;
+		}
+
+		// Simulated bind
+		args = core_slice.call( arguments, 2 );
+		proxy = function() {
+			return fn.apply( context || this, args.concat( core_slice.call( arguments ) ) );
+		};
+
+		// Set the guid of unique handler to the same of original handler, so it can be removed
+		proxy.guid = fn.guid = fn.guid || jQuery.guid++;
+
+		return proxy;
+	},
+
+	// Multifunctional method to get and set values of a collection
+	// The value/s can optionally be executed if it's a function
+	access: function( elems, fn, key, value, chainable, emptyGet, raw ) {
+		var i = 0,
+			length = elems.length,
+			bulk = key == null;
+
+		// Sets many values
+		if ( jQuery.type( key ) === "object" ) {
+			chainable = true;
+			for ( i in key ) {
+				jQuery.access( elems, fn, i, key[i], true, emptyGet, raw );
+			}
+
+		// Sets one value
+		} else if ( value !== undefined ) {
+			chainable = true;
+
+			if ( !jQuery.isFunction( value ) ) {
+				raw = true;
+			}
+
+			if ( bulk ) {
+				// Bulk operations run against the entire set
+				if ( raw ) {
+					fn.call( elems, value );
+					fn = null;
+
+				// ...except when executing function values
+				} else {
+					bulk = fn;
+					fn = function( elem, key, value ) {
+						return bulk.call( jQuery( elem ), value );
+					};
+				}
+			}
+
+			if ( fn ) {
+				for ( ; i < length; i++ ) {
+					fn( elems[i], key, raw ? value : value.call( elems[i], i, fn( elems[i], key ) ) );
+				}
+			}
+		}
+
+		return chainable ?
+			elems :
+
+			// Gets
+			bulk ?
+				fn.call( elems ) :
+				length ? fn( elems[0], key ) : emptyGet;
+	},
+
+	now: Date.now,
+
+	// A method for quickly swapping in/out CSS properties to get correct calculations.
+	// Note: this method belongs to the css module but it's needed here for the support module.
+	// If support gets modularized, this method should be moved back to the css module.
+	swap: function( elem, options, callback, args ) {
+		var ret, name,
+			old = {};
+
+		// Remember the old values, and insert the new ones
+		for ( name in options ) {
+			old[ name ] = elem.style[ name ];
+			elem.style[ name ] = options[ name ];
+		}
+
+		ret = callback.apply( elem, args || [] );
+
+		// Revert the old values
+		for ( name in options ) {
+			elem.style[ name ] = old[ name ];
+		}
+
+		return ret;
+	}
+});
+
+jQuery.ready.promise = function( obj ) {
+	if ( !readyList ) {
+
+		readyList = jQuery.Deferred();
+
+		// Catch cases where $(document).ready() is called after the browser event has already occurred.
+		// we once tried to use readyState "interactive" here, but it caused issues like the one
+		// discovered by ChrisS here: http://bugs.jquery.com/ticket/12282#comment:15
+		if ( document.readyState === "complete" ) {
+			// Handle it asynchronously to allow scripts the opportunity to delay ready
+			setTimeout( jQuery.ready );
+
+		} else {
+
+			// Use the handy event callback
+			document.addEventListener( "DOMContentLoaded", completed, false );
+
+			// A fallback to window.onload, that will always work
+			window.addEventListener( "load", completed, false );
+		}
+	}
+	return readyList.promise( obj );
+};
+
+// Populate the class2type map
+jQuery.each("Boolean Number String Function Array Date RegExp Object Error".split(" "), function(i, name) {
+	class2type[ "[object " + name + "]" ] = name.toLowerCase();
+});
+
+function isArraylike( obj ) {
+	var length = obj.length,
+		type = jQuery.type( obj );
+
+	if ( jQuery.isWindow( obj ) ) {
+		return false;
+	}
+
+	if ( obj.nodeType === 1 && length ) {
+		return true;
+	}
+
+	return type === "array" || type !== "function" &&
+		( length === 0 ||
+		typeof length === "number" && length > 0 && ( length - 1 ) in obj );
+}
+
+// All jQuery objects should point back to these
+rootjQuery = jQuery(document);
 /*!
  * Sizzle CSS Selector Engine v1.9.4-pre
  * http://sizzlejs.com/
@@ -28,6 +1288,7959 @@
  *
  * Date: 2013-06-03
  */
+(function( window, undefined ) {
+
+var i,
+	support,
+	cachedruns,
+	Expr,
+	getText,
+	isXML,
+	compile,
+	outermostContext,
+	sortInput,
+
+	// Local document vars
+	setDocument,
+	document,
+	docElem,
+	documentIsHTML,
+	rbuggyQSA,
+	rbuggyMatches,
+	matches,
+	contains,
+
+	// Instance-specific data
+	expando = "sizzle" + -(new Date()),
+	preferredDoc = window.document,
+	dirruns = 0,
+	done = 0,
+	classCache = createCache(),
+	tokenCache = createCache(),
+	compilerCache = createCache(),
+	hasDuplicate = false,
+	sortOrder = function( a, b ) {
+		if ( a === b ) {
+			hasDuplicate = true;
+			return 0;
+		}
+		return 0;
+	},
+
+	// General-purpose constants
+	strundefined = typeof undefined,
+	MAX_NEGATIVE = 1 << 31,
+
+	// Instance methods
+	hasOwn = ({}).hasOwnProperty,
+	arr = [],
+	pop = arr.pop,
+	push_native = arr.push,
+	push = arr.push,
+	slice = arr.slice,
+	// Use a stripped-down indexOf if we can't use a native one
+	indexOf = arr.indexOf || function( elem ) {
+		var i = 0,
+			len = this.length;
+		for ( ; i < len; i++ ) {
+			if ( this[i] === elem ) {
+				return i;
+			}
+		}
+		return -1;
+	},
+
+	booleans = "checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped",
+
+	// Regular expressions
+
+	// Whitespace characters http://www.w3.org/TR/css3-selectors/#whitespace
+	whitespace = "[\\x20\\t\\r\\n\\f]",
+	// http://www.w3.org/TR/css3-syntax/#characters
+	characterEncoding = "(?:\\\\.|[\\w-]|[^\\x00-\\xa0])+",
+
+	// Loosely modeled on CSS identifier characters
+	// An unquoted value should be a CSS identifier http://www.w3.org/TR/css3-selectors/#attribute-selectors
+	// Proper syntax: http://www.w3.org/TR/CSS21/syndata.html#value-def-identifier
+	identifier = characterEncoding.replace( "w", "w#" ),
+
+	// Acceptable operators http://www.w3.org/TR/selectors/#attribute-selectors
+	attributes = "\\[" + whitespace + "*(" + characterEncoding + ")" + whitespace +
+		"*(?:([*^$|!~]?=)" + whitespace + "*(?:(['\"])((?:\\\\.|[^\\\\])*?)\\3|(" + identifier + ")|)|)" + whitespace + "*\\]",
+
+	// Prefer arguments quoted,
+	//   then not containing pseudos/brackets,
+	//   then attribute selectors/non-parenthetical expressions,
+	//   then anything else
+	// These preferences are here to reduce the number of selectors
+	//   needing tokenize in the PSEUDO preFilter
+	pseudos = ":(" + characterEncoding + ")(?:\\(((['\"])((?:\\\\.|[^\\\\])*?)\\3|((?:\\\\.|[^\\\\()[\\]]|" + attributes.replace( 3, 8 ) + ")*)|.*)\\)|)",
+
+	// Leading and non-escaped trailing whitespace, capturing some non-whitespace characters preceding the latter
+	rtrim = new RegExp( "^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g" ),
+
+	rcomma = new RegExp( "^" + whitespace + "*," + whitespace + "*" ),
+	rcombinators = new RegExp( "^" + whitespace + "*([>+~]|" + whitespace + ")" + whitespace + "*" ),
+
+	rsibling = new RegExp( whitespace + "*[+~]" ),
+	rattributeQuotes = new RegExp( "=" + whitespace + "*([^\\]'\"]*)" + whitespace + "*\\]", "g" ),
+
+	rpseudo = new RegExp( pseudos ),
+	ridentifier = new RegExp( "^" + identifier + "$" ),
+
+	matchExpr = {
+		"ID": new RegExp( "^#(" + characterEncoding + ")" ),
+		"CLASS": new RegExp( "^\\.(" + characterEncoding + ")" ),
+		"TAG": new RegExp( "^(" + characterEncoding.replace( "w", "w*" ) + ")" ),
+		"ATTR": new RegExp( "^" + attributes ),
+		"PSEUDO": new RegExp( "^" + pseudos ),
+		"CHILD": new RegExp( "^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\(" + whitespace +
+			"*(even|odd|(([+-]|)(\\d*)n|)" + whitespace + "*(?:([+-]|)" + whitespace +
+			"*(\\d+)|))" + whitespace + "*\\)|)", "i" ),
+		"bool": new RegExp( "^(?:" + booleans + ")$", "i" ),
+		// For use in libraries implementing .is()
+		// We use this for POS matching in `select`
+		"needsContext": new RegExp( "^" + whitespace + "*[>+~]|:(even|odd|eq|gt|lt|nth|first|last)(?:\\(" +
+			whitespace + "*((?:-\\d)?\\d*)" + whitespace + "*\\)|)(?=[^-]|$)", "i" )
+	},
+
+	rnative = /^[^{]+\{\s*\[native \w/,
+
+	// Easily-parseable/retrievable ID or TAG or CLASS selectors
+	rquickExpr = /^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/,
+
+	rinputs = /^(?:input|select|textarea|button)$/i,
+	rheader = /^h\d$/i,
+
+	rescape = /'|\\/g,
+
+	// CSS escapes http://www.w3.org/TR/CSS21/syndata.html#escaped-characters
+	runescape = new RegExp( "\\\\([\\da-f]{1,6}" + whitespace + "?|(" + whitespace + ")|.)", "ig" ),
+	funescape = function( _, escaped, escapedWhitespace ) {
+		var high = "0x" + escaped - 0x10000;
+		// NaN means non-codepoint
+		// Support: Firefox
+		// Workaround erroneous numeric interpretation of +"0x"
+		return high !== high || escapedWhitespace ?
+			escaped :
+			// BMP codepoint
+			high < 0 ?
+				String.fromCharCode( high + 0x10000 ) :
+				// Supplemental Plane codepoint (surrogate pair)
+				String.fromCharCode( high >> 10 | 0xD800, high & 0x3FF | 0xDC00 );
+	};
+
+// Optimize for push.apply( _, NodeList )
+try {
+	push.apply(
+		(arr = slice.call( preferredDoc.childNodes )),
+		preferredDoc.childNodes
+	);
+	// Support: Android<4.0
+	// Detect silently failing push.apply
+	arr[ preferredDoc.childNodes.length ].nodeType;
+} catch ( e ) {
+	push = { apply: arr.length ?
+
+		// Leverage slice if possible
+		function( target, els ) {
+			push_native.apply( target, slice.call(els) );
+		} :
+
+		// Support: IE<9
+		// Otherwise append directly
+		function( target, els ) {
+			var j = target.length,
+				i = 0;
+			// Can't trust NodeList.length
+			while ( (target[j++] = els[i++]) ) {}
+			target.length = j - 1;
+		}
+	};
+}
+
+function Sizzle( selector, context, results, seed ) {
+	var match, elem, m, nodeType,
+		// QSA vars
+		i, groups, old, nid, newContext, newSelector;
+
+	if ( ( context ? context.ownerDocument || context : preferredDoc ) !== document ) {
+		setDocument( context );
+	}
+
+	context = context || document;
+	results = results || [];
+
+	if ( !selector || typeof selector !== "string" ) {
+		return results;
+	}
+
+	if ( (nodeType = context.nodeType) !== 1 && nodeType !== 9 ) {
+		return [];
+	}
+
+	if ( documentIsHTML && !seed ) {
+
+		// Shortcuts
+		if ( (match = rquickExpr.exec( selector )) ) {
+			// Speed-up: Sizzle("#ID")
+			if ( (m = match[1]) ) {
+				if ( nodeType === 9 ) {
+					elem = context.getElementById( m );
+					// Check parentNode to catch when Blackberry 4.6 returns
+					// nodes that are no longer in the document #6963
+					if ( elem && elem.parentNode ) {
+						// Handle the case where IE, Opera, and Webkit return items
+						// by name instead of ID
+						if ( elem.id === m ) {
+							results.push( elem );
+							return results;
+						}
+					} else {
+						return results;
+					}
+				} else {
+					// Context is not a document
+					if ( context.ownerDocument && (elem = context.ownerDocument.getElementById( m )) &&
+						contains( context, elem ) && elem.id === m ) {
+						results.push( elem );
+						return results;
+					}
+				}
+
+			// Speed-up: Sizzle("TAG")
+			} else if ( match[2] ) {
+				push.apply( results, context.getElementsByTagName( selector ) );
+				return results;
+
+			// Speed-up: Sizzle(".CLASS")
+			} else if ( (m = match[3]) && support.getElementsByClassName && context.getElementsByClassName ) {
+				push.apply( results, context.getElementsByClassName( m ) );
+				return results;
+			}
+		}
+
+		// QSA path
+		if ( support.qsa && (!rbuggyQSA || !rbuggyQSA.test( selector )) ) {
+			nid = old = expando;
+			newContext = context;
+			newSelector = nodeType === 9 && selector;
+
+			// qSA works strangely on Element-rooted queries
+			// We can work around this by specifying an extra ID on the root
+			// and working up from there (Thanks to Andrew Dupont for the technique)
+			// IE 8 doesn't work on object elements
+			if ( nodeType === 1 && context.nodeName.toLowerCase() !== "object" ) {
+				groups = tokenize( selector );
+
+				if ( (old = context.getAttribute("id")) ) {
+					nid = old.replace( rescape, "\\$&" );
+				} else {
+					context.setAttribute( "id", nid );
+				}
+				nid = "[id='" + nid + "'] ";
+
+				i = groups.length;
+				while ( i-- ) {
+					groups[i] = nid + toSelector( groups[i] );
+				}
+				newContext = rsibling.test( selector ) && context.parentNode || context;
+				newSelector = groups.join(",");
+			}
+
+			if ( newSelector ) {
+				try {
+					push.apply( results,
+						newContext.querySelectorAll( newSelector )
+					);
+					return results;
+				} catch(qsaError) {
+				} finally {
+					if ( !old ) {
+						context.removeAttribute("id");
+					}
+				}
+			}
+		}
+	}
+
+	// All others
+	return select( selector.replace( rtrim, "$1" ), context, results, seed );
+}
+
+/**
+ * Create key-value caches of limited size
+ * @returns {Function(string, Object)} Returns the Object data after storing it on itself with
+ *	property name the (space-suffixed) string and (if the cache is larger than Expr.cacheLength)
+ *	deleting the oldest entry
+ */
+function createCache() {
+	var keys = [];
+
+	function cache( key, value ) {
+		// Use (key + " ") to avoid collision with native prototype properties (see Issue #157)
+		if ( keys.push( key += " " ) > Expr.cacheLength ) {
+			// Only keep the most recent entries
+			delete cache[ keys.shift() ];
+		}
+		return (cache[ key ] = value);
+	}
+	return cache;
+}
+
+/**
+ * Mark a function for special use by Sizzle
+ * @param {Function} fn The function to mark
+ */
+function markFunction( fn ) {
+	fn[ expando ] = true;
+	return fn;
+}
+
+/**
+ * Support testing using an element
+ * @param {Function} fn Passed the created div and expects a boolean result
+ */
+function assert( fn ) {
+	var div = document.createElement("div");
+
+	try {
+		return !!fn( div );
+	} catch (e) {
+		return false;
+	} finally {
+		// Remove from its parent by default
+		if ( div.parentNode ) {
+			div.parentNode.removeChild( div );
+		}
+		// release memory in IE
+		div = null;
+	}
+}
+
+/**
+ * Adds the same handler for all of the specified attrs
+ * @param {String} attrs Pipe-separated list of attributes
+ * @param {Function} handler The method that will be applied
+ */
+function addHandle( attrs, handler ) {
+	var arr = attrs.split("|"),
+		i = attrs.length;
+
+	while ( i-- ) {
+		Expr.attrHandle[ arr[i] ] = handler;
+	}
+}
+
+/**
+ * Checks document order of two siblings
+ * @param {Element} a
+ * @param {Element} b
+ * @returns {Number} Returns less than 0 if a precedes b, greater than 0 if a follows b
+ */
+function siblingCheck( a, b ) {
+	var cur = b && a,
+		diff = cur && a.nodeType === 1 && b.nodeType === 1 &&
+			( ~b.sourceIndex || MAX_NEGATIVE ) -
+			( ~a.sourceIndex || MAX_NEGATIVE );
+
+	// Use IE sourceIndex if available on both nodes
+	if ( diff ) {
+		return diff;
+	}
+
+	// Check if b follows a
+	if ( cur ) {
+		while ( (cur = cur.nextSibling) ) {
+			if ( cur === b ) {
+				return -1;
+			}
+		}
+	}
+
+	return a ? 1 : -1;
+}
+
+/**
+ * Returns a function to use in pseudos for input types
+ * @param {String} type
+ */
+function createInputPseudo( type ) {
+	return function( elem ) {
+		var name = elem.nodeName.toLowerCase();
+		return name === "input" && elem.type === type;
+	};
+}
+
+/**
+ * Returns a function to use in pseudos for buttons
+ * @param {String} type
+ */
+function createButtonPseudo( type ) {
+	return function( elem ) {
+		var name = elem.nodeName.toLowerCase();
+		return (name === "input" || name === "button") && elem.type === type;
+	};
+}
+
+/**
+ * Returns a function to use in pseudos for positionals
+ * @param {Function} fn
+ */
+function createPositionalPseudo( fn ) {
+	return markFunction(function( argument ) {
+		argument = +argument;
+		return markFunction(function( seed, matches ) {
+			var j,
+				matchIndexes = fn( [], seed.length, argument ),
+				i = matchIndexes.length;
+
+			// Match elements found at the specified indexes
+			while ( i-- ) {
+				if ( seed[ (j = matchIndexes[i]) ] ) {
+					seed[j] = !(matches[j] = seed[j]);
+				}
+			}
+		});
+	});
+}
+
+/**
+ * Detect xml
+ * @param {Element|Object} elem An element or a document
+ */
+isXML = Sizzle.isXML = function( elem ) {
+	// documentElement is verified for cases where it doesn't yet exist
+	// (such as loading iframes in IE - #4833)
+	var documentElement = elem && (elem.ownerDocument || elem).documentElement;
+	return documentElement ? documentElement.nodeName !== "HTML" : false;
+};
+
+// Expose support vars for convenience
+support = Sizzle.support = {};
+
+/**
+ * Sets document-related variables once based on the current document
+ * @param {Element|Object} [doc] An element or document object to use to set the document
+ * @returns {Object} Returns the current document
+ */
+setDocument = Sizzle.setDocument = function( node ) {
+	var doc = node ? node.ownerDocument || node : preferredDoc,
+		parent = doc.defaultView;
+
+	// If no document and documentElement is available, return
+	if ( doc === document || doc.nodeType !== 9 || !doc.documentElement ) {
+		return document;
+	}
+
+	// Set our document
+	document = doc;
+	docElem = doc.documentElement;
+
+	// Support tests
+	documentIsHTML = !isXML( doc );
+
+	// Support: IE>8
+	// If iframe document is assigned to "document" variable and if iframe has been reloaded,
+	// IE will throw "permission denied" error when accessing "document" variable, see jQuery #13936
+	// IE6-8 do not support the defaultView property so parent will be undefined
+	if ( parent && parent.attachEvent && parent !== parent.top ) {
+		parent.attachEvent( "onbeforeunload", function() {
+			setDocument();
+		});
+	}
+
+	/* Attributes
+	---------------------------------------------------------------------- */
+
+	// Support: IE<8
+	// Verify that getAttribute really returns attributes and not properties (excepting IE8 booleans)
+	support.attributes = assert(function( div ) {
+		div.className = "i";
+		return !div.getAttribute("className");
+	});
+
+	/* getElement(s)By*
+	---------------------------------------------------------------------- */
+
+	// Check if getElementsByTagName("*") returns only elements
+	support.getElementsByTagName = assert(function( div ) {
+		div.appendChild( doc.createComment("") );
+		return !div.getElementsByTagName("*").length;
+	});
+
+	// Check if getElementsByClassName can be trusted
+	support.getElementsByClassName = assert(function( div ) {
+		div.innerHTML = "<div class='a'></div><div class='a i'></div>";
+
+		// Support: Safari<4
+		// Catch class over-caching
+		div.firstChild.className = "i";
+		// Support: Opera<10
+		// Catch gEBCN failure to find non-leading classes
+		return div.getElementsByClassName("i").length === 2;
+	});
+
+	// Support: IE<10
+	// Check if getElementById returns elements by name
+	// The broken getElementById methods don't pick up programatically-set names,
+	// so use a roundabout getElementsByName test
+	support.getById = assert(function( div ) {
+		docElem.appendChild( div ).id = expando;
+		return !doc.getElementsByName || !doc.getElementsByName( expando ).length;
+	});
+
+	// ID find and filter
+	if ( support.getById ) {
+		Expr.find["ID"] = function( id, context ) {
+			if ( typeof context.getElementById !== strundefined && documentIsHTML ) {
+				var m = context.getElementById( id );
+				// Check parentNode to catch when Blackberry 4.6 returns
+				// nodes that are no longer in the document #6963
+				return m && m.parentNode ? [m] : [];
+			}
+		};
+		Expr.filter["ID"] = function( id ) {
+			var attrId = id.replace( runescape, funescape );
+			return function( elem ) {
+				return elem.getAttribute("id") === attrId;
+			};
+		};
+	} else {
+		// Support: IE6/7
+		// getElementById is not reliable as a find shortcut
+		delete Expr.find["ID"];
+
+		Expr.filter["ID"] =  function( id ) {
+			var attrId = id.replace( runescape, funescape );
+			return function( elem ) {
+				var node = typeof elem.getAttributeNode !== strundefined && elem.getAttributeNode("id");
+				return node && node.value === attrId;
+			};
+		};
+	}
+
+	// Tag
+	Expr.find["TAG"] = support.getElementsByTagName ?
+		function( tag, context ) {
+			if ( typeof context.getElementsByTagName !== strundefined ) {
+				return context.getElementsByTagName( tag );
+			}
+		} :
+		function( tag, context ) {
+			var elem,
+				tmp = [],
+				i = 0,
+				results = context.getElementsByTagName( tag );
+
+			// Filter out possible comments
+			if ( tag === "*" ) {
+				while ( (elem = results[i++]) ) {
+					if ( elem.nodeType === 1 ) {
+						tmp.push( elem );
+					}
+				}
+
+				return tmp;
+			}
+			return results;
+		};
+
+	// Class
+	Expr.find["CLASS"] = support.getElementsByClassName && function( className, context ) {
+		if ( typeof context.getElementsByClassName !== strundefined && documentIsHTML ) {
+			return context.getElementsByClassName( className );
+		}
+	};
+
+	/* QSA/matchesSelector
+	---------------------------------------------------------------------- */
+
+	// QSA and matchesSelector support
+
+	// matchesSelector(:active) reports false when true (IE9/Opera 11.5)
+	rbuggyMatches = [];
+
+	// qSa(:focus) reports false when true (Chrome 21)
+	// We allow this because of a bug in IE8/9 that throws an error
+	// whenever `document.activeElement` is accessed on an iframe
+	// So, we allow :focus to pass through QSA all the time to avoid the IE error
+	// See http://bugs.jquery.com/ticket/13378
+	rbuggyQSA = [];
+
+	if ( (support.qsa = rnative.test( doc.querySelectorAll )) ) {
+		// Build QSA regex
+		// Regex strategy adopted from Diego Perini
+		assert(function( div ) {
+			// Select is set to empty string on purpose
+			// This is to test IE's treatment of not explicitly
+			// setting a boolean content attribute,
+			// since its presence should be enough
+			// http://bugs.jquery.com/ticket/12359
+			div.innerHTML = "<select><option selected=''></option></select>";
+
+			// Support: IE8
+			// Boolean attributes and "value" are not treated correctly
+			if ( !div.querySelectorAll("[selected]").length ) {
+				rbuggyQSA.push( "\\[" + whitespace + "*(?:value|" + booleans + ")" );
+			}
+
+			// Webkit/Opera - :checked should return selected option elements
+			// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
+			// IE8 throws error here and will not see later tests
+			if ( !div.querySelectorAll(":checked").length ) {
+				rbuggyQSA.push(":checked");
+			}
+		});
+
+		assert(function( div ) {
+
+			// Support: Opera 10-12/IE8
+			// ^= $= *= and empty values
+			// Should not select anything
+			// Support: Windows 8 Native Apps
+			// The type attribute is restricted during .innerHTML assignment
+			var input = doc.createElement("input");
+			input.setAttribute( "type", "hidden" );
+			div.appendChild( input ).setAttribute( "t", "" );
+
+			if ( div.querySelectorAll("[t^='']").length ) {
+				rbuggyQSA.push( "[*^$]=" + whitespace + "*(?:''|\"\")" );
+			}
+
+			// FF 3.5 - :enabled/:disabled and hidden elements (hidden elements are still enabled)
+			// IE8 throws error here and will not see later tests
+			if ( !div.querySelectorAll(":enabled").length ) {
+				rbuggyQSA.push( ":enabled", ":disabled" );
+			}
+
+			// Opera 10-11 does not throw on post-comma invalid pseudos
+			div.querySelectorAll("*,:x");
+			rbuggyQSA.push(",.*:");
+		});
+	}
+
+	if ( (support.matchesSelector = rnative.test( (matches = docElem.webkitMatchesSelector ||
+		docElem.mozMatchesSelector ||
+		docElem.oMatchesSelector ||
+		docElem.msMatchesSelector) )) ) {
+
+		assert(function( div ) {
+			// Check to see if it's possible to do matchesSelector
+			// on a disconnected node (IE 9)
+			support.disconnectedMatch = matches.call( div, "div" );
+
+			// This should fail with an exception
+			// Gecko does not error, returns false instead
+			matches.call( div, "[s!='']:x" );
+			rbuggyMatches.push( "!=", pseudos );
+		});
+	}
+
+	rbuggyQSA = rbuggyQSA.length && new RegExp( rbuggyQSA.join("|") );
+	rbuggyMatches = rbuggyMatches.length && new RegExp( rbuggyMatches.join("|") );
+
+	/* Contains
+	---------------------------------------------------------------------- */
+
+	// Element contains another
+	// Purposefully does not implement inclusive descendent
+	// As in, an element does not contain itself
+	contains = rnative.test( docElem.contains ) || docElem.compareDocumentPosition ?
+		function( a, b ) {
+			var adown = a.nodeType === 9 ? a.documentElement : a,
+				bup = b && b.parentNode;
+			return a === bup || !!( bup && bup.nodeType === 1 && (
+				adown.contains ?
+					adown.contains( bup ) :
+					a.compareDocumentPosition && a.compareDocumentPosition( bup ) & 16
+			));
+		} :
+		function( a, b ) {
+			if ( b ) {
+				while ( (b = b.parentNode) ) {
+					if ( b === a ) {
+						return true;
+					}
+				}
+			}
+			return false;
+		};
+
+	/* Sorting
+	---------------------------------------------------------------------- */
+
+	// Document order sorting
+	sortOrder = docElem.compareDocumentPosition ?
+	function( a, b ) {
+
+		// Flag for duplicate removal
+		if ( a === b ) {
+			hasDuplicate = true;
+			return 0;
+		}
+
+		var compare = b.compareDocumentPosition && a.compareDocumentPosition && a.compareDocumentPosition( b );
+
+		if ( compare ) {
+			// Disconnected nodes
+			if ( compare & 1 ||
+				(!support.sortDetached && b.compareDocumentPosition( a ) === compare) ) {
+
+				// Choose the first element that is related to our preferred document
+				if ( a === doc || contains(preferredDoc, a) ) {
+					return -1;
+				}
+				if ( b === doc || contains(preferredDoc, b) ) {
+					return 1;
+				}
+
+				// Maintain original order
+				return sortInput ?
+					( indexOf.call( sortInput, a ) - indexOf.call( sortInput, b ) ) :
+					0;
+			}
+
+			return compare & 4 ? -1 : 1;
+		}
+
+		// Not directly comparable, sort on existence of method
+		return a.compareDocumentPosition ? -1 : 1;
+	} :
+	function( a, b ) {
+		var cur,
+			i = 0,
+			aup = a.parentNode,
+			bup = b.parentNode,
+			ap = [ a ],
+			bp = [ b ];
+
+		// Exit early if the nodes are identical
+		if ( a === b ) {
+			hasDuplicate = true;
+			return 0;
+
+		// Parentless nodes are either documents or disconnected
+		} else if ( !aup || !bup ) {
+			return a === doc ? -1 :
+				b === doc ? 1 :
+				aup ? -1 :
+				bup ? 1 :
+				sortInput ?
+				( indexOf.call( sortInput, a ) - indexOf.call( sortInput, b ) ) :
+				0;
+
+		// If the nodes are siblings, we can do a quick check
+		} else if ( aup === bup ) {
+			return siblingCheck( a, b );
+		}
+
+		// Otherwise we need full lists of their ancestors for comparison
+		cur = a;
+		while ( (cur = cur.parentNode) ) {
+			ap.unshift( cur );
+		}
+		cur = b;
+		while ( (cur = cur.parentNode) ) {
+			bp.unshift( cur );
+		}
+
+		// Walk down the tree looking for a discrepancy
+		while ( ap[i] === bp[i] ) {
+			i++;
+		}
+
+		return i ?
+			// Do a sibling check if the nodes have a common ancestor
+			siblingCheck( ap[i], bp[i] ) :
+
+			// Otherwise nodes in our document sort first
+			ap[i] === preferredDoc ? -1 :
+			bp[i] === preferredDoc ? 1 :
+			0;
+	};
+
+	return doc;
+};
+
+Sizzle.matches = function( expr, elements ) {
+	return Sizzle( expr, null, null, elements );
+};
+
+Sizzle.matchesSelector = function( elem, expr ) {
+	// Set document vars if needed
+	if ( ( elem.ownerDocument || elem ) !== document ) {
+		setDocument( elem );
+	}
+
+	// Make sure that attribute selectors are quoted
+	expr = expr.replace( rattributeQuotes, "='$1']" );
+
+	if ( support.matchesSelector && documentIsHTML &&
+		( !rbuggyMatches || !rbuggyMatches.test( expr ) ) &&
+		( !rbuggyQSA     || !rbuggyQSA.test( expr ) ) ) {
+
+		try {
+			var ret = matches.call( elem, expr );
+
+			// IE 9's matchesSelector returns false on disconnected nodes
+			if ( ret || support.disconnectedMatch ||
+					// As well, disconnected nodes are said to be in a document
+					// fragment in IE 9
+					elem.document && elem.document.nodeType !== 11 ) {
+				return ret;
+			}
+		} catch(e) {}
+	}
+
+	return Sizzle( expr, document, null, [elem] ).length > 0;
+};
+
+Sizzle.contains = function( context, elem ) {
+	// Set document vars if needed
+	if ( ( context.ownerDocument || context ) !== document ) {
+		setDocument( context );
+	}
+	return contains( context, elem );
+};
+
+Sizzle.attr = function( elem, name ) {
+	// Set document vars if needed
+	if ( ( elem.ownerDocument || elem ) !== document ) {
+		setDocument( elem );
+	}
+
+	var fn = Expr.attrHandle[ name.toLowerCase() ],
+		// Don't get fooled by Object.prototype properties (jQuery #13807)
+		val = fn && hasOwn.call( Expr.attrHandle, name.toLowerCase() ) ?
+			fn( elem, name, !documentIsHTML ) :
+			undefined;
+
+	return val === undefined ?
+		support.attributes || !documentIsHTML ?
+			elem.getAttribute( name ) :
+			(val = elem.getAttributeNode(name)) && val.specified ?
+				val.value :
+				null :
+		val;
+};
+
+Sizzle.error = function( msg ) {
+	throw new Error( "Syntax error, unrecognized expression: " + msg );
+};
+
+/**
+ * Document sorting and removing duplicates
+ * @param {ArrayLike} results
+ */
+Sizzle.uniqueSort = function( results ) {
+	var elem,
+		duplicates = [],
+		j = 0,
+		i = 0;
+
+	// Unless we *know* we can detect duplicates, assume their presence
+	hasDuplicate = !support.detectDuplicates;
+	sortInput = !support.sortStable && results.slice( 0 );
+	results.sort( sortOrder );
+
+	if ( hasDuplicate ) {
+		while ( (elem = results[i++]) ) {
+			if ( elem === results[ i ] ) {
+				j = duplicates.push( i );
+			}
+		}
+		while ( j-- ) {
+			results.splice( duplicates[ j ], 1 );
+		}
+	}
+
+	return results;
+};
+
+/**
+ * Utility function for retrieving the text value of an array of DOM nodes
+ * @param {Array|Element} elem
+ */
+getText = Sizzle.getText = function( elem ) {
+	var node,
+		ret = "",
+		i = 0,
+		nodeType = elem.nodeType;
+
+	if ( !nodeType ) {
+		// If no nodeType, this is expected to be an array
+		for ( ; (node = elem[i]); i++ ) {
+			// Do not traverse comment nodes
+			ret += getText( node );
+		}
+	} else if ( nodeType === 1 || nodeType === 9 || nodeType === 11 ) {
+		// Use textContent for elements
+		// innerText usage removed for consistency of new lines (see #11153)
+		if ( typeof elem.textContent === "string" ) {
+			return elem.textContent;
+		} else {
+			// Traverse its children
+			for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
+				ret += getText( elem );
+			}
+		}
+	} else if ( nodeType === 3 || nodeType === 4 ) {
+		return elem.nodeValue;
+	}
+	// Do not include comment or processing instruction nodes
+
+	return ret;
+};
+
+Expr = Sizzle.selectors = {
+
+	// Can be adjusted by the user
+	cacheLength: 50,
+
+	createPseudo: markFunction,
+
+	match: matchExpr,
+
+	attrHandle: {},
+
+	find: {},
+
+	relative: {
+		">": { dir: "parentNode", first: true },
+		" ": { dir: "parentNode" },
+		"+": { dir: "previousSibling", first: true },
+		"~": { dir: "previousSibling" }
+	},
+
+	preFilter: {
+		"ATTR": function( match ) {
+			match[1] = match[1].replace( runescape, funescape );
+
+			// Move the given value to match[3] whether quoted or unquoted
+			match[3] = ( match[4] || match[5] || "" ).replace( runescape, funescape );
+
+			if ( match[2] === "~=" ) {
+				match[3] = " " + match[3] + " ";
+			}
+
+			return match.slice( 0, 4 );
+		},
+
+		"CHILD": function( match ) {
+			/* matches from matchExpr["CHILD"]
+				1 type (only|nth|...)
+				2 what (child|of-type)
+				3 argument (even|odd|\d*|\d*n([+-]\d+)?|...)
+				4 xn-component of xn+y argument ([+-]?\d*n|)
+				5 sign of xn-component
+				6 x of xn-component
+				7 sign of y-component
+				8 y of y-component
+			*/
+			match[1] = match[1].toLowerCase();
+
+			if ( match[1].slice( 0, 3 ) === "nth" ) {
+				// nth-* requires argument
+				if ( !match[3] ) {
+					Sizzle.error( match[0] );
+				}
+
+				// numeric x and y parameters for Expr.filter.CHILD
+				// remember that false/true cast respectively to 0/1
+				match[4] = +( match[4] ? match[5] + (match[6] || 1) : 2 * ( match[3] === "even" || match[3] === "odd" ) );
+				match[5] = +( ( match[7] + match[8] ) || match[3] === "odd" );
+
+			// other types prohibit arguments
+			} else if ( match[3] ) {
+				Sizzle.error( match[0] );
+			}
+
+			return match;
+		},
+
+		"PSEUDO": function( match ) {
+			var excess,
+				unquoted = !match[5] && match[2];
+
+			if ( matchExpr["CHILD"].test( match[0] ) ) {
+				return null;
+			}
+
+			// Accept quoted arguments as-is
+			if ( match[3] && match[4] !== undefined ) {
+				match[2] = match[4];
+
+			// Strip excess characters from unquoted arguments
+			} else if ( unquoted && rpseudo.test( unquoted ) &&
+				// Get excess from tokenize (recursively)
+				(excess = tokenize( unquoted, true )) &&
+				// advance to the next closing parenthesis
+				(excess = unquoted.indexOf( ")", unquoted.length - excess ) - unquoted.length) ) {
+
+				// excess is a negative index
+				match[0] = match[0].slice( 0, excess );
+				match[2] = unquoted.slice( 0, excess );
+			}
+
+			// Return only captures needed by the pseudo filter method (type and argument)
+			return match.slice( 0, 3 );
+		}
+	},
+
+	filter: {
+
+		"TAG": function( nodeNameSelector ) {
+			var nodeName = nodeNameSelector.replace( runescape, funescape ).toLowerCase();
+			return nodeNameSelector === "*" ?
+				function() { return true; } :
+				function( elem ) {
+					return elem.nodeName && elem.nodeName.toLowerCase() === nodeName;
+				};
+		},
+
+		"CLASS": function( className ) {
+			var pattern = classCache[ className + " " ];
+
+			return pattern ||
+				(pattern = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" )) &&
+				classCache( className, function( elem ) {
+					return pattern.test( typeof elem.className === "string" && elem.className || typeof elem.getAttribute !== strundefined && elem.getAttribute("class") || "" );
+				});
+		},
+
+		"ATTR": function( name, operator, check ) {
+			return function( elem ) {
+				var result = Sizzle.attr( elem, name );
+
+				if ( result == null ) {
+					return operator === "!=";
+				}
+				if ( !operator ) {
+					return true;
+				}
+
+				result += "";
+
+				return operator === "=" ? result === check :
+					operator === "!=" ? result !== check :
+					operator === "^=" ? check && result.indexOf( check ) === 0 :
+					operator === "*=" ? check && result.indexOf( check ) > -1 :
+					operator === "$=" ? check && result.slice( -check.length ) === check :
+					operator === "~=" ? ( " " + result + " " ).indexOf( check ) > -1 :
+					operator === "|=" ? result === check || result.slice( 0, check.length + 1 ) === check + "-" :
+					false;
+			};
+		},
+
+		"CHILD": function( type, what, argument, first, last ) {
+			var simple = type.slice( 0, 3 ) !== "nth",
+				forward = type.slice( -4 ) !== "last",
+				ofType = what === "of-type";
+
+			return first === 1 && last === 0 ?
+
+				// Shortcut for :nth-*(n)
+				function( elem ) {
+					return !!elem.parentNode;
+				} :
+
+				function( elem, context, xml ) {
+					var cache, outerCache, node, diff, nodeIndex, start,
+						dir = simple !== forward ? "nextSibling" : "previousSibling",
+						parent = elem.parentNode,
+						name = ofType && elem.nodeName.toLowerCase(),
+						useCache = !xml && !ofType;
+
+					if ( parent ) {
+
+						// :(first|last|only)-(child|of-type)
+						if ( simple ) {
+							while ( dir ) {
+								node = elem;
+								while ( (node = node[ dir ]) ) {
+									if ( ofType ? node.nodeName.toLowerCase() === name : node.nodeType === 1 ) {
+										return false;
+									}
+								}
+								// Reverse direction for :only-* (if we haven't yet done so)
+								start = dir = type === "only" && !start && "nextSibling";
+							}
+							return true;
+						}
+
+						start = [ forward ? parent.firstChild : parent.lastChild ];
+
+						// non-xml :nth-child(...) stores cache data on `parent`
+						if ( forward && useCache ) {
+							// Seek `elem` from a previously-cached index
+							outerCache = parent[ expando ] || (parent[ expando ] = {});
+							cache = outerCache[ type ] || [];
+							nodeIndex = cache[0] === dirruns && cache[1];
+							diff = cache[0] === dirruns && cache[2];
+							node = nodeIndex && parent.childNodes[ nodeIndex ];
+
+							while ( (node = ++nodeIndex && node && node[ dir ] ||
+
+								// Fallback to seeking `elem` from the start
+								(diff = nodeIndex = 0) || start.pop()) ) {
+
+								// When found, cache indexes on `parent` and break
+								if ( node.nodeType === 1 && ++diff && node === elem ) {
+									outerCache[ type ] = [ dirruns, nodeIndex, diff ];
+									break;
+								}
+							}
+
+						// Use previously-cached element index if available
+						} else if ( useCache && (cache = (elem[ expando ] || (elem[ expando ] = {}))[ type ]) && cache[0] === dirruns ) {
+							diff = cache[1];
+
+						// xml :nth-child(...) or :nth-last-child(...) or :nth(-last)?-of-type(...)
+						} else {
+							// Use the same loop as above to seek `elem` from the start
+							while ( (node = ++nodeIndex && node && node[ dir ] ||
+								(diff = nodeIndex = 0) || start.pop()) ) {
+
+								if ( ( ofType ? node.nodeName.toLowerCase() === name : node.nodeType === 1 ) && ++diff ) {
+									// Cache the index of each encountered element
+									if ( useCache ) {
+										(node[ expando ] || (node[ expando ] = {}))[ type ] = [ dirruns, diff ];
+									}
+
+									if ( node === elem ) {
+										break;
+									}
+								}
+							}
+						}
+
+						// Incorporate the offset, then check against cycle size
+						diff -= last;
+						return diff === first || ( diff % first === 0 && diff / first >= 0 );
+					}
+				};
+		},
+
+		"PSEUDO": function( pseudo, argument ) {
+			// pseudo-class names are case-insensitive
+			// http://www.w3.org/TR/selectors/#pseudo-classes
+			// Prioritize by case sensitivity in case custom pseudos are added with uppercase letters
+			// Remember that setFilters inherits from pseudos
+			var args,
+				fn = Expr.pseudos[ pseudo ] || Expr.setFilters[ pseudo.toLowerCase() ] ||
+					Sizzle.error( "unsupported pseudo: " + pseudo );
+
+			// The user may use createPseudo to indicate that
+			// arguments are needed to create the filter function
+			// just as Sizzle does
+			if ( fn[ expando ] ) {
+				return fn( argument );
+			}
+
+			// But maintain support for old signatures
+			if ( fn.length > 1 ) {
+				args = [ pseudo, pseudo, "", argument ];
+				return Expr.setFilters.hasOwnProperty( pseudo.toLowerCase() ) ?
+					markFunction(function( seed, matches ) {
+						var idx,
+							matched = fn( seed, argument ),
+							i = matched.length;
+						while ( i-- ) {
+							idx = indexOf.call( seed, matched[i] );
+							seed[ idx ] = !( matches[ idx ] = matched[i] );
+						}
+					}) :
+					function( elem ) {
+						return fn( elem, 0, args );
+					};
+			}
+
+			return fn;
+		}
+	},
+
+	pseudos: {
+		// Potentially complex pseudos
+		"not": markFunction(function( selector ) {
+			// Trim the selector passed to compile
+			// to avoid treating leading and trailing
+			// spaces as combinators
+			var input = [],
+				results = [],
+				matcher = compile( selector.replace( rtrim, "$1" ) );
+
+			return matcher[ expando ] ?
+				markFunction(function( seed, matches, context, xml ) {
+					var elem,
+						unmatched = matcher( seed, null, xml, [] ),
+						i = seed.length;
+
+					// Match elements unmatched by `matcher`
+					while ( i-- ) {
+						if ( (elem = unmatched[i]) ) {
+							seed[i] = !(matches[i] = elem);
+						}
+					}
+				}) :
+				function( elem, context, xml ) {
+					input[0] = elem;
+					matcher( input, null, xml, results );
+					return !results.pop();
+				};
+		}),
+
+		"has": markFunction(function( selector ) {
+			return function( elem ) {
+				return Sizzle( selector, elem ).length > 0;
+			};
+		}),
+
+		"contains": markFunction(function( text ) {
+			return function( elem ) {
+				return ( elem.textContent || elem.innerText || getText( elem ) ).indexOf( text ) > -1;
+			};
+		}),
+
+		// "Whether an element is represented by a :lang() selector
+		// is based solely on the element's language value
+		// being equal to the identifier C,
+		// or beginning with the identifier C immediately followed by "-".
+		// The matching of C against the element's language value is performed case-insensitively.
+		// The identifier C does not have to be a valid language name."
+		// http://www.w3.org/TR/selectors/#lang-pseudo
+		"lang": markFunction( function( lang ) {
+			// lang value must be a valid identifier
+			if ( !ridentifier.test(lang || "") ) {
+				Sizzle.error( "unsupported lang: " + lang );
+			}
+			lang = lang.replace( runescape, funescape ).toLowerCase();
+			return function( elem ) {
+				var elemLang;
+				do {
+					if ( (elemLang = documentIsHTML ?
+						elem.lang :
+						elem.getAttribute("xml:lang") || elem.getAttribute("lang")) ) {
+
+						elemLang = elemLang.toLowerCase();
+						return elemLang === lang || elemLang.indexOf( lang + "-" ) === 0;
+					}
+				} while ( (elem = elem.parentNode) && elem.nodeType === 1 );
+				return false;
+			};
+		}),
+
+		// Miscellaneous
+		"target": function( elem ) {
+			var hash = window.location && window.location.hash;
+			return hash && hash.slice( 1 ) === elem.id;
+		},
+
+		"root": function( elem ) {
+			return elem === docElem;
+		},
+
+		"focus": function( elem ) {
+			return elem === document.activeElement && (!document.hasFocus || document.hasFocus()) && !!(elem.type || elem.href || ~elem.tabIndex);
+		},
+
+		// Boolean properties
+		"enabled": function( elem ) {
+			return elem.disabled === false;
+		},
+
+		"disabled": function( elem ) {
+			return elem.disabled === true;
+		},
+
+		"checked": function( elem ) {
+			// In CSS3, :checked should return both checked and selected elements
+			// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
+			var nodeName = elem.nodeName.toLowerCase();
+			return (nodeName === "input" && !!elem.checked) || (nodeName === "option" && !!elem.selected);
+		},
+
+		"selected": function( elem ) {
+			// Accessing this property makes selected-by-default
+			// options in Safari work properly
+			if ( elem.parentNode ) {
+				elem.parentNode.selectedIndex;
+			}
+
+			return elem.selected === true;
+		},
+
+		// Contents
+		"empty": function( elem ) {
+			// http://www.w3.org/TR/selectors/#empty-pseudo
+			// :empty is only affected by element nodes and content nodes(including text(3), cdata(4)),
+			//   not comment, processing instructions, or others
+			// Thanks to Diego Perini for the nodeName shortcut
+			//   Greater than "@" means alpha characters (specifically not starting with "#" or "?")
+			for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
+				if ( elem.nodeName > "@" || elem.nodeType === 3 || elem.nodeType === 4 ) {
+					return false;
+				}
+			}
+			return true;
+		},
+
+		"parent": function( elem ) {
+			return !Expr.pseudos["empty"]( elem );
+		},
+
+		// Element/input types
+		"header": function( elem ) {
+			return rheader.test( elem.nodeName );
+		},
+
+		"input": function( elem ) {
+			return rinputs.test( elem.nodeName );
+		},
+
+		"button": function( elem ) {
+			var name = elem.nodeName.toLowerCase();
+			return name === "input" && elem.type === "button" || name === "button";
+		},
+
+		"text": function( elem ) {
+			var attr;
+			// IE6 and 7 will map elem.type to 'text' for new HTML5 types (search, etc)
+			// use getAttribute instead to test this case
+			return elem.nodeName.toLowerCase() === "input" &&
+				elem.type === "text" &&
+				( (attr = elem.getAttribute("type")) == null || attr.toLowerCase() === elem.type );
+		},
+
+		// Position-in-collection
+		"first": createPositionalPseudo(function() {
+			return [ 0 ];
+		}),
+
+		"last": createPositionalPseudo(function( matchIndexes, length ) {
+			return [ length - 1 ];
+		}),
+
+		"eq": createPositionalPseudo(function( matchIndexes, length, argument ) {
+			return [ argument < 0 ? argument + length : argument ];
+		}),
+
+		"even": createPositionalPseudo(function( matchIndexes, length ) {
+			var i = 0;
+			for ( ; i < length; i += 2 ) {
+				matchIndexes.push( i );
+			}
+			return matchIndexes;
+		}),
+
+		"odd": createPositionalPseudo(function( matchIndexes, length ) {
+			var i = 1;
+			for ( ; i < length; i += 2 ) {
+				matchIndexes.push( i );
+			}
+			return matchIndexes;
+		}),
+
+		"lt": createPositionalPseudo(function( matchIndexes, length, argument ) {
+			var i = argument < 0 ? argument + length : argument;
+			for ( ; --i >= 0; ) {
+				matchIndexes.push( i );
+			}
+			return matchIndexes;
+		}),
+
+		"gt": createPositionalPseudo(function( matchIndexes, length, argument ) {
+			var i = argument < 0 ? argument + length : argument;
+			for ( ; ++i < length; ) {
+				matchIndexes.push( i );
+			}
+			return matchIndexes;
+		})
+	}
+};
+
+Expr.pseudos["nth"] = Expr.pseudos["eq"];
+
+// Add button/input type pseudos
+for ( i in { radio: true, checkbox: true, file: true, password: true, image: true } ) {
+	Expr.pseudos[ i ] = createInputPseudo( i );
+}
+for ( i in { submit: true, reset: true } ) {
+	Expr.pseudos[ i ] = createButtonPseudo( i );
+}
+
+// Easy API for creating new setFilters
+function setFilters() {}
+setFilters.prototype = Expr.filters = Expr.pseudos;
+Expr.setFilters = new setFilters();
+
+function tokenize( selector, parseOnly ) {
+	var matched, match, tokens, type,
+		soFar, groups, preFilters,
+		cached = tokenCache[ selector + " " ];
+
+	if ( cached ) {
+		return parseOnly ? 0 : cached.slice( 0 );
+	}
+
+	soFar = selector;
+	groups = [];
+	preFilters = Expr.preFilter;
+
+	while ( soFar ) {
+
+		// Comma and first run
+		if ( !matched || (match = rcomma.exec( soFar )) ) {
+			if ( match ) {
+				// Don't consume trailing commas as valid
+				soFar = soFar.slice( match[0].length ) || soFar;
+			}
+			groups.push( tokens = [] );
+		}
+
+		matched = false;
+
+		// Combinators
+		if ( (match = rcombinators.exec( soFar )) ) {
+			matched = match.shift();
+			tokens.push({
+				value: matched,
+				// Cast descendant combinators to space
+				type: match[0].replace( rtrim, " " )
+			});
+			soFar = soFar.slice( matched.length );
+		}
+
+		// Filters
+		for ( type in Expr.filter ) {
+			if ( (match = matchExpr[ type ].exec( soFar )) && (!preFilters[ type ] ||
+				(match = preFilters[ type ]( match ))) ) {
+				matched = match.shift();
+				tokens.push({
+					value: matched,
+					type: type,
+					matches: match
+				});
+				soFar = soFar.slice( matched.length );
+			}
+		}
+
+		if ( !matched ) {
+			break;
+		}
+	}
+
+	// Return the length of the invalid excess
+	// if we're just parsing
+	// Otherwise, throw an error or return tokens
+	return parseOnly ?
+		soFar.length :
+		soFar ?
+			Sizzle.error( selector ) :
+			// Cache the tokens
+			tokenCache( selector, groups ).slice( 0 );
+}
+
+function toSelector( tokens ) {
+	var i = 0,
+		len = tokens.length,
+		selector = "";
+	for ( ; i < len; i++ ) {
+		selector += tokens[i].value;
+	}
+	return selector;
+}
+
+function addCombinator( matcher, combinator, base ) {
+	var dir = combinator.dir,
+		checkNonElements = base && dir === "parentNode",
+		doneName = done++;
+
+	return combinator.first ?
+		// Check against closest ancestor/preceding element
+		function( elem, context, xml ) {
+			while ( (elem = elem[ dir ]) ) {
+				if ( elem.nodeType === 1 || checkNonElements ) {
+					return matcher( elem, context, xml );
+				}
+			}
+		} :
+
+		// Check against all ancestor/preceding elements
+		function( elem, context, xml ) {
+			var data, cache, outerCache,
+				dirkey = dirruns + " " + doneName;
+
+			// We can't set arbitrary data on XML nodes, so they don't benefit from dir caching
+			if ( xml ) {
+				while ( (elem = elem[ dir ]) ) {
+					if ( elem.nodeType === 1 || checkNonElements ) {
+						if ( matcher( elem, context, xml ) ) {
+							return true;
+						}
+					}
+				}
+			} else {
+				while ( (elem = elem[ dir ]) ) {
+					if ( elem.nodeType === 1 || checkNonElements ) {
+						outerCache = elem[ expando ] || (elem[ expando ] = {});
+						if ( (cache = outerCache[ dir ]) && cache[0] === dirkey ) {
+							if ( (data = cache[1]) === true || data === cachedruns ) {
+								return data === true;
+							}
+						} else {
+							cache = outerCache[ dir ] = [ dirkey ];
+							cache[1] = matcher( elem, context, xml ) || cachedruns;
+							if ( cache[1] === true ) {
+								return true;
+							}
+						}
+					}
+				}
+			}
+		};
+}
+
+function elementMatcher( matchers ) {
+	return matchers.length > 1 ?
+		function( elem, context, xml ) {
+			var i = matchers.length;
+			while ( i-- ) {
+				if ( !matchers[i]( elem, context, xml ) ) {
+					return false;
+				}
+			}
+			return true;
+		} :
+		matchers[0];
+}
+
+function condense( unmatched, map, filter, context, xml ) {
+	var elem,
+		newUnmatched = [],
+		i = 0,
+		len = unmatched.length,
+		mapped = map != null;
+
+	for ( ; i < len; i++ ) {
+		if ( (elem = unmatched[i]) ) {
+			if ( !filter || filter( elem, context, xml ) ) {
+				newUnmatched.push( elem );
+				if ( mapped ) {
+					map.push( i );
+				}
+			}
+		}
+	}
+
+	return newUnmatched;
+}
+
+function setMatcher( preFilter, selector, matcher, postFilter, postFinder, postSelector ) {
+	if ( postFilter && !postFilter[ expando ] ) {
+		postFilter = setMatcher( postFilter );
+	}
+	if ( postFinder && !postFinder[ expando ] ) {
+		postFinder = setMatcher( postFinder, postSelector );
+	}
+	return markFunction(function( seed, results, context, xml ) {
+		var temp, i, elem,
+			preMap = [],
+			postMap = [],
+			preexisting = results.length,
+
+			// Get initial elements from seed or context
+			elems = seed || multipleContexts( selector || "*", context.nodeType ? [ context ] : context, [] ),
+
+			// Prefilter to get matcher input, preserving a map for seed-results synchronization
+			matcherIn = preFilter && ( seed || !selector ) ?
+				condense( elems, preMap, preFilter, context, xml ) :
+				elems,
+
+			matcherOut = matcher ?
+				// If we have a postFinder, or filtered seed, or non-seed postFilter or preexisting results,
+				postFinder || ( seed ? preFilter : preexisting || postFilter ) ?
+
+					// ...intermediate processing is necessary
+					[] :
+
+					// ...otherwise use results directly
+					results :
+				matcherIn;
+
+		// Find primary matches
+		if ( matcher ) {
+			matcher( matcherIn, matcherOut, context, xml );
+		}
+
+		// Apply postFilter
+		if ( postFilter ) {
+			temp = condense( matcherOut, postMap );
+			postFilter( temp, [], context, xml );
+
+			// Un-match failing elements by moving them back to matcherIn
+			i = temp.length;
+			while ( i-- ) {
+				if ( (elem = temp[i]) ) {
+					matcherOut[ postMap[i] ] = !(matcherIn[ postMap[i] ] = elem);
+				}
+			}
+		}
+
+		if ( seed ) {
+			if ( postFinder || preFilter ) {
+				if ( postFinder ) {
+					// Get the final matcherOut by condensing this intermediate into postFinder contexts
+					temp = [];
+					i = matcherOut.length;
+					while ( i-- ) {
+						if ( (elem = matcherOut[i]) ) {
+							// Restore matcherIn since elem is not yet a final match
+							temp.push( (matcherIn[i] = elem) );
+						}
+					}
+					postFinder( null, (matcherOut = []), temp, xml );
+				}
+
+				// Move matched elements from seed to results to keep them synchronized
+				i = matcherOut.length;
+				while ( i-- ) {
+					if ( (elem = matcherOut[i]) &&
+						(temp = postFinder ? indexOf.call( seed, elem ) : preMap[i]) > -1 ) {
+
+						seed[temp] = !(results[temp] = elem);
+					}
+				}
+			}
+
+		// Add elements to results, through postFinder if defined
+		} else {
+			matcherOut = condense(
+				matcherOut === results ?
+					matcherOut.splice( preexisting, matcherOut.length ) :
+					matcherOut
+			);
+			if ( postFinder ) {
+				postFinder( null, results, matcherOut, xml );
+			} else {
+				push.apply( results, matcherOut );
+			}
+		}
+	});
+}
+
+function matcherFromTokens( tokens ) {
+	var checkContext, matcher, j,
+		len = tokens.length,
+		leadingRelative = Expr.relative[ tokens[0].type ],
+		implicitRelative = leadingRelative || Expr.relative[" "],
+		i = leadingRelative ? 1 : 0,
+
+		// The foundational matcher ensures that elements are reachable from top-level context(s)
+		matchContext = addCombinator( function( elem ) {
+			return elem === checkContext;
+		}, implicitRelative, true ),
+		matchAnyContext = addCombinator( function( elem ) {
+			return indexOf.call( checkContext, elem ) > -1;
+		}, implicitRelative, true ),
+		matchers = [ function( elem, context, xml ) {
+			return ( !leadingRelative && ( xml || context !== outermostContext ) ) || (
+				(checkContext = context).nodeType ?
+					matchContext( elem, context, xml ) :
+					matchAnyContext( elem, context, xml ) );
+		} ];
+
+	for ( ; i < len; i++ ) {
+		if ( (matcher = Expr.relative[ tokens[i].type ]) ) {
+			matchers = [ addCombinator(elementMatcher( matchers ), matcher) ];
+		} else {
+			matcher = Expr.filter[ tokens[i].type ].apply( null, tokens[i].matches );
+
+			// Return special upon seeing a positional matcher
+			if ( matcher[ expando ] ) {
+				// Find the next relative operator (if any) for proper handling
+				j = ++i;
+				for ( ; j < len; j++ ) {
+					if ( Expr.relative[ tokens[j].type ] ) {
+						break;
+					}
+				}
+				return setMatcher(
+					i > 1 && elementMatcher( matchers ),
+					i > 1 && toSelector(
+						// If the preceding token was a descendant combinator, insert an implicit any-element `*`
+						tokens.slice( 0, i - 1 ).concat({ value: tokens[ i - 2 ].type === " " ? "*" : "" })
+					).replace( rtrim, "$1" ),
+					matcher,
+					i < j && matcherFromTokens( tokens.slice( i, j ) ),
+					j < len && matcherFromTokens( (tokens = tokens.slice( j )) ),
+					j < len && toSelector( tokens )
+				);
+			}
+			matchers.push( matcher );
+		}
+	}
+
+	return elementMatcher( matchers );
+}
+
+function matcherFromGroupMatchers( elementMatchers, setMatchers ) {
+	// A counter to specify which element is currently being matched
+	var matcherCachedRuns = 0,
+		bySet = setMatchers.length > 0,
+		byElement = elementMatchers.length > 0,
+		superMatcher = function( seed, context, xml, results, expandContext ) {
+			var elem, j, matcher,
+				setMatched = [],
+				matchedCount = 0,
+				i = "0",
+				unmatched = seed && [],
+				outermost = expandContext != null,
+				contextBackup = outermostContext,
+				// We must always have either seed elements or context
+				elems = seed || byElement && Expr.find["TAG"]( "*", expandContext && context.parentNode || context ),
+				// Use integer dirruns iff this is the outermost matcher
+				dirrunsUnique = (dirruns += contextBackup == null ? 1 : Math.random() || 0.1);
+
+			if ( outermost ) {
+				outermostContext = context !== document && context;
+				cachedruns = matcherCachedRuns;
+			}
+
+			// Add elements passing elementMatchers directly to results
+			// Keep `i` a string if there are no elements so `matchedCount` will be "00" below
+			for ( ; (elem = elems[i]) != null; i++ ) {
+				if ( byElement && elem ) {
+					j = 0;
+					while ( (matcher = elementMatchers[j++]) ) {
+						if ( matcher( elem, context, xml ) ) {
+							results.push( elem );
+							break;
+						}
+					}
+					if ( outermost ) {
+						dirruns = dirrunsUnique;
+						cachedruns = ++matcherCachedRuns;
+					}
+				}
+
+				// Track unmatched elements for set filters
+				if ( bySet ) {
+					// They will have gone through all possible matchers
+					if ( (elem = !matcher && elem) ) {
+						matchedCount--;
+					}
+
+					// Lengthen the array for every element, matched or not
+					if ( seed ) {
+						unmatched.push( elem );
+					}
+				}
+			}
+
+			// Apply set filters to unmatched elements
+			matchedCount += i;
+			if ( bySet && i !== matchedCount ) {
+				j = 0;
+				while ( (matcher = setMatchers[j++]) ) {
+					matcher( unmatched, setMatched, context, xml );
+				}
+
+				if ( seed ) {
+					// Reintegrate element matches to eliminate the need for sorting
+					if ( matchedCount > 0 ) {
+						while ( i-- ) {
+							if ( !(unmatched[i] || setMatched[i]) ) {
+								setMatched[i] = pop.call( results );
+							}
+						}
+					}
+
+					// Discard index placeholder values to get only actual matches
+					setMatched = condense( setMatched );
+				}
+
+				// Add matches to results
+				push.apply( results, setMatched );
+
+				// Seedless set matches succeeding multiple successful matchers stipulate sorting
+				if ( outermost && !seed && setMatched.length > 0 &&
+					( matchedCount + setMatchers.length ) > 1 ) {
+
+					Sizzle.uniqueSort( results );
+				}
+			}
+
+			// Override manipulation of globals by nested matchers
+			if ( outermost ) {
+				dirruns = dirrunsUnique;
+				outermostContext = contextBackup;
+			}
+
+			return unmatched;
+		};
+
+	return bySet ?
+		markFunction( superMatcher ) :
+		superMatcher;
+}
+
+compile = Sizzle.compile = function( selector, group /* Internal Use Only */ ) {
+	var i,
+		setMatchers = [],
+		elementMatchers = [],
+		cached = compilerCache[ selector + " " ];
+
+	if ( !cached ) {
+		// Generate a function of recursive functions that can be used to check each element
+		if ( !group ) {
+			group = tokenize( selector );
+		}
+		i = group.length;
+		while ( i-- ) {
+			cached = matcherFromTokens( group[i] );
+			if ( cached[ expando ] ) {
+				setMatchers.push( cached );
+			} else {
+				elementMatchers.push( cached );
+			}
+		}
+
+		// Cache the compiled function
+		cached = compilerCache( selector, matcherFromGroupMatchers( elementMatchers, setMatchers ) );
+	}
+	return cached;
+};
+
+function multipleContexts( selector, contexts, results ) {
+	var i = 0,
+		len = contexts.length;
+	for ( ; i < len; i++ ) {
+		Sizzle( selector, contexts[i], results );
+	}
+	return results;
+}
+
+function select( selector, context, results, seed ) {
+	var i, tokens, token, type, find,
+		match = tokenize( selector );
+
+	if ( !seed ) {
+		// Try to minimize operations if there is only one group
+		if ( match.length === 1 ) {
+
+			// Take a shortcut and set the context if the root selector is an ID
+			tokens = match[0] = match[0].slice( 0 );
+			if ( tokens.length > 2 && (token = tokens[0]).type === "ID" &&
+					support.getById && context.nodeType === 9 && documentIsHTML &&
+					Expr.relative[ tokens[1].type ] ) {
+
+				context = ( Expr.find["ID"]( token.matches[0].replace(runescape, funescape), context ) || [] )[0];
+				if ( !context ) {
+					return results;
+				}
+				selector = selector.slice( tokens.shift().value.length );
+			}
+
+			// Fetch a seed set for right-to-left matching
+			i = matchExpr["needsContext"].test( selector ) ? 0 : tokens.length;
+			while ( i-- ) {
+				token = tokens[i];
+
+				// Abort if we hit a combinator
+				if ( Expr.relative[ (type = token.type) ] ) {
+					break;
+				}
+				if ( (find = Expr.find[ type ]) ) {
+					// Search, expanding context for leading sibling combinators
+					if ( (seed = find(
+						token.matches[0].replace( runescape, funescape ),
+						rsibling.test( tokens[0].type ) && context.parentNode || context
+					)) ) {
+
+						// If seed is empty or no tokens remain, we can return early
+						tokens.splice( i, 1 );
+						selector = seed.length && toSelector( tokens );
+						if ( !selector ) {
+							push.apply( results, seed );
+							return results;
+						}
+
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	// Compile and execute a filtering function
+	// Provide `match` to avoid retokenization if we modified the selector above
+	compile( selector, match )(
+		seed,
+		context,
+		!documentIsHTML,
+		results,
+		rsibling.test( selector )
+	);
+	return results;
+}
+
+// One-time assignments
+
+// Sort stability
+support.sortStable = expando.split("").sort( sortOrder ).join("") === expando;
+
+// Support: Chrome<14
+// Always assume duplicates if they aren't passed to the comparison function
+support.detectDuplicates = hasDuplicate;
+
+// Initialize against the default document
+setDocument();
+
+// Support: Webkit<537.32 - Safari 6.0.3/Chrome 25 (fixed in Chrome 27)
+// Detached nodes confoundingly follow *each other*
+support.sortDetached = assert(function( div1 ) {
+	// Should return 1, but returns 4 (following)
+	return div1.compareDocumentPosition( document.createElement("div") ) & 1;
+});
+
+// Support: IE<8
+// Prevent attribute/property "interpolation"
+// http://msdn.microsoft.com/en-us/library/ms536429%28VS.85%29.aspx
+if ( !assert(function( div ) {
+	div.innerHTML = "<a href='#'></a>";
+	return div.firstChild.getAttribute("href") === "#" ;
+}) ) {
+	addHandle( "type|href|height|width", function( elem, name, isXML ) {
+		if ( !isXML ) {
+			return elem.getAttribute( name, name.toLowerCase() === "type" ? 1 : 2 );
+		}
+	});
+}
+
+// Support: IE<9
+// Use defaultValue in place of getAttribute("value")
+if ( !support.attributes || !assert(function( div ) {
+	div.innerHTML = "<input/>";
+	div.firstChild.setAttribute( "value", "" );
+	return div.firstChild.getAttribute( "value" ) === "";
+}) ) {
+	addHandle( "value", function( elem, name, isXML ) {
+		if ( !isXML && elem.nodeName.toLowerCase() === "input" ) {
+			return elem.defaultValue;
+		}
+	});
+}
+
+// Support: IE<9
+// Use getAttributeNode to fetch booleans when getAttribute lies
+if ( !assert(function( div ) {
+	return div.getAttribute("disabled") == null;
+}) ) {
+	addHandle( booleans, function( elem, name, isXML ) {
+		var val;
+		if ( !isXML ) {
+			return (val = elem.getAttributeNode( name )) && val.specified ?
+				val.value :
+				elem[ name ] === true ? name.toLowerCase() : null;
+		}
+	});
+}
+
+jQuery.find = Sizzle;
+jQuery.expr = Sizzle.selectors;
+jQuery.expr[":"] = jQuery.expr.pseudos;
+jQuery.unique = Sizzle.uniqueSort;
+jQuery.text = Sizzle.getText;
+jQuery.isXMLDoc = Sizzle.isXML;
+jQuery.contains = Sizzle.contains;
+
+
+})( window );
+// String to Object options format cache
+var optionsCache = {};
+
+// Convert String-formatted options into Object-formatted ones and store in cache
+function createOptions( options ) {
+	var object = optionsCache[ options ] = {};
+	jQuery.each( options.match( core_rnotwhite ) || [], function( _, flag ) {
+		object[ flag ] = true;
+	});
+	return object;
+}
+
+/*
+ * Create a callback list using the following parameters:
+ *
+ *	options: an optional list of space-separated options that will change how
+ *			the callback list behaves or a more traditional option object
+ *
+ * By default a callback list will act like an event callback list and can be
+ * "fired" multiple times.
+ *
+ * Possible options:
+ *
+ *	once:			will ensure the callback list can only be fired once (like a Deferred)
+ *
+ *	memory:			will keep track of previous values and will call any callback added
+ *					after the list has been fired right away with the latest "memorized"
+ *					values (like a Deferred)
+ *
+ *	unique:			will ensure a callback can only be added once (no duplicate in the list)
+ *
+ *	stopOnFalse:	interrupt callings when a callback returns false
+ *
+ */
+jQuery.Callbacks = function( options ) {
+
+	// Convert options from String-formatted to Object-formatted if needed
+	// (we check in cache first)
+	options = typeof options === "string" ?
+		( optionsCache[ options ] || createOptions( options ) ) :
+		jQuery.extend( {}, options );
+
+	var // Last fire value (for non-forgettable lists)
+		memory,
+		// Flag to know if list was already fired
+		fired,
+		// Flag to know if list is currently firing
+		firing,
+		// First callback to fire (used internally by add and fireWith)
+		firingStart,
+		// End of the loop when firing
+		firingLength,
+		// Index of currently firing callback (modified by remove if needed)
+		firingIndex,
+		// Actual callback list
+		list = [],
+		// Stack of fire calls for repeatable lists
+		stack = !options.once && [],
+		// Fire callbacks
+		fire = function( data ) {
+			memory = options.memory && data;
+			fired = true;
+			firingIndex = firingStart || 0;
+			firingStart = 0;
+			firingLength = list.length;
+			firing = true;
+			for ( ; list && firingIndex < firingLength; firingIndex++ ) {
+				if ( list[ firingIndex ].apply( data[ 0 ], data[ 1 ] ) === false && options.stopOnFalse ) {
+					memory = false; // To prevent further calls using add
+					break;
+				}
+			}
+			firing = false;
+			if ( list ) {
+				if ( stack ) {
+					if ( stack.length ) {
+						fire( stack.shift() );
+					}
+				} else if ( memory ) {
+					list = [];
+				} else {
+					self.disable();
+				}
+			}
+		},
+		// Actual Callbacks object
+		self = {
+			// Add a callback or a collection of callbacks to the list
+			add: function() {
+				if ( list ) {
+					// First, we save the current length
+					var start = list.length;
+					(function add( args ) {
+						jQuery.each( args, function( _, arg ) {
+							var type = jQuery.type( arg );
+							if ( type === "function" ) {
+								if ( !options.unique || !self.has( arg ) ) {
+									list.push( arg );
+								}
+							} else if ( arg && arg.length && type !== "string" ) {
+								// Inspect recursively
+								add( arg );
+							}
+						});
+					})( arguments );
+					// Do we need to add the callbacks to the
+					// current firing batch?
+					if ( firing ) {
+						firingLength = list.length;
+					// With memory, if we're not firing then
+					// we should call right away
+					} else if ( memory ) {
+						firingStart = start;
+						fire( memory );
+					}
+				}
+				return this;
+			},
+			// Remove a callback from the list
+			remove: function() {
+				if ( list ) {
+					jQuery.each( arguments, function( _, arg ) {
+						var index;
+						while( ( index = jQuery.inArray( arg, list, index ) ) > -1 ) {
+							list.splice( index, 1 );
+							// Handle firing indexes
+							if ( firing ) {
+								if ( index <= firingLength ) {
+									firingLength--;
+								}
+								if ( index <= firingIndex ) {
+									firingIndex--;
+								}
+							}
+						}
+					});
+				}
+				return this;
+			},
+			// Check if a given callback is in the list.
+			// If no argument is given, return whether or not list has callbacks attached.
+			has: function( fn ) {
+				return fn ? jQuery.inArray( fn, list ) > -1 : !!( list && list.length );
+			},
+			// Remove all callbacks from the list
+			empty: function() {
+				list = [];
+				firingLength = 0;
+				return this;
+			},
+			// Have the list do nothing anymore
+			disable: function() {
+				list = stack = memory = undefined;
+				return this;
+			},
+			// Is it disabled?
+			disabled: function() {
+				return !list;
+			},
+			// Lock the list in its current state
+			lock: function() {
+				stack = undefined;
+				if ( !memory ) {
+					self.disable();
+				}
+				return this;
+			},
+			// Is it locked?
+			locked: function() {
+				return !stack;
+			},
+			// Call all callbacks with the given context and arguments
+			fireWith: function( context, args ) {
+				if ( list && ( !fired || stack ) ) {
+					args = args || [];
+					args = [ context, args.slice ? args.slice() : args ];
+					if ( firing ) {
+						stack.push( args );
+					} else {
+						fire( args );
+					}
+				}
+				return this;
+			},
+			// Call all the callbacks with the given arguments
+			fire: function() {
+				self.fireWith( this, arguments );
+				return this;
+			},
+			// To know if the callbacks have already been called at least once
+			fired: function() {
+				return !!fired;
+			}
+		};
+
+	return self;
+};
+jQuery.extend({
+
+	Deferred: function( func ) {
+		var tuples = [
+				// action, add listener, listener list, final state
+				[ "resolve", "done", jQuery.Callbacks("once memory"), "resolved" ],
+				[ "reject", "fail", jQuery.Callbacks("once memory"), "rejected" ],
+				[ "notify", "progress", jQuery.Callbacks("memory") ]
+			],
+			state = "pending",
+			promise = {
+				state: function() {
+					return state;
+				},
+				always: function() {
+					deferred.done( arguments ).fail( arguments );
+					return this;
+				},
+				then: function( /* fnDone, fnFail, fnProgress */ ) {
+					var fns = arguments;
+					return jQuery.Deferred(function( newDefer ) {
+						jQuery.each( tuples, function( i, tuple ) {
+							var action = tuple[ 0 ],
+								fn = jQuery.isFunction( fns[ i ] ) && fns[ i ];
+							// deferred[ done | fail | progress ] for forwarding actions to newDefer
+							deferred[ tuple[1] ](function() {
+								var returned = fn && fn.apply( this, arguments );
+								if ( returned && jQuery.isFunction( returned.promise ) ) {
+									returned.promise()
+										.done( newDefer.resolve )
+										.fail( newDefer.reject )
+										.progress( newDefer.notify );
+								} else {
+									newDefer[ action + "With" ]( this === promise ? newDefer.promise() : this, fn ? [ returned ] : arguments );
+								}
+							});
+						});
+						fns = null;
+					}).promise();
+				},
+				// Get a promise for this deferred
+				// If obj is provided, the promise aspect is added to the object
+				promise: function( obj ) {
+					return obj != null ? jQuery.extend( obj, promise ) : promise;
+				}
+			},
+			deferred = {};
+
+		// Keep pipe for back-compat
+		promise.pipe = promise.then;
+
+		// Add list-specific methods
+		jQuery.each( tuples, function( i, tuple ) {
+			var list = tuple[ 2 ],
+				stateString = tuple[ 3 ];
+
+			// promise[ done | fail | progress ] = list.add
+			promise[ tuple[1] ] = list.add;
+
+			// Handle state
+			if ( stateString ) {
+				list.add(function() {
+					// state = [ resolved | rejected ]
+					state = stateString;
+
+				// [ reject_list | resolve_list ].disable; progress_list.lock
+				}, tuples[ i ^ 1 ][ 2 ].disable, tuples[ 2 ][ 2 ].lock );
+			}
+
+			// deferred[ resolve | reject | notify ]
+			deferred[ tuple[0] ] = function() {
+				deferred[ tuple[0] + "With" ]( this === deferred ? promise : this, arguments );
+				return this;
+			};
+			deferred[ tuple[0] + "With" ] = list.fireWith;
+		});
+
+		// Make the deferred a promise
+		promise.promise( deferred );
+
+		// Call given func if any
+		if ( func ) {
+			func.call( deferred, deferred );
+		}
+
+		// All done!
+		return deferred;
+	},
+
+	// Deferred helper
+	when: function( subordinate /* , ..., subordinateN */ ) {
+		var i = 0,
+			resolveValues = core_slice.call( arguments ),
+			length = resolveValues.length,
+
+			// the count of uncompleted subordinates
+			remaining = length !== 1 || ( subordinate && jQuery.isFunction( subordinate.promise ) ) ? length : 0,
+
+			// the master Deferred. If resolveValues consist of only a single Deferred, just use that.
+			deferred = remaining === 1 ? subordinate : jQuery.Deferred(),
+
+			// Update function for both resolve and progress values
+			updateFunc = function( i, contexts, values ) {
+				return function( value ) {
+					contexts[ i ] = this;
+					values[ i ] = arguments.length > 1 ? core_slice.call( arguments ) : value;
+					if( values === progressValues ) {
+						deferred.notifyWith( contexts, values );
+					} else if ( !( --remaining ) ) {
+						deferred.resolveWith( contexts, values );
+					}
+				};
+			},
+
+			progressValues, progressContexts, resolveContexts;
+
+		// add listeners to Deferred subordinates; treat others as resolved
+		if ( length > 1 ) {
+			progressValues = new Array( length );
+			progressContexts = new Array( length );
+			resolveContexts = new Array( length );
+			for ( ; i < length; i++ ) {
+				if ( resolveValues[ i ] && jQuery.isFunction( resolveValues[ i ].promise ) ) {
+					resolveValues[ i ].promise()
+						.done( updateFunc( i, resolveContexts, resolveValues ) )
+						.fail( deferred.reject )
+						.progress( updateFunc( i, progressContexts, progressValues ) );
+				} else {
+					--remaining;
+				}
+			}
+		}
+
+		// if we're not waiting on anything, resolve the master
+		if ( !remaining ) {
+			deferred.resolveWith( resolveContexts, resolveValues );
+		}
+
+		return deferred.promise();
+	}
+});
+jQuery.support = (function( support ) {
+	var input = document.createElement("input"),
+		fragment = document.createDocumentFragment(),
+		div = document.createElement("div"),
+		select = document.createElement("select"),
+		opt = select.appendChild( document.createElement("option") );
+
+	// Finish early in limited environments
+	if ( !input.type ) {
+		return support;
+	}
+
+	input.type = "checkbox";
+
+	// Support: Safari 5.1, iOS 5.1, Android 4.x, Android 2.3
+	// Check the default checkbox/radio value ("" on old WebKit; "on" elsewhere)
+	support.checkOn = input.value !== "";
+
+	// Must access the parent to make an option select properly
+	// Support: IE9, IE10
+	support.optSelected = opt.selected;
+
+	// Will be defined later
+	support.reliableMarginRight = true;
+	support.boxSizingReliable = true;
+	support.pixelPosition = false;
+
+	// Make sure checked status is properly cloned
+	// Support: IE9, IE10
+	input.checked = true;
+	support.noCloneChecked = input.cloneNode( true ).checked;
+
+	// Make sure that the options inside disabled selects aren't marked as disabled
+	// (WebKit marks them as disabled)
+	select.disabled = true;
+	support.optDisabled = !opt.disabled;
+
+	// Check if an input maintains its value after becoming a radio
+	// Support: IE9, IE10
+	input = document.createElement("input");
+	input.value = "t";
+	input.type = "radio";
+	support.radioValue = input.value === "t";
+
+	// #11217 - WebKit loses check when the name is after the checked attribute
+	input.setAttribute( "checked", "t" );
+	input.setAttribute( "name", "t" );
+
+	fragment.appendChild( input );
+
+	// Support: Safari 5.1, Android 4.x, Android 2.3
+	// old WebKit doesn't clone checked state correctly in fragments
+	support.checkClone = fragment.cloneNode( true ).cloneNode( true ).lastChild.checked;
+
+	// Support: Firefox, Chrome, Safari
+	// Beware of CSP restrictions (https://developer.mozilla.org/en/Security/CSP)
+	support.focusinBubbles = "onfocusin" in window;
+
+	div.style.backgroundClip = "content-box";
+	div.cloneNode( true ).style.backgroundClip = "";
+	support.clearCloneStyle = div.style.backgroundClip === "content-box";
+
+	// Run tests that need a body at doc ready
+	jQuery(function() {
+		var container, marginDiv,
+			// Support: Firefox, Android 2.3 (Prefixed box-sizing versions).
+			divReset = "padding:0;margin:0;border:0;display:block;-webkit-box-sizing:content-box;-moz-box-sizing:content-box;box-sizing:content-box",
+			body = document.getElementsByTagName("body")[ 0 ];
+
+		if ( !body ) {
+			// Return for frameset docs that don't have a body
+			return;
+		}
+
+		container = document.createElement("div");
+		container.style.cssText = "border:0;width:0;height:0;position:absolute;top:0;left:-9999px;margin-top:1px";
+
+		// Check box-sizing and margin behavior.
+		body.appendChild( container ).appendChild( div );
+		div.innerHTML = "";
+		// Support: Firefox, Android 2.3 (Prefixed box-sizing versions).
+		div.style.cssText = "-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;padding:1px;border:1px;display:block;width:4px;margin-top:1%;position:absolute;top:1%";
+
+		// Workaround failing boxSizing test due to offsetWidth returning wrong value
+		// with some non-1 values of body zoom, ticket #13543
+		jQuery.swap( body, body.style.zoom != null ? { zoom: 1 } : {}, function() {
+			support.boxSizing = div.offsetWidth === 4;
+		});
+
+		// Use window.getComputedStyle because jsdom on node.js will break without it.
+		if ( window.getComputedStyle ) {
+			support.pixelPosition = ( window.getComputedStyle( div, null ) || {} ).top !== "1%";
+			support.boxSizingReliable = ( window.getComputedStyle( div, null ) || { width: "4px" } ).width === "4px";
+
+			// Support: Android 2.3
+			// Check if div with explicit width and no margin-right incorrectly
+			// gets computed margin-right based on width of container. (#3333)
+			// WebKit Bug 13343 - getComputedStyle returns wrong value for margin-right
+			marginDiv = div.appendChild( document.createElement("div") );
+			marginDiv.style.cssText = div.style.cssText = divReset;
+			marginDiv.style.marginRight = marginDiv.style.width = "0";
+			div.style.width = "1px";
+
+			support.reliableMarginRight =
+				!parseFloat( ( window.getComputedStyle( marginDiv, null ) || {} ).marginRight );
+		}
+
+		body.removeChild( container );
+	});
+
+	return support;
+})( {} );
+
+/*
+	Implementation Summary
+
+	1. Enforce API surface and semantic compatibility with 1.9.x branch
+	2. Improve the module's maintainability by reducing the storage
+		paths to a single mechanism.
+	3. Use the same single mechanism to support "private" and "user" data.
+	4. _Never_ expose "private" data to user code (TODO: Drop _data, _removeData)
+	5. Avoid exposing implementation details on user objects (eg. expando properties)
+	6. Provide a clear path for implementation upgrade to WeakMap in 2014
+*/
+var data_user, data_priv,
+	rbrace = /(?:\{[\s\S]*\}|\[[\s\S]*\])$/,
+	rmultiDash = /([A-Z])/g;
+
+function Data() {
+	// Support: Android < 4,
+	// Old WebKit does not have Object.preventExtensions/freeze method,
+	// return new empty object instead with no [[set]] accessor
+	Object.defineProperty( this.cache = {}, 0, {
+		get: function() {
+			return {};
+		}
+	});
+
+	this.expando = jQuery.expando + Math.random();
+}
+
+Data.uid = 1;
+
+Data.accepts = function( owner ) {
+	// Accepts only:
+	//  - Node
+	//    - Node.ELEMENT_NODE
+	//    - Node.DOCUMENT_NODE
+	//  - Object
+	//    - Any
+	return owner.nodeType ?
+		owner.nodeType === 1 || owner.nodeType === 9 : true;
+};
+
+Data.prototype = {
+	key: function( owner ) {
+		// We can accept data for non-element nodes in modern browsers,
+		// but we should not, see #8335.
+		// Always return the key for a frozen object.
+		if ( !Data.accepts( owner ) ) {
+			return 0;
+		}
+
+		var descriptor = {},
+			// Check if the owner object already has a cache key
+			unlock = owner[ this.expando ];
+
+		// If not, create one
+		if ( !unlock ) {
+			unlock = Data.uid++;
+
+			// Secure it in a non-enumerable, non-writable property
+			try {
+				descriptor[ this.expando ] = { value: unlock };
+				Object.defineProperties( owner, descriptor );
+
+			// Support: Android < 4
+			// Fallback to a less secure definition
+			} catch ( e ) {
+				descriptor[ this.expando ] = unlock;
+				jQuery.extend( owner, descriptor );
+			}
+		}
+
+		// Ensure the cache object
+		if ( !this.cache[ unlock ] ) {
+			this.cache[ unlock ] = {};
+		}
+
+		return unlock;
+	},
+	set: function( owner, data, value ) {
+		var prop,
+			// There may be an unlock assigned to this node,
+			// if there is no entry for this "owner", create one inline
+			// and set the unlock as though an owner entry had always existed
+			unlock = this.key( owner ),
+			cache = this.cache[ unlock ];
+
+		// Handle: [ owner, key, value ] args
+		if ( typeof data === "string" ) {
+			cache[ data ] = value;
+
+		// Handle: [ owner, { properties } ] args
+		} else {
+			// Fresh assignments by object are shallow copied
+			if ( jQuery.isEmptyObject( cache ) ) {
+				jQuery.extend( this.cache[ unlock ], data );
+			// Otherwise, copy the properties one-by-one to the cache object
+			} else {
+				for ( prop in data ) {
+					cache[ prop ] = data[ prop ];
+				}
+			}
+		}
+		return cache;
+	},
+	get: function( owner, key ) {
+		// Either a valid cache is found, or will be created.
+		// New caches will be created and the unlock returned,
+		// allowing direct access to the newly created
+		// empty data object. A valid owner object must be provided.
+		var cache = this.cache[ this.key( owner ) ];
+
+		return key === undefined ?
+			cache : cache[ key ];
+	},
+	access: function( owner, key, value ) {
+		var stored;
+		// In cases where either:
+		//
+		//   1. No key was specified
+		//   2. A string key was specified, but no value provided
+		//
+		// Take the "read" path and allow the get method to determine
+		// which value to return, respectively either:
+		//
+		//   1. The entire cache object
+		//   2. The data stored at the key
+		//
+		if ( key === undefined ||
+				((key && typeof key === "string") && value === undefined) ) {
+
+			stored = this.get( owner, key );
+
+			return stored !== undefined ?
+				stored : this.get( owner, jQuery.camelCase(key) );
+		}
+
+		// [*]When the key is not a string, or both a key and value
+		// are specified, set or extend (existing objects) with either:
+		//
+		//   1. An object of properties
+		//   2. A key and value
+		//
+		this.set( owner, key, value );
+
+		// Since the "set" path can have two possible entry points
+		// return the expected data based on which path was taken[*]
+		return value !== undefined ? value : key;
+	},
+	remove: function( owner, key ) {
+		var i, name, camel,
+			unlock = this.key( owner ),
+			cache = this.cache[ unlock ];
+
+		if ( key === undefined ) {
+			this.cache[ unlock ] = {};
+
+		} else {
+			// Support array or space separated string of keys
+			if ( jQuery.isArray( key ) ) {
+				// If "name" is an array of keys...
+				// When data is initially created, via ("key", "val") signature,
+				// keys will be converted to camelCase.
+				// Since there is no way to tell _how_ a key was added, remove
+				// both plain key and camelCase key. #12786
+				// This will only penalize the array argument path.
+				name = key.concat( key.map( jQuery.camelCase ) );
+			} else {
+				camel = jQuery.camelCase( key );
+				// Try the string as a key before any manipulation
+				if ( key in cache ) {
+					name = [ key, camel ];
+				} else {
+					// If a key with the spaces exists, use it.
+					// Otherwise, create an array by matching non-whitespace
+					name = camel;
+					name = name in cache ?
+						[ name ] : ( name.match( core_rnotwhite ) || [] );
+				}
+			}
+
+			i = name.length;
+			while ( i-- ) {
+				delete cache[ name[ i ] ];
+			}
+		}
+	},
+	hasData: function( owner ) {
+		return !jQuery.isEmptyObject(
+			this.cache[ owner[ this.expando ] ] || {}
+		);
+	},
+	discard: function( owner ) {
+		if ( owner[ this.expando ] ) {
+			delete this.cache[ owner[ this.expando ] ];
+		}
+	}
+};
+
+// These may be used throughout the jQuery core codebase
+data_user = new Data();
+data_priv = new Data();
+
+
+jQuery.extend({
+	acceptData: Data.accepts,
+
+	hasData: function( elem ) {
+		return data_user.hasData( elem ) || data_priv.hasData( elem );
+	},
+
+	data: function( elem, name, data ) {
+		return data_user.access( elem, name, data );
+	},
+
+	removeData: function( elem, name ) {
+		data_user.remove( elem, name );
+	},
+
+	// TODO: Now that all calls to _data and _removeData have been replaced
+	// with direct calls to data_priv methods, these can be deprecated.
+	_data: function( elem, name, data ) {
+		return data_priv.access( elem, name, data );
+	},
+
+	_removeData: function( elem, name ) {
+		data_priv.remove( elem, name );
+	}
+});
+
+jQuery.fn.extend({
+	data: function( key, value ) {
+		var attrs, name,
+			elem = this[ 0 ],
+			i = 0,
+			data = null;
+
+		// Gets all values
+		if ( key === undefined ) {
+			if ( this.length ) {
+				data = data_user.get( elem );
+
+				if ( elem.nodeType === 1 && !data_priv.get( elem, "hasDataAttrs" ) ) {
+					attrs = elem.attributes;
+					for ( ; i < attrs.length; i++ ) {
+						name = attrs[ i ].name;
+
+						if ( name.indexOf( "data-" ) === 0 ) {
+							name = jQuery.camelCase( name.slice(5) );
+							dataAttr( elem, name, data[ name ] );
+						}
+					}
+					data_priv.set( elem, "hasDataAttrs", true );
+				}
+			}
+
+			return data;
+		}
+
+		// Sets multiple values
+		if ( typeof key === "object" ) {
+			return this.each(function() {
+				data_user.set( this, key );
+			});
+		}
+
+		return jQuery.access( this, function( value ) {
+			var data,
+				camelKey = jQuery.camelCase( key );
+
+			// The calling jQuery object (element matches) is not empty
+			// (and therefore has an element appears at this[ 0 ]) and the
+			// `value` parameter was not undefined. An empty jQuery object
+			// will result in `undefined` for elem = this[ 0 ] which will
+			// throw an exception if an attempt to read a data cache is made.
+			if ( elem && value === undefined ) {
+				// Attempt to get data from the cache
+				// with the key as-is
+				data = data_user.get( elem, key );
+				if ( data !== undefined ) {
+					return data;
+				}
+
+				// Attempt to get data from the cache
+				// with the key camelized
+				data = data_user.get( elem, camelKey );
+				if ( data !== undefined ) {
+					return data;
+				}
+
+				// Attempt to "discover" the data in
+				// HTML5 custom data-* attrs
+				data = dataAttr( elem, camelKey, undefined );
+				if ( data !== undefined ) {
+					return data;
+				}
+
+				// We tried really hard, but the data doesn't exist.
+				return;
+			}
+
+			// Set the data...
+			this.each(function() {
+				// First, attempt to store a copy or reference of any
+				// data that might've been store with a camelCased key.
+				var data = data_user.get( this, camelKey );
+
+				// For HTML5 data-* attribute interop, we have to
+				// store property names with dashes in a camelCase form.
+				// This might not apply to all properties...*
+				data_user.set( this, camelKey, value );
+
+				// *... In the case of properties that might _actually_
+				// have dashes, we need to also store a copy of that
+				// unchanged property.
+				if ( key.indexOf("-") !== -1 && data !== undefined ) {
+					data_user.set( this, key, value );
+				}
+			});
+		}, null, value, arguments.length > 1, null, true );
+	},
+
+	removeData: function( key ) {
+		return this.each(function() {
+			data_user.remove( this, key );
+		});
+	}
+});
+
+function dataAttr( elem, key, data ) {
+	var name;
+
+	// If nothing was found internally, try to fetch any
+	// data from the HTML5 data-* attribute
+	if ( data === undefined && elem.nodeType === 1 ) {
+		name = "data-" + key.replace( rmultiDash, "-$1" ).toLowerCase();
+		data = elem.getAttribute( name );
+
+		if ( typeof data === "string" ) {
+			try {
+				data = data === "true" ? true :
+					data === "false" ? false :
+					data === "null" ? null :
+					// Only convert to a number if it doesn't change the string
+					+data + "" === data ? +data :
+					rbrace.test( data ) ? JSON.parse( data ) :
+					data;
+			} catch( e ) {}
+
+			// Make sure we set the data so it isn't changed later
+			data_user.set( elem, key, data );
+		} else {
+			data = undefined;
+		}
+	}
+	return data;
+}
+jQuery.extend({
+	queue: function( elem, type, data ) {
+		var queue;
+
+		if ( elem ) {
+			type = ( type || "fx" ) + "queue";
+			queue = data_priv.get( elem, type );
+
+			// Speed up dequeue by getting out quickly if this is just a lookup
+			if ( data ) {
+				if ( !queue || jQuery.isArray( data ) ) {
+					queue = data_priv.access( elem, type, jQuery.makeArray(data) );
+				} else {
+					queue.push( data );
+				}
+			}
+			return queue || [];
+		}
+	},
+
+	dequeue: function( elem, type ) {
+		type = type || "fx";
+
+		var queue = jQuery.queue( elem, type ),
+			startLength = queue.length,
+			fn = queue.shift(),
+			hooks = jQuery._queueHooks( elem, type ),
+			next = function() {
+				jQuery.dequeue( elem, type );
+			};
+
+		// If the fx queue is dequeued, always remove the progress sentinel
+		if ( fn === "inprogress" ) {
+			fn = queue.shift();
+			startLength--;
+		}
+
+		if ( fn ) {
+
+			// Add a progress sentinel to prevent the fx queue from being
+			// automatically dequeued
+			if ( type === "fx" ) {
+				queue.unshift( "inprogress" );
+			}
+
+			// clear up the last queue stop function
+			delete hooks.stop;
+			fn.call( elem, next, hooks );
+		}
+
+		if ( !startLength && hooks ) {
+			hooks.empty.fire();
+		}
+	},
+
+	// not intended for public consumption - generates a queueHooks object, or returns the current one
+	_queueHooks: function( elem, type ) {
+		var key = type + "queueHooks";
+		return data_priv.get( elem, key ) || data_priv.access( elem, key, {
+			empty: jQuery.Callbacks("once memory").add(function() {
+				data_priv.remove( elem, [ type + "queue", key ] );
+			})
+		});
+	}
+});
+
+jQuery.fn.extend({
+	queue: function( type, data ) {
+		var setter = 2;
+
+		if ( typeof type !== "string" ) {
+			data = type;
+			type = "fx";
+			setter--;
+		}
+
+		if ( arguments.length < setter ) {
+			return jQuery.queue( this[0], type );
+		}
+
+		return data === undefined ?
+			this :
+			this.each(function() {
+				var queue = jQuery.queue( this, type, data );
+
+				// ensure a hooks for this queue
+				jQuery._queueHooks( this, type );
+
+				if ( type === "fx" && queue[0] !== "inprogress" ) {
+					jQuery.dequeue( this, type );
+				}
+			});
+	},
+	dequeue: function( type ) {
+		return this.each(function() {
+			jQuery.dequeue( this, type );
+		});
+	},
+	// Based off of the plugin by Clint Helfers, with permission.
+	// http://blindsignals.com/index.php/2009/07/jquery-delay/
+	delay: function( time, type ) {
+		time = jQuery.fx ? jQuery.fx.speeds[ time ] || time : time;
+		type = type || "fx";
+
+		return this.queue( type, function( next, hooks ) {
+			var timeout = setTimeout( next, time );
+			hooks.stop = function() {
+				clearTimeout( timeout );
+			};
+		});
+	},
+	clearQueue: function( type ) {
+		return this.queue( type || "fx", [] );
+	},
+	// Get a promise resolved when queues of a certain type
+	// are emptied (fx is the type by default)
+	promise: function( type, obj ) {
+		var tmp,
+			count = 1,
+			defer = jQuery.Deferred(),
+			elements = this,
+			i = this.length,
+			resolve = function() {
+				if ( !( --count ) ) {
+					defer.resolveWith( elements, [ elements ] );
+				}
+			};
+
+		if ( typeof type !== "string" ) {
+			obj = type;
+			type = undefined;
+		}
+		type = type || "fx";
+
+		while( i-- ) {
+			tmp = data_priv.get( elements[ i ], type + "queueHooks" );
+			if ( tmp && tmp.empty ) {
+				count++;
+				tmp.empty.add( resolve );
+			}
+		}
+		resolve();
+		return defer.promise( obj );
+	}
+});
+var nodeHook, boolHook,
+	rclass = /[\t\r\n\f]/g,
+	rreturn = /\r/g,
+	rfocusable = /^(?:input|select|textarea|button)$/i;
+
+jQuery.fn.extend({
+	attr: function( name, value ) {
+		return jQuery.access( this, jQuery.attr, name, value, arguments.length > 1 );
+	},
+
+	removeAttr: function( name ) {
+		return this.each(function() {
+			jQuery.removeAttr( this, name );
+		});
+	},
+
+	prop: function( name, value ) {
+		return jQuery.access( this, jQuery.prop, name, value, arguments.length > 1 );
+	},
+
+	removeProp: function( name ) {
+		return this.each(function() {
+			delete this[ jQuery.propFix[ name ] || name ];
+		});
+	},
+
+	addClass: function( value ) {
+		var classes, elem, cur, clazz, j,
+			i = 0,
+			len = this.length,
+			proceed = typeof value === "string" && value;
+
+		if ( jQuery.isFunction( value ) ) {
+			return this.each(function( j ) {
+				jQuery( this ).addClass( value.call( this, j, this.className ) );
+			});
+		}
+
+		if ( proceed ) {
+			// The disjunction here is for better compressibility (see removeClass)
+			classes = ( value || "" ).match( core_rnotwhite ) || [];
+
+			for ( ; i < len; i++ ) {
+				elem = this[ i ];
+				cur = elem.nodeType === 1 && ( elem.className ?
+					( " " + elem.className + " " ).replace( rclass, " " ) :
+					" "
+				);
+
+				if ( cur ) {
+					j = 0;
+					while ( (clazz = classes[j++]) ) {
+						if ( cur.indexOf( " " + clazz + " " ) < 0 ) {
+							cur += clazz + " ";
+						}
+					}
+					elem.className = jQuery.trim( cur );
+
+				}
+			}
+		}
+
+		return this;
+	},
+
+	removeClass: function( value ) {
+		var classes, elem, cur, clazz, j,
+			i = 0,
+			len = this.length,
+			proceed = arguments.length === 0 || typeof value === "string" && value;
+
+		if ( jQuery.isFunction( value ) ) {
+			return this.each(function( j ) {
+				jQuery( this ).removeClass( value.call( this, j, this.className ) );
+			});
+		}
+		if ( proceed ) {
+			classes = ( value || "" ).match( core_rnotwhite ) || [];
+
+			for ( ; i < len; i++ ) {
+				elem = this[ i ];
+				// This expression is here for better compressibility (see addClass)
+				cur = elem.nodeType === 1 && ( elem.className ?
+					( " " + elem.className + " " ).replace( rclass, " " ) :
+					""
+				);
+
+				if ( cur ) {
+					j = 0;
+					while ( (clazz = classes[j++]) ) {
+						// Remove *all* instances
+						while ( cur.indexOf( " " + clazz + " " ) >= 0 ) {
+							cur = cur.replace( " " + clazz + " ", " " );
+						}
+					}
+					elem.className = value ? jQuery.trim( cur ) : "";
+				}
+			}
+		}
+
+		return this;
+	},
+
+	toggleClass: function( value, stateVal ) {
+		var type = typeof value;
+
+		if ( typeof stateVal === "boolean" && type === "string" ) {
+			return stateVal ? this.addClass( value ) : this.removeClass( value );
+		}
+
+		if ( jQuery.isFunction( value ) ) {
+			return this.each(function( i ) {
+				jQuery( this ).toggleClass( value.call(this, i, this.className, stateVal), stateVal );
+			});
+		}
+
+		return this.each(function() {
+			if ( type === "string" ) {
+				// toggle individual class names
+				var className,
+					i = 0,
+					self = jQuery( this ),
+					classNames = value.match( core_rnotwhite ) || [];
+
+				while ( (className = classNames[ i++ ]) ) {
+					// check each className given, space separated list
+					if ( self.hasClass( className ) ) {
+						self.removeClass( className );
+					} else {
+						self.addClass( className );
+					}
+				}
+
+			// Toggle whole class name
+			} else if ( type === core_strundefined || type === "boolean" ) {
+				if ( this.className ) {
+					// store className if set
+					data_priv.set( this, "__className__", this.className );
+				}
+
+				// If the element has a class name or if we're passed "false",
+				// then remove the whole classname (if there was one, the above saved it).
+				// Otherwise bring back whatever was previously saved (if anything),
+				// falling back to the empty string if nothing was stored.
+				this.className = this.className || value === false ? "" : data_priv.get( this, "__className__" ) || "";
+			}
+		});
+	},
+
+	hasClass: function( selector ) {
+		var className = " " + selector + " ",
+			i = 0,
+			l = this.length;
+		for ( ; i < l; i++ ) {
+			if ( this[i].nodeType === 1 && (" " + this[i].className + " ").replace(rclass, " ").indexOf( className ) >= 0 ) {
+				return true;
+			}
+		}
+
+		return false;
+	},
+
+	val: function( value ) {
+		var hooks, ret, isFunction,
+			elem = this[0];
+
+		if ( !arguments.length ) {
+			if ( elem ) {
+				hooks = jQuery.valHooks[ elem.type ] || jQuery.valHooks[ elem.nodeName.toLowerCase() ];
+
+				if ( hooks && "get" in hooks && (ret = hooks.get( elem, "value" )) !== undefined ) {
+					return ret;
+				}
+
+				ret = elem.value;
+
+				return typeof ret === "string" ?
+					// handle most common string cases
+					ret.replace(rreturn, "") :
+					// handle cases where value is null/undef or number
+					ret == null ? "" : ret;
+			}
+
+			return;
+		}
+
+		isFunction = jQuery.isFunction( value );
+
+		return this.each(function( i ) {
+			var val;
+
+			if ( this.nodeType !== 1 ) {
+				return;
+			}
+
+			if ( isFunction ) {
+				val = value.call( this, i, jQuery( this ).val() );
+			} else {
+				val = value;
+			}
+
+			// Treat null/undefined as ""; convert numbers to string
+			if ( val == null ) {
+				val = "";
+			} else if ( typeof val === "number" ) {
+				val += "";
+			} else if ( jQuery.isArray( val ) ) {
+				val = jQuery.map(val, function ( value ) {
+					return value == null ? "" : value + "";
+				});
+			}
+
+			hooks = jQuery.valHooks[ this.type ] || jQuery.valHooks[ this.nodeName.toLowerCase() ];
+
+			// If set returns undefined, fall back to normal setting
+			if ( !hooks || !("set" in hooks) || hooks.set( this, val, "value" ) === undefined ) {
+				this.value = val;
+			}
+		});
+	}
+});
+
+jQuery.extend({
+	valHooks: {
+		option: {
+			get: function( elem ) {
+				// attributes.value is undefined in Blackberry 4.7 but
+				// uses .value. See #6932
+				var val = elem.attributes.value;
+				return !val || val.specified ? elem.value : elem.text;
+			}
+		},
+		select: {
+			get: function( elem ) {
+				var value, option,
+					options = elem.options,
+					index = elem.selectedIndex,
+					one = elem.type === "select-one" || index < 0,
+					values = one ? null : [],
+					max = one ? index + 1 : options.length,
+					i = index < 0 ?
+						max :
+						one ? index : 0;
+
+				// Loop through all the selected options
+				for ( ; i < max; i++ ) {
+					option = options[ i ];
+
+					// IE6-9 doesn't update selected after form reset (#2551)
+					if ( ( option.selected || i === index ) &&
+							// Don't return options that are disabled or in a disabled optgroup
+							( jQuery.support.optDisabled ? !option.disabled : option.getAttribute("disabled") === null ) &&
+							( !option.parentNode.disabled || !jQuery.nodeName( option.parentNode, "optgroup" ) ) ) {
+
+						// Get the specific value for the option
+						value = jQuery( option ).val();
+
+						// We don't need an array for one selects
+						if ( one ) {
+							return value;
+						}
+
+						// Multi-Selects return an array
+						values.push( value );
+					}
+				}
+
+				return values;
+			},
+
+			set: function( elem, value ) {
+				var optionSet, option,
+					options = elem.options,
+					values = jQuery.makeArray( value ),
+					i = options.length;
+
+				while ( i-- ) {
+					option = options[ i ];
+					if ( (option.selected = jQuery.inArray( jQuery(option).val(), values ) >= 0) ) {
+						optionSet = true;
+					}
+				}
+
+				// force browsers to behave consistently when non-matching value is set
+				if ( !optionSet ) {
+					elem.selectedIndex = -1;
+				}
+				return values;
+			}
+		}
+	},
+
+	attr: function( elem, name, value ) {
+		var hooks, ret,
+			nType = elem.nodeType;
+
+		// don't get/set attributes on text, comment and attribute nodes
+		if ( !elem || nType === 3 || nType === 8 || nType === 2 ) {
+			return;
+		}
+
+		// Fallback to prop when attributes are not supported
+		if ( typeof elem.getAttribute === core_strundefined ) {
+			return jQuery.prop( elem, name, value );
+		}
+
+		// All attributes are lowercase
+		// Grab necessary hook if one is defined
+		if ( nType !== 1 || !jQuery.isXMLDoc( elem ) ) {
+			name = name.toLowerCase();
+			hooks = jQuery.attrHooks[ name ] ||
+				( jQuery.expr.match.bool.test( name ) ? boolHook : nodeHook );
+		}
+
+		if ( value !== undefined ) {
+
+			if ( value === null ) {
+				jQuery.removeAttr( elem, name );
+
+			} else if ( hooks && "set" in hooks && (ret = hooks.set( elem, value, name )) !== undefined ) {
+				return ret;
+
+			} else {
+				elem.setAttribute( name, value + "" );
+				return value;
+			}
+
+		} else if ( hooks && "get" in hooks && (ret = hooks.get( elem, name )) !== null ) {
+			return ret;
+
+		} else {
+			ret = jQuery.find.attr( elem, name );
+
+			// Non-existent attributes return null, we normalize to undefined
+			return ret == null ?
+				undefined :
+				ret;
+		}
+	},
+
+	removeAttr: function( elem, value ) {
+		var name, propName,
+			i = 0,
+			attrNames = value && value.match( core_rnotwhite );
+
+		if ( attrNames && elem.nodeType === 1 ) {
+			while ( (name = attrNames[i++]) ) {
+				propName = jQuery.propFix[ name ] || name;
+
+				// Boolean attributes get special treatment (#10870)
+				if ( jQuery.expr.match.bool.test( name ) ) {
+					// Set corresponding property to false
+					elem[ propName ] = false;
+				}
+
+				elem.removeAttribute( name );
+			}
+		}
+	},
+
+	attrHooks: {
+		type: {
+			set: function( elem, value ) {
+				if ( !jQuery.support.radioValue && value === "radio" && jQuery.nodeName(elem, "input") ) {
+					// Setting the type on a radio button after the value resets the value in IE6-9
+					// Reset value to default in case type is set after value during creation
+					var val = elem.value;
+					elem.setAttribute( "type", value );
+					if ( val ) {
+						elem.value = val;
+					}
+					return value;
+				}
+			}
+		}
+	},
+
+	propFix: {
+		"for": "htmlFor",
+		"class": "className"
+	},
+
+	prop: function( elem, name, value ) {
+		var ret, hooks, notxml,
+			nType = elem.nodeType;
+
+		// don't get/set properties on text, comment and attribute nodes
+		if ( !elem || nType === 3 || nType === 8 || nType === 2 ) {
+			return;
+		}
+
+		notxml = nType !== 1 || !jQuery.isXMLDoc( elem );
+
+		if ( notxml ) {
+			// Fix name and attach hooks
+			name = jQuery.propFix[ name ] || name;
+			hooks = jQuery.propHooks[ name ];
+		}
+
+		if ( value !== undefined ) {
+			return hooks && "set" in hooks && (ret = hooks.set( elem, value, name )) !== undefined ?
+				ret :
+				( elem[ name ] = value );
+
+		} else {
+			return hooks && "get" in hooks && (ret = hooks.get( elem, name )) !== null ?
+				ret :
+				elem[ name ];
+		}
+	},
+
+	propHooks: {
+		tabIndex: {
+			get: function( elem ) {
+				return elem.hasAttribute( "tabindex" ) || rfocusable.test( elem.nodeName ) || elem.href ?
+					elem.tabIndex :
+					-1;
+			}
+		}
+	}
+});
+
+// Hooks for boolean attributes
+boolHook = {
+	set: function( elem, value, name ) {
+		if ( value === false ) {
+			// Remove boolean attributes when set to false
+			jQuery.removeAttr( elem, name );
+		} else {
+			elem.setAttribute( name, name );
+		}
+		return name;
+	}
+};
+jQuery.each( jQuery.expr.match.bool.source.match( /\w+/g ), function( i, name ) {
+	var getter = jQuery.expr.attrHandle[ name ] || jQuery.find.attr;
+
+	jQuery.expr.attrHandle[ name ] = function( elem, name, isXML ) {
+		var fn = jQuery.expr.attrHandle[ name ],
+			ret = isXML ?
+				undefined :
+				/* jshint eqeqeq: false */
+				// Temporarily disable this handler to check existence
+				(jQuery.expr.attrHandle[ name ] = undefined) !=
+					getter( elem, name, isXML ) ?
+
+					name.toLowerCase() :
+					null;
+
+		// Restore handler
+		jQuery.expr.attrHandle[ name ] = fn;
+
+		return ret;
+	};
+});
+
+// Support: IE9+
+// Selectedness for an option in an optgroup can be inaccurate
+if ( !jQuery.support.optSelected ) {
+	jQuery.propHooks.selected = {
+		get: function( elem ) {
+			var parent = elem.parentNode;
+			if ( parent && parent.parentNode ) {
+				parent.parentNode.selectedIndex;
+			}
+			return null;
+		}
+	};
+}
+
+jQuery.each([
+	"tabIndex",
+	"readOnly",
+	"maxLength",
+	"cellSpacing",
+	"cellPadding",
+	"rowSpan",
+	"colSpan",
+	"useMap",
+	"frameBorder",
+	"contentEditable"
+], function() {
+	jQuery.propFix[ this.toLowerCase() ] = this;
+});
+
+// Radios and checkboxes getter/setter
+jQuery.each([ "radio", "checkbox" ], function() {
+	jQuery.valHooks[ this ] = {
+		set: function( elem, value ) {
+			if ( jQuery.isArray( value ) ) {
+				return ( elem.checked = jQuery.inArray( jQuery(elem).val(), value ) >= 0 );
+			}
+		}
+	};
+	if ( !jQuery.support.checkOn ) {
+		jQuery.valHooks[ this ].get = function( elem ) {
+			// Support: Webkit
+			// "" is returned instead of "on" if a value isn't specified
+			return elem.getAttribute("value") === null ? "on" : elem.value;
+		};
+	}
+});
+var rkeyEvent = /^key/,
+	rmouseEvent = /^(?:mouse|contextmenu)|click/,
+	rfocusMorph = /^(?:focusinfocus|focusoutblur)$/,
+	rtypenamespace = /^([^.]*)(?:\.(.+)|)$/;
+
+function returnTrue() {
+	return true;
+}
+
+function returnFalse() {
+	return false;
+}
+
+function safeActiveElement() {
+	try {
+		return document.activeElement;
+	} catch ( err ) { }
+}
+
+/*
+ * Helper functions for managing events -- not part of the public interface.
+ * Props to Dean Edwards' addEvent library for many of the ideas.
+ */
+jQuery.event = {
+
+	global: {},
+
+	add: function( elem, types, handler, data, selector ) {
+
+		var handleObjIn, eventHandle, tmp,
+			events, t, handleObj,
+			special, handlers, type, namespaces, origType,
+			elemData = data_priv.get( elem );
+
+		// Don't attach events to noData or text/comment nodes (but allow plain objects)
+		if ( !elemData ) {
+			return;
+		}
+
+		// Caller can pass in an object of custom data in lieu of the handler
+		if ( handler.handler ) {
+			handleObjIn = handler;
+			handler = handleObjIn.handler;
+			selector = handleObjIn.selector;
+		}
+
+		// Make sure that the handler has a unique ID, used to find/remove it later
+		if ( !handler.guid ) {
+			handler.guid = jQuery.guid++;
+		}
+
+		// Init the element's event structure and main handler, if this is the first
+		if ( !(events = elemData.events) ) {
+			events = elemData.events = {};
+		}
+		if ( !(eventHandle = elemData.handle) ) {
+			eventHandle = elemData.handle = function( e ) {
+				// Discard the second event of a jQuery.event.trigger() and
+				// when an event is called after a page has unloaded
+				return typeof jQuery !== core_strundefined && (!e || jQuery.event.triggered !== e.type) ?
+					jQuery.event.dispatch.apply( eventHandle.elem, arguments ) :
+					undefined;
+			};
+			// Add elem as a property of the handle fn to prevent a memory leak with IE non-native events
+			eventHandle.elem = elem;
+		}
+
+		// Handle multiple events separated by a space
+		types = ( types || "" ).match( core_rnotwhite ) || [""];
+		t = types.length;
+		while ( t-- ) {
+			tmp = rtypenamespace.exec( types[t] ) || [];
+			type = origType = tmp[1];
+			namespaces = ( tmp[2] || "" ).split( "." ).sort();
+
+			// There *must* be a type, no attaching namespace-only handlers
+			if ( !type ) {
+				continue;
+			}
+
+			// If event changes its type, use the special event handlers for the changed type
+			special = jQuery.event.special[ type ] || {};
+
+			// If selector defined, determine special event api type, otherwise given type
+			type = ( selector ? special.delegateType : special.bindType ) || type;
+
+			// Update special based on newly reset type
+			special = jQuery.event.special[ type ] || {};
+
+			// handleObj is passed to all event handlers
+			handleObj = jQuery.extend({
+				type: type,
+				origType: origType,
+				data: data,
+				handler: handler,
+				guid: handler.guid,
+				selector: selector,
+				needsContext: selector && jQuery.expr.match.needsContext.test( selector ),
+				namespace: namespaces.join(".")
+			}, handleObjIn );
+
+			// Init the event handler queue if we're the first
+			if ( !(handlers = events[ type ]) ) {
+				handlers = events[ type ] = [];
+				handlers.delegateCount = 0;
+
+				// Only use addEventListener if the special events handler returns false
+				if ( !special.setup || special.setup.call( elem, data, namespaces, eventHandle ) === false ) {
+					if ( elem.addEventListener ) {
+						elem.addEventListener( type, eventHandle, false );
+					}
+				}
+			}
+
+			if ( special.add ) {
+				special.add.call( elem, handleObj );
+
+				if ( !handleObj.handler.guid ) {
+					handleObj.handler.guid = handler.guid;
+				}
+			}
+
+			// Add to the element's handler list, delegates in front
+			if ( selector ) {
+				handlers.splice( handlers.delegateCount++, 0, handleObj );
+			} else {
+				handlers.push( handleObj );
+			}
+
+			// Keep track of which events have ever been used, for event optimization
+			jQuery.event.global[ type ] = true;
+		}
+
+		// Nullify elem to prevent memory leaks in IE
+		elem = null;
+	},
+
+	// Detach an event or set of events from an element
+	remove: function( elem, types, handler, selector, mappedTypes ) {
+
+		var j, origCount, tmp,
+			events, t, handleObj,
+			special, handlers, type, namespaces, origType,
+			elemData = data_priv.hasData( elem ) && data_priv.get( elem );
+
+		if ( !elemData || !(events = elemData.events) ) {
+			return;
+		}
+
+		// Once for each type.namespace in types; type may be omitted
+		types = ( types || "" ).match( core_rnotwhite ) || [""];
+		t = types.length;
+		while ( t-- ) {
+			tmp = rtypenamespace.exec( types[t] ) || [];
+			type = origType = tmp[1];
+			namespaces = ( tmp[2] || "" ).split( "." ).sort();
+
+			// Unbind all events (on this namespace, if provided) for the element
+			if ( !type ) {
+				for ( type in events ) {
+					jQuery.event.remove( elem, type + types[ t ], handler, selector, true );
+				}
+				continue;
+			}
+
+			special = jQuery.event.special[ type ] || {};
+			type = ( selector ? special.delegateType : special.bindType ) || type;
+			handlers = events[ type ] || [];
+			tmp = tmp[2] && new RegExp( "(^|\\.)" + namespaces.join("\\.(?:.*\\.|)") + "(\\.|$)" );
+
+			// Remove matching events
+			origCount = j = handlers.length;
+			while ( j-- ) {
+				handleObj = handlers[ j ];
+
+				if ( ( mappedTypes || origType === handleObj.origType ) &&
+					( !handler || handler.guid === handleObj.guid ) &&
+					( !tmp || tmp.test( handleObj.namespace ) ) &&
+					( !selector || selector === handleObj.selector || selector === "**" && handleObj.selector ) ) {
+					handlers.splice( j, 1 );
+
+					if ( handleObj.selector ) {
+						handlers.delegateCount--;
+					}
+					if ( special.remove ) {
+						special.remove.call( elem, handleObj );
+					}
+				}
+			}
+
+			// Remove generic event handler if we removed something and no more handlers exist
+			// (avoids potential for endless recursion during removal of special event handlers)
+			if ( origCount && !handlers.length ) {
+				if ( !special.teardown || special.teardown.call( elem, namespaces, elemData.handle ) === false ) {
+					jQuery.removeEvent( elem, type, elemData.handle );
+				}
+
+				delete events[ type ];
+			}
+		}
+
+		// Remove the expando if it's no longer used
+		if ( jQuery.isEmptyObject( events ) ) {
+			delete elemData.handle;
+			data_priv.remove( elem, "events" );
+		}
+	},
+
+	trigger: function( event, data, elem, onlyHandlers ) {
+
+		var i, cur, tmp, bubbleType, ontype, handle, special,
+			eventPath = [ elem || document ],
+			type = core_hasOwn.call( event, "type" ) ? event.type : event,
+			namespaces = core_hasOwn.call( event, "namespace" ) ? event.namespace.split(".") : [];
+
+		cur = tmp = elem = elem || document;
+
+		// Don't do events on text and comment nodes
+		if ( elem.nodeType === 3 || elem.nodeType === 8 ) {
+			return;
+		}
+
+		// focus/blur morphs to focusin/out; ensure we're not firing them right now
+		if ( rfocusMorph.test( type + jQuery.event.triggered ) ) {
+			return;
+		}
+
+		if ( type.indexOf(".") >= 0 ) {
+			// Namespaced trigger; create a regexp to match event type in handle()
+			namespaces = type.split(".");
+			type = namespaces.shift();
+			namespaces.sort();
+		}
+		ontype = type.indexOf(":") < 0 && "on" + type;
+
+		// Caller can pass in a jQuery.Event object, Object, or just an event type string
+		event = event[ jQuery.expando ] ?
+			event :
+			new jQuery.Event( type, typeof event === "object" && event );
+
+		// Trigger bitmask: & 1 for native handlers; & 2 for jQuery (always true)
+		event.isTrigger = onlyHandlers ? 2 : 3;
+		event.namespace = namespaces.join(".");
+		event.namespace_re = event.namespace ?
+			new RegExp( "(^|\\.)" + namespaces.join("\\.(?:.*\\.|)") + "(\\.|$)" ) :
+			null;
+
+		// Clean up the event in case it is being reused
+		event.result = undefined;
+		if ( !event.target ) {
+			event.target = elem;
+		}
+
+		// Clone any incoming data and prepend the event, creating the handler arg list
+		data = data == null ?
+			[ event ] :
+			jQuery.makeArray( data, [ event ] );
+
+		// Allow special events to draw outside the lines
+		special = jQuery.event.special[ type ] || {};
+		if ( !onlyHandlers && special.trigger && special.trigger.apply( elem, data ) === false ) {
+			return;
+		}
+
+		// Determine event propagation path in advance, per W3C events spec (#9951)
+		// Bubble up to document, then to window; watch for a global ownerDocument var (#9724)
+		if ( !onlyHandlers && !special.noBubble && !jQuery.isWindow( elem ) ) {
+
+			bubbleType = special.delegateType || type;
+			if ( !rfocusMorph.test( bubbleType + type ) ) {
+				cur = cur.parentNode;
+			}
+			for ( ; cur; cur = cur.parentNode ) {
+				eventPath.push( cur );
+				tmp = cur;
+			}
+
+			// Only add window if we got to document (e.g., not plain obj or detached DOM)
+			if ( tmp === (elem.ownerDocument || document) ) {
+				eventPath.push( tmp.defaultView || tmp.parentWindow || window );
+			}
+		}
+
+		// Fire handlers on the event path
+		i = 0;
+		while ( (cur = eventPath[i++]) && !event.isPropagationStopped() ) {
+
+			event.type = i > 1 ?
+				bubbleType :
+				special.bindType || type;
+
+			// jQuery handler
+			handle = ( data_priv.get( cur, "events" ) || {} )[ event.type ] && data_priv.get( cur, "handle" );
+			if ( handle ) {
+				handle.apply( cur, data );
+			}
+
+			// Native handler
+			handle = ontype && cur[ ontype ];
+			if ( handle && jQuery.acceptData( cur ) && handle.apply && handle.apply( cur, data ) === false ) {
+				event.preventDefault();
+			}
+		}
+		event.type = type;
+
+		// If nobody prevented the default action, do it now
+		if ( !onlyHandlers && !event.isDefaultPrevented() ) {
+
+			if ( (!special._default || special._default.apply( eventPath.pop(), data ) === false) &&
+				jQuery.acceptData( elem ) ) {
+
+				// Call a native DOM method on the target with the same name name as the event.
+				// Don't do default actions on window, that's where global variables be (#6170)
+				if ( ontype && jQuery.isFunction( elem[ type ] ) && !jQuery.isWindow( elem ) ) {
+
+					// Don't re-trigger an onFOO event when we call its FOO() method
+					tmp = elem[ ontype ];
+
+					if ( tmp ) {
+						elem[ ontype ] = null;
+					}
+
+					// Prevent re-triggering of the same event, since we already bubbled it above
+					jQuery.event.triggered = type;
+					elem[ type ]();
+					jQuery.event.triggered = undefined;
+
+					if ( tmp ) {
+						elem[ ontype ] = tmp;
+					}
+				}
+			}
+		}
+
+		return event.result;
+	},
+
+	dispatch: function( event ) {
+
+		// Make a writable jQuery.Event from the native event object
+		event = jQuery.event.fix( event );
+
+		var i, j, ret, matched, handleObj,
+			handlerQueue = [],
+			args = core_slice.call( arguments ),
+			handlers = ( data_priv.get( this, "events" ) || {} )[ event.type ] || [],
+			special = jQuery.event.special[ event.type ] || {};
+
+		// Use the fix-ed jQuery.Event rather than the (read-only) native event
+		args[0] = event;
+		event.delegateTarget = this;
+
+		// Call the preDispatch hook for the mapped type, and let it bail if desired
+		if ( special.preDispatch && special.preDispatch.call( this, event ) === false ) {
+			return;
+		}
+
+		// Determine handlers
+		handlerQueue = jQuery.event.handlers.call( this, event, handlers );
+
+		// Run delegates first; they may want to stop propagation beneath us
+		i = 0;
+		while ( (matched = handlerQueue[ i++ ]) && !event.isPropagationStopped() ) {
+			event.currentTarget = matched.elem;
+
+			j = 0;
+			while ( (handleObj = matched.handlers[ j++ ]) && !event.isImmediatePropagationStopped() ) {
+
+				// Triggered event must either 1) have no namespace, or
+				// 2) have namespace(s) a subset or equal to those in the bound event (both can have no namespace).
+				if ( !event.namespace_re || event.namespace_re.test( handleObj.namespace ) ) {
+
+					event.handleObj = handleObj;
+					event.data = handleObj.data;
+
+					ret = ( (jQuery.event.special[ handleObj.origType ] || {}).handle || handleObj.handler )
+							.apply( matched.elem, args );
+
+					if ( ret !== undefined ) {
+						if ( (event.result = ret) === false ) {
+							event.preventDefault();
+							event.stopPropagation();
+						}
+					}
+				}
+			}
+		}
+
+		// Call the postDispatch hook for the mapped type
+		if ( special.postDispatch ) {
+			special.postDispatch.call( this, event );
+		}
+
+		return event.result;
+	},
+
+	handlers: function( event, handlers ) {
+		var i, matches, sel, handleObj,
+			handlerQueue = [],
+			delegateCount = handlers.delegateCount,
+			cur = event.target;
+
+		// Find delegate handlers
+		// Black-hole SVG <use> instance trees (#13180)
+		// Avoid non-left-click bubbling in Firefox (#3861)
+		if ( delegateCount && cur.nodeType && (!event.button || event.type !== "click") ) {
+
+			for ( ; cur !== this; cur = cur.parentNode || this ) {
+
+				// Don't process clicks on disabled elements (#6911, #8165, #11382, #11764)
+				if ( cur.disabled !== true || event.type !== "click" ) {
+					matches = [];
+					for ( i = 0; i < delegateCount; i++ ) {
+						handleObj = handlers[ i ];
+
+						// Don't conflict with Object.prototype properties (#13203)
+						sel = handleObj.selector + " ";
+
+						if ( matches[ sel ] === undefined ) {
+							matches[ sel ] = handleObj.needsContext ?
+								jQuery( sel, this ).index( cur ) >= 0 :
+								jQuery.find( sel, this, null, [ cur ] ).length;
+						}
+						if ( matches[ sel ] ) {
+							matches.push( handleObj );
+						}
+					}
+					if ( matches.length ) {
+						handlerQueue.push({ elem: cur, handlers: matches });
+					}
+				}
+			}
+		}
+
+		// Add the remaining (directly-bound) handlers
+		if ( delegateCount < handlers.length ) {
+			handlerQueue.push({ elem: this, handlers: handlers.slice( delegateCount ) });
+		}
+
+		return handlerQueue;
+	},
+
+	// Includes some event props shared by KeyEvent and MouseEvent
+	props: "altKey bubbles cancelable ctrlKey currentTarget eventPhase metaKey relatedTarget shiftKey target timeStamp view which".split(" "),
+
+	fixHooks: {},
+
+	keyHooks: {
+		props: "char charCode key keyCode".split(" "),
+		filter: function( event, original ) {
+
+			// Add which for key events
+			if ( event.which == null ) {
+				event.which = original.charCode != null ? original.charCode : original.keyCode;
+			}
+
+			return event;
+		}
+	},
+
+	mouseHooks: {
+		props: "button buttons clientX clientY offsetX offsetY pageX pageY screenX screenY toElement".split(" "),
+		filter: function( event, original ) {
+			var eventDoc, doc, body,
+				button = original.button;
+
+			// Calculate pageX/Y if missing and clientX/Y available
+			if ( event.pageX == null && original.clientX != null ) {
+				eventDoc = event.target.ownerDocument || document;
+				doc = eventDoc.documentElement;
+				body = eventDoc.body;
+
+				event.pageX = original.clientX + ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) - ( doc && doc.clientLeft || body && body.clientLeft || 0 );
+				event.pageY = original.clientY + ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) - ( doc && doc.clientTop  || body && body.clientTop  || 0 );
+			}
+
+			// Add which for click: 1 === left; 2 === middle; 3 === right
+			// Note: button is not normalized, so don't use it
+			if ( !event.which && button !== undefined ) {
+				event.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
+			}
+
+			return event;
+		}
+	},
+
+	fix: function( event ) {
+		if ( event[ jQuery.expando ] ) {
+			return event;
+		}
+
+		// Create a writable copy of the event object and normalize some properties
+		var i, prop, copy,
+			type = event.type,
+			originalEvent = event,
+			fixHook = this.fixHooks[ type ];
+
+		if ( !fixHook ) {
+			this.fixHooks[ type ] = fixHook =
+				rmouseEvent.test( type ) ? this.mouseHooks :
+				rkeyEvent.test( type ) ? this.keyHooks :
+				{};
+		}
+		copy = fixHook.props ? this.props.concat( fixHook.props ) : this.props;
+
+		event = new jQuery.Event( originalEvent );
+
+		i = copy.length;
+		while ( i-- ) {
+			prop = copy[ i ];
+			event[ prop ] = originalEvent[ prop ];
+		}
+
+		// Support: Cordova 2.5 (WebKit) (#13255)
+		// All events should have a target; Cordova deviceready doesn't
+		if ( !event.target ) {
+			event.target = document;
+		}
+
+		// Support: Safari 6.0+, Chrome < 28
+		// Target should not be a text node (#504, #13143)
+		if ( event.target.nodeType === 3 ) {
+			event.target = event.target.parentNode;
+		}
+
+		return fixHook.filter? fixHook.filter( event, originalEvent ) : event;
+	},
+
+	special: {
+		load: {
+			// Prevent triggered image.load events from bubbling to window.load
+			noBubble: true
+		},
+		focus: {
+			// Fire native event if possible so blur/focus sequence is correct
+			trigger: function() {
+				if ( this !== safeActiveElement() && this.focus ) {
+					this.focus();
+					return false;
+				}
+			},
+			delegateType: "focusin"
+		},
+		blur: {
+			trigger: function() {
+				if ( this === safeActiveElement() && this.blur ) {
+					this.blur();
+					return false;
+				}
+			},
+			delegateType: "focusout"
+		},
+		click: {
+			// For checkbox, fire native event so checked state will be right
+			trigger: function() {
+				if ( this.type === "checkbox" && this.click && jQuery.nodeName( this, "input" ) ) {
+					this.click();
+					return false;
+				}
+			},
+
+			// For cross-browser consistency, don't fire native .click() on links
+			_default: function( event ) {
+				return jQuery.nodeName( event.target, "a" );
+			}
+		},
+
+		beforeunload: {
+			postDispatch: function( event ) {
+
+				// Support: Firefox 20+
+				// Firefox doesn't alert if the returnValue field is not set.
+				if ( event.result !== undefined ) {
+					event.originalEvent.returnValue = event.result;
+				}
+			}
+		}
+	},
+
+	simulate: function( type, elem, event, bubble ) {
+		// Piggyback on a donor event to simulate a different one.
+		// Fake originalEvent to avoid donor's stopPropagation, but if the
+		// simulated event prevents default then we do the same on the donor.
+		var e = jQuery.extend(
+			new jQuery.Event(),
+			event,
+			{
+				type: type,
+				isSimulated: true,
+				originalEvent: {}
+			}
+		);
+		if ( bubble ) {
+			jQuery.event.trigger( e, null, elem );
+		} else {
+			jQuery.event.dispatch.call( elem, e );
+		}
+		if ( e.isDefaultPrevented() ) {
+			event.preventDefault();
+		}
+	}
+};
+
+jQuery.removeEvent = function( elem, type, handle ) {
+	if ( elem.removeEventListener ) {
+		elem.removeEventListener( type, handle, false );
+	}
+};
+
+jQuery.Event = function( src, props ) {
+	// Allow instantiation without the 'new' keyword
+	if ( !(this instanceof jQuery.Event) ) {
+		return new jQuery.Event( src, props );
+	}
+
+	// Event object
+	if ( src && src.type ) {
+		this.originalEvent = src;
+		this.type = src.type;
+
+		// Events bubbling up the document may have been marked as prevented
+		// by a handler lower down the tree; reflect the correct value.
+		this.isDefaultPrevented = ( src.defaultPrevented ||
+			src.getPreventDefault && src.getPreventDefault() ) ? returnTrue : returnFalse;
+
+	// Event type
+	} else {
+		this.type = src;
+	}
+
+	// Put explicitly provided properties onto the event object
+	if ( props ) {
+		jQuery.extend( this, props );
+	}
+
+	// Create a timestamp if incoming event doesn't have one
+	this.timeStamp = src && src.timeStamp || jQuery.now();
+
+	// Mark it as fixed
+	this[ jQuery.expando ] = true;
+};
+
+// jQuery.Event is based on DOM3 Events as specified by the ECMAScript Language Binding
+// http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
+jQuery.Event.prototype = {
+	isDefaultPrevented: returnFalse,
+	isPropagationStopped: returnFalse,
+	isImmediatePropagationStopped: returnFalse,
+
+	preventDefault: function() {
+		var e = this.originalEvent;
+
+		this.isDefaultPrevented = returnTrue;
+
+		if ( e && e.preventDefault ) {
+			e.preventDefault();
+		}
+	},
+	stopPropagation: function() {
+		var e = this.originalEvent;
+
+		this.isPropagationStopped = returnTrue;
+
+		if ( e && e.stopPropagation ) {
+			e.stopPropagation();
+		}
+	},
+	stopImmediatePropagation: function() {
+		this.isImmediatePropagationStopped = returnTrue;
+		this.stopPropagation();
+	}
+};
+
+// Create mouseenter/leave events using mouseover/out and event-time checks
+// Support: Chrome 15+
+jQuery.each({
+	mouseenter: "mouseover",
+	mouseleave: "mouseout"
+}, function( orig, fix ) {
+	jQuery.event.special[ orig ] = {
+		delegateType: fix,
+		bindType: fix,
+
+		handle: function( event ) {
+			var ret,
+				target = this,
+				related = event.relatedTarget,
+				handleObj = event.handleObj;
+
+			// For mousenter/leave call the handler if related is outside the target.
+			// NB: No relatedTarget if the mouse left/entered the browser window
+			if ( !related || (related !== target && !jQuery.contains( target, related )) ) {
+				event.type = handleObj.origType;
+				ret = handleObj.handler.apply( this, arguments );
+				event.type = fix;
+			}
+			return ret;
+		}
+	};
+});
+
+// Create "bubbling" focus and blur events
+// Support: Firefox, Chrome, Safari
+if ( !jQuery.support.focusinBubbles ) {
+	jQuery.each({ focus: "focusin", blur: "focusout" }, function( orig, fix ) {
+
+		// Attach a single capturing handler while someone wants focusin/focusout
+		var attaches = 0,
+			handler = function( event ) {
+				jQuery.event.simulate( fix, event.target, jQuery.event.fix( event ), true );
+			};
+
+		jQuery.event.special[ fix ] = {
+			setup: function() {
+				if ( attaches++ === 0 ) {
+					document.addEventListener( orig, handler, true );
+				}
+			},
+			teardown: function() {
+				if ( --attaches === 0 ) {
+					document.removeEventListener( orig, handler, true );
+				}
+			}
+		};
+	});
+}
+
+jQuery.fn.extend({
+
+	on: function( types, selector, data, fn, /*INTERNAL*/ one ) {
+		var origFn, type;
+
+		// Types can be a map of types/handlers
+		if ( typeof types === "object" ) {
+			// ( types-Object, selector, data )
+			if ( typeof selector !== "string" ) {
+				// ( types-Object, data )
+				data = data || selector;
+				selector = undefined;
+			}
+			for ( type in types ) {
+				this.on( type, selector, data, types[ type ], one );
+			}
+			return this;
+		}
+
+		if ( data == null && fn == null ) {
+			// ( types, fn )
+			fn = selector;
+			data = selector = undefined;
+		} else if ( fn == null ) {
+			if ( typeof selector === "string" ) {
+				// ( types, selector, fn )
+				fn = data;
+				data = undefined;
+			} else {
+				// ( types, data, fn )
+				fn = data;
+				data = selector;
+				selector = undefined;
+			}
+		}
+		if ( fn === false ) {
+			fn = returnFalse;
+		} else if ( !fn ) {
+			return this;
+		}
+
+		if ( one === 1 ) {
+			origFn = fn;
+			fn = function( event ) {
+				// Can use an empty set, since event contains the info
+				jQuery().off( event );
+				return origFn.apply( this, arguments );
+			};
+			// Use same guid so caller can remove using origFn
+			fn.guid = origFn.guid || ( origFn.guid = jQuery.guid++ );
+		}
+		return this.each( function() {
+			jQuery.event.add( this, types, fn, data, selector );
+		});
+	},
+	one: function( types, selector, data, fn ) {
+		return this.on( types, selector, data, fn, 1 );
+	},
+	off: function( types, selector, fn ) {
+		var handleObj, type;
+		if ( types && types.preventDefault && types.handleObj ) {
+			// ( event )  dispatched jQuery.Event
+			handleObj = types.handleObj;
+			jQuery( types.delegateTarget ).off(
+				handleObj.namespace ? handleObj.origType + "." + handleObj.namespace : handleObj.origType,
+				handleObj.selector,
+				handleObj.handler
+			);
+			return this;
+		}
+		if ( typeof types === "object" ) {
+			// ( types-object [, selector] )
+			for ( type in types ) {
+				this.off( type, selector, types[ type ] );
+			}
+			return this;
+		}
+		if ( selector === false || typeof selector === "function" ) {
+			// ( types [, fn] )
+			fn = selector;
+			selector = undefined;
+		}
+		if ( fn === false ) {
+			fn = returnFalse;
+		}
+		return this.each(function() {
+			jQuery.event.remove( this, types, fn, selector );
+		});
+	},
+
+	trigger: function( type, data ) {
+		return this.each(function() {
+			jQuery.event.trigger( type, data, this );
+		});
+	},
+	triggerHandler: function( type, data ) {
+		var elem = this[0];
+		if ( elem ) {
+			return jQuery.event.trigger( type, data, elem, true );
+		}
+	}
+});
+var isSimple = /^.[^:#\[\.,]*$/,
+	rparentsprev = /^(?:parents|prev(?:Until|All))/,
+	rneedsContext = jQuery.expr.match.needsContext,
+	// methods guaranteed to produce a unique set when starting from a unique set
+	guaranteedUnique = {
+		children: true,
+		contents: true,
+		next: true,
+		prev: true
+	};
+
+jQuery.fn.extend({
+	find: function( selector ) {
+		var i,
+			ret = [],
+			self = this,
+			len = self.length;
+
+		if ( typeof selector !== "string" ) {
+			return this.pushStack( jQuery( selector ).filter(function() {
+				for ( i = 0; i < len; i++ ) {
+					if ( jQuery.contains( self[ i ], this ) ) {
+						return true;
+					}
+				}
+			}) );
+		}
+
+		for ( i = 0; i < len; i++ ) {
+			jQuery.find( selector, self[ i ], ret );
+		}
+
+		// Needed because $( selector, context ) becomes $( context ).find( selector )
+		ret = this.pushStack( len > 1 ? jQuery.unique( ret ) : ret );
+		ret.selector = this.selector ? this.selector + " " + selector : selector;
+		return ret;
+	},
+
+	has: function( target ) {
+		var targets = jQuery( target, this ),
+			l = targets.length;
+
+		return this.filter(function() {
+			var i = 0;
+			for ( ; i < l; i++ ) {
+				if ( jQuery.contains( this, targets[i] ) ) {
+					return true;
+				}
+			}
+		});
+	},
+
+	not: function( selector ) {
+		return this.pushStack( winnow(this, selector || [], true) );
+	},
+
+	filter: function( selector ) {
+		return this.pushStack( winnow(this, selector || [], false) );
+	},
+
+	is: function( selector ) {
+		return !!winnow(
+			this,
+
+			// If this is a positional/relative selector, check membership in the returned set
+			// so $("p:first").is("p:last") won't return true for a doc with two "p".
+			typeof selector === "string" && rneedsContext.test( selector ) ?
+				jQuery( selector ) :
+				selector || [],
+			false
+		).length;
+	},
+
+	closest: function( selectors, context ) {
+		var cur,
+			i = 0,
+			l = this.length,
+			matched = [],
+			pos = ( rneedsContext.test( selectors ) || typeof selectors !== "string" ) ?
+				jQuery( selectors, context || this.context ) :
+				0;
+
+		for ( ; i < l; i++ ) {
+			for ( cur = this[i]; cur && cur !== context; cur = cur.parentNode ) {
+				// Always skip document fragments
+				if ( cur.nodeType < 11 && (pos ?
+					pos.index(cur) > -1 :
+
+					// Don't pass non-elements to Sizzle
+					cur.nodeType === 1 &&
+						jQuery.find.matchesSelector(cur, selectors)) ) {
+
+					cur = matched.push( cur );
+					break;
+				}
+			}
+		}
+
+		return this.pushStack( matched.length > 1 ? jQuery.unique( matched ) : matched );
+	},
+
+	// Determine the position of an element within
+	// the matched set of elements
+	index: function( elem ) {
+
+		// No argument, return index in parent
+		if ( !elem ) {
+			return ( this[ 0 ] && this[ 0 ].parentNode ) ? this.first().prevAll().length : -1;
+		}
+
+		// index in selector
+		if ( typeof elem === "string" ) {
+			return core_indexOf.call( jQuery( elem ), this[ 0 ] );
+		}
+
+		// Locate the position of the desired element
+		return core_indexOf.call( this,
+
+			// If it receives a jQuery object, the first element is used
+			elem.jquery ? elem[ 0 ] : elem
+		);
+	},
+
+	add: function( selector, context ) {
+		var set = typeof selector === "string" ?
+				jQuery( selector, context ) :
+				jQuery.makeArray( selector && selector.nodeType ? [ selector ] : selector ),
+			all = jQuery.merge( this.get(), set );
+
+		return this.pushStack( jQuery.unique(all) );
+	},
+
+	addBack: function( selector ) {
+		return this.add( selector == null ?
+			this.prevObject : this.prevObject.filter(selector)
+		);
+	}
+});
+
+function sibling( cur, dir ) {
+	while ( (cur = cur[dir]) && cur.nodeType !== 1 ) {}
+
+	return cur;
+}
+
+jQuery.each({
+	parent: function( elem ) {
+		var parent = elem.parentNode;
+		return parent && parent.nodeType !== 11 ? parent : null;
+	},
+	parents: function( elem ) {
+		return jQuery.dir( elem, "parentNode" );
+	},
+	parentsUntil: function( elem, i, until ) {
+		return jQuery.dir( elem, "parentNode", until );
+	},
+	next: function( elem ) {
+		return sibling( elem, "nextSibling" );
+	},
+	prev: function( elem ) {
+		return sibling( elem, "previousSibling" );
+	},
+	nextAll: function( elem ) {
+		return jQuery.dir( elem, "nextSibling" );
+	},
+	prevAll: function( elem ) {
+		return jQuery.dir( elem, "previousSibling" );
+	},
+	nextUntil: function( elem, i, until ) {
+		return jQuery.dir( elem, "nextSibling", until );
+	},
+	prevUntil: function( elem, i, until ) {
+		return jQuery.dir( elem, "previousSibling", until );
+	},
+	siblings: function( elem ) {
+		return jQuery.sibling( ( elem.parentNode || {} ).firstChild, elem );
+	},
+	children: function( elem ) {
+		return jQuery.sibling( elem.firstChild );
+	},
+	contents: function( elem ) {
+		return elem.contentDocument || jQuery.merge( [], elem.childNodes );
+	}
+}, function( name, fn ) {
+	jQuery.fn[ name ] = function( until, selector ) {
+		var matched = jQuery.map( this, fn, until );
+
+		if ( name.slice( -5 ) !== "Until" ) {
+			selector = until;
+		}
+
+		if ( selector && typeof selector === "string" ) {
+			matched = jQuery.filter( selector, matched );
+		}
+
+		if ( this.length > 1 ) {
+			// Remove duplicates
+			if ( !guaranteedUnique[ name ] ) {
+				jQuery.unique( matched );
+			}
+
+			// Reverse order for parents* and prev-derivatives
+			if ( rparentsprev.test( name ) ) {
+				matched.reverse();
+			}
+		}
+
+		return this.pushStack( matched );
+	};
+});
+
+jQuery.extend({
+	filter: function( expr, elems, not ) {
+		var elem = elems[ 0 ];
+
+		if ( not ) {
+			expr = ":not(" + expr + ")";
+		}
+
+		return elems.length === 1 && elem.nodeType === 1 ?
+			jQuery.find.matchesSelector( elem, expr ) ? [ elem ] : [] :
+			jQuery.find.matches( expr, jQuery.grep( elems, function( elem ) {
+				return elem.nodeType === 1;
+			}));
+	},
+
+	dir: function( elem, dir, until ) {
+		var matched = [],
+			truncate = until !== undefined;
+
+		while ( (elem = elem[ dir ]) && elem.nodeType !== 9 ) {
+			if ( elem.nodeType === 1 ) {
+				if ( truncate && jQuery( elem ).is( until ) ) {
+					break;
+				}
+				matched.push( elem );
+			}
+		}
+		return matched;
+	},
+
+	sibling: function( n, elem ) {
+		var matched = [];
+
+		for ( ; n; n = n.nextSibling ) {
+			if ( n.nodeType === 1 && n !== elem ) {
+				matched.push( n );
+			}
+		}
+
+		return matched;
+	}
+});
+
+// Implement the identical functionality for filter and not
+function winnow( elements, qualifier, not ) {
+	if ( jQuery.isFunction( qualifier ) ) {
+		return jQuery.grep( elements, function( elem, i ) {
+			/* jshint -W018 */
+			return !!qualifier.call( elem, i, elem ) !== not;
+		});
+
+	}
+
+	if ( qualifier.nodeType ) {
+		return jQuery.grep( elements, function( elem ) {
+			return ( elem === qualifier ) !== not;
+		});
+
+	}
+
+	if ( typeof qualifier === "string" ) {
+		if ( isSimple.test( qualifier ) ) {
+			return jQuery.filter( qualifier, elements, not );
+		}
+
+		qualifier = jQuery.filter( qualifier, elements );
+	}
+
+	return jQuery.grep( elements, function( elem ) {
+		return ( core_indexOf.call( qualifier, elem ) >= 0 ) !== not;
+	});
+}
+var rxhtmlTag = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([\w:]+)[^>]*)\/>/gi,
+	rtagName = /<([\w:]+)/,
+	rhtml = /<|&#?\w+;/,
+	rnoInnerhtml = /<(?:script|style|link)/i,
+	manipulation_rcheckableType = /^(?:checkbox|radio)$/i,
+	// checked="checked" or checked
+	rchecked = /checked\s*(?:[^=]|=\s*.checked.)/i,
+	rscriptType = /^$|\/(?:java|ecma)script/i,
+	rscriptTypeMasked = /^true\/(.*)/,
+	rcleanScript = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g,
+
+	// We have to close these tags to support XHTML (#13200)
+	wrapMap = {
+
+		// Support: IE 9
+		option: [ 1, "<select multiple='multiple'>", "</select>" ],
+
+		thead: [ 1, "<table>", "</table>" ],
+		col: [ 2, "<table><colgroup>", "</colgroup></table>" ],
+		tr: [ 2, "<table><tbody>", "</tbody></table>" ],
+		td: [ 3, "<table><tbody><tr>", "</tr></tbody></table>" ],
+
+		_default: [ 0, "", "" ]
+	};
+
+// Support: IE 9
+wrapMap.optgroup = wrapMap.option;
+
+wrapMap.tbody = wrapMap.tfoot = wrapMap.colgroup = wrapMap.caption = wrapMap.thead;
+wrapMap.th = wrapMap.td;
+
+jQuery.fn.extend({
+	text: function( value ) {
+		return jQuery.access( this, function( value ) {
+			return value === undefined ?
+				jQuery.text( this ) :
+				this.empty().append( ( this[ 0 ] && this[ 0 ].ownerDocument || document ).createTextNode( value ) );
+		}, null, value, arguments.length );
+	},
+
+	append: function() {
+		return this.domManip( arguments, function( elem ) {
+			if ( this.nodeType === 1 || this.nodeType === 11 || this.nodeType === 9 ) {
+				var target = manipulationTarget( this, elem );
+				target.appendChild( elem );
+			}
+		});
+	},
+
+	prepend: function() {
+		return this.domManip( arguments, function( elem ) {
+			if ( this.nodeType === 1 || this.nodeType === 11 || this.nodeType === 9 ) {
+				var target = manipulationTarget( this, elem );
+				target.insertBefore( elem, target.firstChild );
+			}
+		});
+	},
+
+	before: function() {
+		return this.domManip( arguments, function( elem ) {
+			if ( this.parentNode ) {
+				this.parentNode.insertBefore( elem, this );
+			}
+		});
+	},
+
+	after: function() {
+		return this.domManip( arguments, function( elem ) {
+			if ( this.parentNode ) {
+				this.parentNode.insertBefore( elem, this.nextSibling );
+			}
+		});
+	},
+
+	// keepData is for internal use only--do not document
+	remove: function( selector, keepData ) {
+		var elem,
+			elems = selector ? jQuery.filter( selector, this ) : this,
+			i = 0;
+
+		for ( ; (elem = elems[i]) != null; i++ ) {
+			if ( !keepData && elem.nodeType === 1 ) {
+				jQuery.cleanData( getAll( elem ) );
+			}
+
+			if ( elem.parentNode ) {
+				if ( keepData && jQuery.contains( elem.ownerDocument, elem ) ) {
+					setGlobalEval( getAll( elem, "script" ) );
+				}
+				elem.parentNode.removeChild( elem );
+			}
+		}
+
+		return this;
+	},
+
+	empty: function() {
+		var elem,
+			i = 0;
+
+		for ( ; (elem = this[i]) != null; i++ ) {
+			if ( elem.nodeType === 1 ) {
+
+				// Prevent memory leaks
+				jQuery.cleanData( getAll( elem, false ) );
+
+				// Remove any remaining nodes
+				elem.textContent = "";
+			}
+		}
+
+		return this;
+	},
+
+	clone: function( dataAndEvents, deepDataAndEvents ) {
+		dataAndEvents = dataAndEvents == null ? false : dataAndEvents;
+		deepDataAndEvents = deepDataAndEvents == null ? dataAndEvents : deepDataAndEvents;
+
+		return this.map( function () {
+			return jQuery.clone( this, dataAndEvents, deepDataAndEvents );
+		});
+	},
+
+	html: function( value ) {
+		return jQuery.access( this, function( value ) {
+			var elem = this[ 0 ] || {},
+				i = 0,
+				l = this.length;
+
+			if ( value === undefined && elem.nodeType === 1 ) {
+				return elem.innerHTML;
+			}
+
+			// See if we can take a shortcut and just use innerHTML
+			if ( typeof value === "string" && !rnoInnerhtml.test( value ) &&
+				!wrapMap[ ( rtagName.exec( value ) || [ "", "" ] )[ 1 ].toLowerCase() ] ) {
+
+				value = value.replace( rxhtmlTag, "<$1></$2>" );
+
+				try {
+					for ( ; i < l; i++ ) {
+						elem = this[ i ] || {};
+
+						// Remove element nodes and prevent memory leaks
+						if ( elem.nodeType === 1 ) {
+							jQuery.cleanData( getAll( elem, false ) );
+							elem.innerHTML = value;
+						}
+					}
+
+					elem = 0;
+
+				// If using innerHTML throws an exception, use the fallback method
+				} catch( e ) {}
+			}
+
+			if ( elem ) {
+				this.empty().append( value );
+			}
+		}, null, value, arguments.length );
+	},
+
+	replaceWith: function() {
+		var
+			// Snapshot the DOM in case .domManip sweeps something relevant into its fragment
+			args = jQuery.map( this, function( elem ) {
+				return [ elem.nextSibling, elem.parentNode ];
+			}),
+			i = 0;
+
+		// Make the changes, replacing each context element with the new content
+		this.domManip( arguments, function( elem ) {
+			var next = args[ i++ ],
+				parent = args[ i++ ];
+
+			if ( parent ) {
+				// Don't use the snapshot next if it has moved (#13810)
+				if ( next && next.parentNode !== parent ) {
+					next = this.nextSibling;
+				}
+				jQuery( this ).remove();
+				parent.insertBefore( elem, next );
+			}
+		// Allow new content to include elements from the context set
+		}, true );
+
+		// Force removal if there was no new content (e.g., from empty arguments)
+		return i ? this : this.remove();
+	},
+
+	detach: function( selector ) {
+		return this.remove( selector, true );
+	},
+
+	domManip: function( args, callback, allowIntersection ) {
+
+		// Flatten any nested arrays
+		args = core_concat.apply( [], args );
+
+		var fragment, first, scripts, hasScripts, node, doc,
+			i = 0,
+			l = this.length,
+			set = this,
+			iNoClone = l - 1,
+			value = args[ 0 ],
+			isFunction = jQuery.isFunction( value );
+
+		// We can't cloneNode fragments that contain checked, in WebKit
+		if ( isFunction || !( l <= 1 || typeof value !== "string" || jQuery.support.checkClone || !rchecked.test( value ) ) ) {
+			return this.each(function( index ) {
+				var self = set.eq( index );
+				if ( isFunction ) {
+					args[ 0 ] = value.call( this, index, self.html() );
+				}
+				self.domManip( args, callback, allowIntersection );
+			});
+		}
+
+		if ( l ) {
+			fragment = jQuery.buildFragment( args, this[ 0 ].ownerDocument, false, !allowIntersection && this );
+			first = fragment.firstChild;
+
+			if ( fragment.childNodes.length === 1 ) {
+				fragment = first;
+			}
+
+			if ( first ) {
+				scripts = jQuery.map( getAll( fragment, "script" ), disableScript );
+				hasScripts = scripts.length;
+
+				// Use the original fragment for the last item instead of the first because it can end up
+				// being emptied incorrectly in certain situations (#8070).
+				for ( ; i < l; i++ ) {
+					node = fragment;
+
+					if ( i !== iNoClone ) {
+						node = jQuery.clone( node, true, true );
+
+						// Keep references to cloned scripts for later restoration
+						if ( hasScripts ) {
+							// Support: QtWebKit
+							// jQuery.merge because core_push.apply(_, arraylike) throws
+							jQuery.merge( scripts, getAll( node, "script" ) );
+						}
+					}
+
+					callback.call( this[ i ], node, i );
+				}
+
+				if ( hasScripts ) {
+					doc = scripts[ scripts.length - 1 ].ownerDocument;
+
+					// Reenable scripts
+					jQuery.map( scripts, restoreScript );
+
+					// Evaluate executable scripts on first document insertion
+					for ( i = 0; i < hasScripts; i++ ) {
+						node = scripts[ i ];
+						if ( rscriptType.test( node.type || "" ) &&
+							!data_priv.access( node, "globalEval" ) && jQuery.contains( doc, node ) ) {
+
+							if ( node.src ) {
+								// Hope ajax is available...
+								jQuery._evalUrl( node.src );
+							} else {
+								jQuery.globalEval( node.textContent.replace( rcleanScript, "" ) );
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return this;
+	}
+});
+
+jQuery.each({
+	appendTo: "append",
+	prependTo: "prepend",
+	insertBefore: "before",
+	insertAfter: "after",
+	replaceAll: "replaceWith"
+}, function( name, original ) {
+	jQuery.fn[ name ] = function( selector ) {
+		var elems,
+			ret = [],
+			insert = jQuery( selector ),
+			last = insert.length - 1,
+			i = 0;
+
+		for ( ; i <= last; i++ ) {
+			elems = i === last ? this : this.clone( true );
+			jQuery( insert[ i ] )[ original ]( elems );
+
+			// Support: QtWebKit
+			// .get() because core_push.apply(_, arraylike) throws
+			core_push.apply( ret, elems.get() );
+		}
+
+		return this.pushStack( ret );
+	};
+});
+
+jQuery.extend({
+	clone: function( elem, dataAndEvents, deepDataAndEvents ) {
+		var i, l, srcElements, destElements,
+			clone = elem.cloneNode( true ),
+			inPage = jQuery.contains( elem.ownerDocument, elem );
+
+		// Support: IE >= 9
+		// Fix Cloning issues
+		if ( !jQuery.support.noCloneChecked && ( elem.nodeType === 1 || elem.nodeType === 11 ) && !jQuery.isXMLDoc( elem ) ) {
+
+			// We eschew Sizzle here for performance reasons: http://jsperf.com/getall-vs-sizzle/2
+			destElements = getAll( clone );
+			srcElements = getAll( elem );
+
+			for ( i = 0, l = srcElements.length; i < l; i++ ) {
+				fixInput( srcElements[ i ], destElements[ i ] );
+			}
+		}
+
+		// Copy the events from the original to the clone
+		if ( dataAndEvents ) {
+			if ( deepDataAndEvents ) {
+				srcElements = srcElements || getAll( elem );
+				destElements = destElements || getAll( clone );
+
+				for ( i = 0, l = srcElements.length; i < l; i++ ) {
+					cloneCopyEvent( srcElements[ i ], destElements[ i ] );
+				}
+			} else {
+				cloneCopyEvent( elem, clone );
+			}
+		}
+
+		// Preserve script evaluation history
+		destElements = getAll( clone, "script" );
+		if ( destElements.length > 0 ) {
+			setGlobalEval( destElements, !inPage && getAll( elem, "script" ) );
+		}
+
+		// Return the cloned set
+		return clone;
+	},
+
+	buildFragment: function( elems, context, scripts, selection ) {
+		var elem, tmp, tag, wrap, contains, j,
+			i = 0,
+			l = elems.length,
+			fragment = context.createDocumentFragment(),
+			nodes = [];
+
+		for ( ; i < l; i++ ) {
+			elem = elems[ i ];
+
+			if ( elem || elem === 0 ) {
+
+				// Add nodes directly
+				if ( jQuery.type( elem ) === "object" ) {
+					// Support: QtWebKit
+					// jQuery.merge because core_push.apply(_, arraylike) throws
+					jQuery.merge( nodes, elem.nodeType ? [ elem ] : elem );
+
+				// Convert non-html into a text node
+				} else if ( !rhtml.test( elem ) ) {
+					nodes.push( context.createTextNode( elem ) );
+
+				// Convert html into DOM nodes
+				} else {
+					tmp = tmp || fragment.appendChild( context.createElement("div") );
+
+					// Deserialize a standard representation
+					tag = ( rtagName.exec( elem ) || ["", ""] )[ 1 ].toLowerCase();
+					wrap = wrapMap[ tag ] || wrapMap._default;
+					tmp.innerHTML = wrap[ 1 ] + elem.replace( rxhtmlTag, "<$1></$2>" ) + wrap[ 2 ];
+
+					// Descend through wrappers to the right content
+					j = wrap[ 0 ];
+					while ( j-- ) {
+						tmp = tmp.lastChild;
+					}
+
+					// Support: QtWebKit
+					// jQuery.merge because core_push.apply(_, arraylike) throws
+					jQuery.merge( nodes, tmp.childNodes );
+
+					// Remember the top-level container
+					tmp = fragment.firstChild;
+
+					// Fixes #12346
+					// Support: Webkit, IE
+					tmp.textContent = "";
+				}
+			}
+		}
+
+		// Remove wrapper from fragment
+		fragment.textContent = "";
+
+		i = 0;
+		while ( (elem = nodes[ i++ ]) ) {
+
+			// #4087 - If origin and destination elements are the same, and this is
+			// that element, do not do anything
+			if ( selection && jQuery.inArray( elem, selection ) !== -1 ) {
+				continue;
+			}
+
+			contains = jQuery.contains( elem.ownerDocument, elem );
+
+			// Append to fragment
+			tmp = getAll( fragment.appendChild( elem ), "script" );
+
+			// Preserve script evaluation history
+			if ( contains ) {
+				setGlobalEval( tmp );
+			}
+
+			// Capture executables
+			if ( scripts ) {
+				j = 0;
+				while ( (elem = tmp[ j++ ]) ) {
+					if ( rscriptType.test( elem.type || "" ) ) {
+						scripts.push( elem );
+					}
+				}
+			}
+		}
+
+		return fragment;
+	},
+
+	cleanData: function( elems ) {
+		var data, elem, events, type, key, j,
+			special = jQuery.event.special,
+			i = 0;
+
+		for ( ; (elem = elems[ i ]) !== undefined; i++ ) {
+			if ( Data.accepts( elem ) ) {
+				key = elem[ data_priv.expando ];
+
+				if ( key && (data = data_priv.cache[ key ]) ) {
+					events = Object.keys( data.events || {} );
+					if ( events.length ) {
+						for ( j = 0; (type = events[j]) !== undefined; j++ ) {
+							if ( special[ type ] ) {
+								jQuery.event.remove( elem, type );
+
+							// This is a shortcut to avoid jQuery.event.remove's overhead
+							} else {
+								jQuery.removeEvent( elem, type, data.handle );
+							}
+						}
+					}
+					if ( data_priv.cache[ key ] ) {
+						// Discard any remaining `private` data
+						delete data_priv.cache[ key ];
+					}
+				}
+			}
+			// Discard any remaining `user` data
+			delete data_user.cache[ elem[ data_user.expando ] ];
+		}
+	},
+
+	_evalUrl: function( url ) {
+		return jQuery.ajax({
+			url: url,
+			type: "GET",
+			dataType: "script",
+			async: false,
+			global: false,
+			"throws": true
+		});
+	}
+});
+
+// Support: 1.x compatibility
+// Manipulating tables requires a tbody
+function manipulationTarget( elem, content ) {
+	return jQuery.nodeName( elem, "table" ) &&
+		jQuery.nodeName( content.nodeType === 1 ? content : content.firstChild, "tr" ) ?
+
+		elem.getElementsByTagName("tbody")[0] ||
+			elem.appendChild( elem.ownerDocument.createElement("tbody") ) :
+		elem;
+}
+
+// Replace/restore the type attribute of script elements for safe DOM manipulation
+function disableScript( elem ) {
+	elem.type = (elem.getAttribute("type") !== null) + "/" + elem.type;
+	return elem;
+}
+function restoreScript( elem ) {
+	var match = rscriptTypeMasked.exec( elem.type );
+
+	if ( match ) {
+		elem.type = match[ 1 ];
+	} else {
+		elem.removeAttribute("type");
+	}
+
+	return elem;
+}
+
+// Mark scripts as having already been evaluated
+function setGlobalEval( elems, refElements ) {
+	var l = elems.length,
+		i = 0;
+
+	for ( ; i < l; i++ ) {
+		data_priv.set(
+			elems[ i ], "globalEval", !refElements || data_priv.get( refElements[ i ], "globalEval" )
+		);
+	}
+}
+
+function cloneCopyEvent( src, dest ) {
+	var i, l, type, pdataOld, pdataCur, udataOld, udataCur, events;
+
+	if ( dest.nodeType !== 1 ) {
+		return;
+	}
+
+	// 1. Copy private data: events, handlers, etc.
+	if ( data_priv.hasData( src ) ) {
+		pdataOld = data_priv.access( src );
+		pdataCur = data_priv.set( dest, pdataOld );
+		events = pdataOld.events;
+
+		if ( events ) {
+			delete pdataCur.handle;
+			pdataCur.events = {};
+
+			for ( type in events ) {
+				for ( i = 0, l = events[ type ].length; i < l; i++ ) {
+					jQuery.event.add( dest, type, events[ type ][ i ] );
+				}
+			}
+		}
+	}
+
+	// 2. Copy user data
+	if ( data_user.hasData( src ) ) {
+		udataOld = data_user.access( src );
+		udataCur = jQuery.extend( {}, udataOld );
+
+		data_user.set( dest, udataCur );
+	}
+}
+
+
+function getAll( context, tag ) {
+	var ret = context.getElementsByTagName ? context.getElementsByTagName( tag || "*" ) :
+			context.querySelectorAll ? context.querySelectorAll( tag || "*" ) :
+			[];
+
+	return tag === undefined || tag && jQuery.nodeName( context, tag ) ?
+		jQuery.merge( [ context ], ret ) :
+		ret;
+}
+
+// Support: IE >= 9
+function fixInput( src, dest ) {
+	var nodeName = dest.nodeName.toLowerCase();
+
+	// Fails to persist the checked state of a cloned checkbox or radio button.
+	if ( nodeName === "input" && manipulation_rcheckableType.test( src.type ) ) {
+		dest.checked = src.checked;
+
+	// Fails to return the selected option to the default selected state when cloning options
+	} else if ( nodeName === "input" || nodeName === "textarea" ) {
+		dest.defaultValue = src.defaultValue;
+	}
+}
+jQuery.fn.extend({
+	wrapAll: function( html ) {
+		var wrap;
+
+		if ( jQuery.isFunction( html ) ) {
+			return this.each(function( i ) {
+				jQuery( this ).wrapAll( html.call(this, i) );
+			});
+		}
+
+		if ( this[ 0 ] ) {
+
+			// The elements to wrap the target around
+			wrap = jQuery( html, this[ 0 ].ownerDocument ).eq( 0 ).clone( true );
+
+			if ( this[ 0 ].parentNode ) {
+				wrap.insertBefore( this[ 0 ] );
+			}
+
+			wrap.map(function() {
+				var elem = this;
+
+				while ( elem.firstElementChild ) {
+					elem = elem.firstElementChild;
+				}
+
+				return elem;
+			}).append( this );
+		}
+
+		return this;
+	},
+
+	wrapInner: function( html ) {
+		if ( jQuery.isFunction( html ) ) {
+			return this.each(function( i ) {
+				jQuery( this ).wrapInner( html.call(this, i) );
+			});
+		}
+
+		return this.each(function() {
+			var self = jQuery( this ),
+				contents = self.contents();
+
+			if ( contents.length ) {
+				contents.wrapAll( html );
+
+			} else {
+				self.append( html );
+			}
+		});
+	},
+
+	wrap: function( html ) {
+		var isFunction = jQuery.isFunction( html );
+
+		return this.each(function( i ) {
+			jQuery( this ).wrapAll( isFunction ? html.call(this, i) : html );
+		});
+	},
+
+	unwrap: function() {
+		return this.parent().each(function() {
+			if ( !jQuery.nodeName( this, "body" ) ) {
+				jQuery( this ).replaceWith( this.childNodes );
+			}
+		}).end();
+	}
+});
+var curCSS, iframe,
+	// swappable if display is none or starts with table except "table", "table-cell", or "table-caption"
+	// see here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
+	rdisplayswap = /^(none|table(?!-c[ea]).+)/,
+	rmargin = /^margin/,
+	rnumsplit = new RegExp( "^(" + core_pnum + ")(.*)$", "i" ),
+	rnumnonpx = new RegExp( "^(" + core_pnum + ")(?!px)[a-z%]+$", "i" ),
+	rrelNum = new RegExp( "^([+-])=(" + core_pnum + ")", "i" ),
+	elemdisplay = { BODY: "block" },
+
+	cssShow = { position: "absolute", visibility: "hidden", display: "block" },
+	cssNormalTransform = {
+		letterSpacing: 0,
+		fontWeight: 400
+	},
+
+	cssExpand = [ "Top", "Right", "Bottom", "Left" ],
+	cssPrefixes = [ "Webkit", "O", "Moz", "ms" ];
+
+// return a css property mapped to a potentially vendor prefixed property
+function vendorPropName( style, name ) {
+
+	// shortcut for names that are not vendor prefixed
+	if ( name in style ) {
+		return name;
+	}
+
+	// check for vendor prefixed names
+	var capName = name.charAt(0).toUpperCase() + name.slice(1),
+		origName = name,
+		i = cssPrefixes.length;
+
+	while ( i-- ) {
+		name = cssPrefixes[ i ] + capName;
+		if ( name in style ) {
+			return name;
+		}
+	}
+
+	return origName;
+}
+
+function isHidden( elem, el ) {
+	// isHidden might be called from jQuery#filter function;
+	// in that case, element will be second argument
+	elem = el || elem;
+	return jQuery.css( elem, "display" ) === "none" || !jQuery.contains( elem.ownerDocument, elem );
+}
+
+// NOTE: we've included the "window" in window.getComputedStyle
+// because jsdom on node.js will break without it.
+function getStyles( elem ) {
+	return window.getComputedStyle( elem, null );
+}
+
+function showHide( elements, show ) {
+	var display, elem, hidden,
+		values = [],
+		index = 0,
+		length = elements.length;
+
+	for ( ; index < length; index++ ) {
+		elem = elements[ index ];
+		if ( !elem.style ) {
+			continue;
+		}
+
+		values[ index ] = data_priv.get( elem, "olddisplay" );
+		display = elem.style.display;
+		if ( show ) {
+			// Reset the inline display of this element to learn if it is
+			// being hidden by cascaded rules or not
+			if ( !values[ index ] && display === "none" ) {
+				elem.style.display = "";
+			}
+
+			// Set elements which have been overridden with display: none
+			// in a stylesheet to whatever the default browser style is
+			// for such an element
+			if ( elem.style.display === "" && isHidden( elem ) ) {
+				values[ index ] = data_priv.access( elem, "olddisplay", css_defaultDisplay(elem.nodeName) );
+			}
+		} else {
+
+			if ( !values[ index ] ) {
+				hidden = isHidden( elem );
+
+				if ( display && display !== "none" || !hidden ) {
+					data_priv.set( elem, "olddisplay", hidden ? display : jQuery.css(elem, "display") );
+				}
+			}
+		}
+	}
+
+	// Set the display of most of the elements in a second loop
+	// to avoid the constant reflow
+	for ( index = 0; index < length; index++ ) {
+		elem = elements[ index ];
+		if ( !elem.style ) {
+			continue;
+		}
+		if ( !show || elem.style.display === "none" || elem.style.display === "" ) {
+			elem.style.display = show ? values[ index ] || "" : "none";
+		}
+	}
+
+	return elements;
+}
+
+jQuery.fn.extend({
+	css: function( name, value ) {
+		return jQuery.access( this, function( elem, name, value ) {
+			var styles, len,
+				map = {},
+				i = 0;
+
+			if ( jQuery.isArray( name ) ) {
+				styles = getStyles( elem );
+				len = name.length;
+
+				for ( ; i < len; i++ ) {
+					map[ name[ i ] ] = jQuery.css( elem, name[ i ], false, styles );
+				}
+
+				return map;
+			}
+
+			return value !== undefined ?
+				jQuery.style( elem, name, value ) :
+				jQuery.css( elem, name );
+		}, name, value, arguments.length > 1 );
+	},
+	show: function() {
+		return showHide( this, true );
+	},
+	hide: function() {
+		return showHide( this );
+	},
+	toggle: function( state ) {
+		if ( typeof state === "boolean" ) {
+			return state ? this.show() : this.hide();
+		}
+
+		return this.each(function() {
+			if ( isHidden( this ) ) {
+				jQuery( this ).show();
+			} else {
+				jQuery( this ).hide();
+			}
+		});
+	}
+});
+
+jQuery.extend({
+	// Add in style property hooks for overriding the default
+	// behavior of getting and setting a style property
+	cssHooks: {
+		opacity: {
+			get: function( elem, computed ) {
+				if ( computed ) {
+					// We should always get a number back from opacity
+					var ret = curCSS( elem, "opacity" );
+					return ret === "" ? "1" : ret;
+				}
+			}
+		}
+	},
+
+	// Don't automatically add "px" to these possibly-unitless properties
+	cssNumber: {
+		"columnCount": true,
+		"fillOpacity": true,
+		"fontWeight": true,
+		"lineHeight": true,
+		"opacity": true,
+		"order": true,
+		"orphans": true,
+		"widows": true,
+		"zIndex": true,
+		"zoom": true
+	},
+
+	// Add in properties whose names you wish to fix before
+	// setting or getting the value
+	cssProps: {
+		// normalize float css property
+		"float": "cssFloat"
+	},
+
+	// Get and set the style property on a DOM Node
+	style: function( elem, name, value, extra ) {
+		// Don't set styles on text and comment nodes
+		if ( !elem || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style ) {
+			return;
+		}
+
+		// Make sure that we're working with the right name
+		var ret, type, hooks,
+			origName = jQuery.camelCase( name ),
+			style = elem.style;
+
+		name = jQuery.cssProps[ origName ] || ( jQuery.cssProps[ origName ] = vendorPropName( style, origName ) );
+
+		// gets hook for the prefixed version
+		// followed by the unprefixed version
+		hooks = jQuery.cssHooks[ name ] || jQuery.cssHooks[ origName ];
+
+		// Check if we're setting a value
+		if ( value !== undefined ) {
+			type = typeof value;
+
+			// convert relative number strings (+= or -=) to relative numbers. #7345
+			if ( type === "string" && (ret = rrelNum.exec( value )) ) {
+				value = ( ret[1] + 1 ) * ret[2] + parseFloat( jQuery.css( elem, name ) );
+				// Fixes bug #9237
+				type = "number";
+			}
+
+			// Make sure that NaN and null values aren't set. See: #7116
+			if ( value == null || type === "number" && isNaN( value ) ) {
+				return;
+			}
+
+			// If a number was passed in, add 'px' to the (except for certain CSS properties)
+			if ( type === "number" && !jQuery.cssNumber[ origName ] ) {
+				value += "px";
+			}
+
+			// Fixes #8908, it can be done more correctly by specifying setters in cssHooks,
+			// but it would mean to define eight (for every problematic property) identical functions
+			if ( !jQuery.support.clearCloneStyle && value === "" && name.indexOf("background") === 0 ) {
+				style[ name ] = "inherit";
+			}
+
+			// If a hook was provided, use that value, otherwise just set the specified value
+			if ( !hooks || !("set" in hooks) || (value = hooks.set( elem, value, extra )) !== undefined ) {
+				style[ name ] = value;
+			}
+
+		} else {
+			// If a hook was provided get the non-computed value from there
+			if ( hooks && "get" in hooks && (ret = hooks.get( elem, false, extra )) !== undefined ) {
+				return ret;
+			}
+
+			// Otherwise just get the value from the style object
+			return style[ name ];
+		}
+	},
+
+	css: function( elem, name, extra, styles ) {
+		var val, num, hooks,
+			origName = jQuery.camelCase( name );
+
+		// Make sure that we're working with the right name
+		name = jQuery.cssProps[ origName ] || ( jQuery.cssProps[ origName ] = vendorPropName( elem.style, origName ) );
+
+		// gets hook for the prefixed version
+		// followed by the unprefixed version
+		hooks = jQuery.cssHooks[ name ] || jQuery.cssHooks[ origName ];
+
+		// If a hook was provided get the computed value from there
+		if ( hooks && "get" in hooks ) {
+			val = hooks.get( elem, true, extra );
+		}
+
+		// Otherwise, if a way to get the computed value exists, use that
+		if ( val === undefined ) {
+			val = curCSS( elem, name, styles );
+		}
+
+		//convert "normal" to computed value
+		if ( val === "normal" && name in cssNormalTransform ) {
+			val = cssNormalTransform[ name ];
+		}
+
+		// Return, converting to number if forced or a qualifier was provided and val looks numeric
+		if ( extra === "" || extra ) {
+			num = parseFloat( val );
+			return extra === true || jQuery.isNumeric( num ) ? num || 0 : val;
+		}
+		return val;
+	}
+});
+
+curCSS = function( elem, name, _computed ) {
+	var width, minWidth, maxWidth,
+		computed = _computed || getStyles( elem ),
+
+		// Support: IE9
+		// getPropertyValue is only needed for .css('filter') in IE9, see #12537
+		ret = computed ? computed.getPropertyValue( name ) || computed[ name ] : undefined,
+		style = elem.style;
+
+	if ( computed ) {
+
+		if ( ret === "" && !jQuery.contains( elem.ownerDocument, elem ) ) {
+			ret = jQuery.style( elem, name );
+		}
+
+		// Support: Safari 5.1
+		// A tribute to the "awesome hack by Dean Edwards"
+		// Safari 5.1.7 (at least) returns percentage for a larger set of values, but width seems to be reliably pixels
+		// this is against the CSSOM draft spec: http://dev.w3.org/csswg/cssom/#resolved-values
+		if ( rnumnonpx.test( ret ) && rmargin.test( name ) ) {
+
+			// Remember the original values
+			width = style.width;
+			minWidth = style.minWidth;
+			maxWidth = style.maxWidth;
+
+			// Put in the new values to get a computed value out
+			style.minWidth = style.maxWidth = style.width = ret;
+			ret = computed.width;
+
+			// Revert the changed values
+			style.width = width;
+			style.minWidth = minWidth;
+			style.maxWidth = maxWidth;
+		}
+	}
+
+	return ret;
+};
+
+
+function setPositiveNumber( elem, value, subtract ) {
+	var matches = rnumsplit.exec( value );
+	return matches ?
+		// Guard against undefined "subtract", e.g., when used as in cssHooks
+		Math.max( 0, matches[ 1 ] - ( subtract || 0 ) ) + ( matches[ 2 ] || "px" ) :
+		value;
+}
+
+function augmentWidthOrHeight( elem, name, extra, isBorderBox, styles ) {
+	var i = extra === ( isBorderBox ? "border" : "content" ) ?
+		// If we already have the right measurement, avoid augmentation
+		4 :
+		// Otherwise initialize for horizontal or vertical properties
+		name === "width" ? 1 : 0,
+
+		val = 0;
+
+	for ( ; i < 4; i += 2 ) {
+		// both box models exclude margin, so add it if we want it
+		if ( extra === "margin" ) {
+			val += jQuery.css( elem, extra + cssExpand[ i ], true, styles );
+		}
+
+		if ( isBorderBox ) {
+			// border-box includes padding, so remove it if we want content
+			if ( extra === "content" ) {
+				val -= jQuery.css( elem, "padding" + cssExpand[ i ], true, styles );
+			}
+
+			// at this point, extra isn't border nor margin, so remove border
+			if ( extra !== "margin" ) {
+				val -= jQuery.css( elem, "border" + cssExpand[ i ] + "Width", true, styles );
+			}
+		} else {
+			// at this point, extra isn't content, so add padding
+			val += jQuery.css( elem, "padding" + cssExpand[ i ], true, styles );
+
+			// at this point, extra isn't content nor padding, so add border
+			if ( extra !== "padding" ) {
+				val += jQuery.css( elem, "border" + cssExpand[ i ] + "Width", true, styles );
+			}
+		}
+	}
+
+	return val;
+}
+
+function getWidthOrHeight( elem, name, extra ) {
+
+	// Start with offset property, which is equivalent to the border-box value
+	var valueIsBorderBox = true,
+		val = name === "width" ? elem.offsetWidth : elem.offsetHeight,
+		styles = getStyles( elem ),
+		isBorderBox = jQuery.support.boxSizing && jQuery.css( elem, "boxSizing", false, styles ) === "border-box";
+
+	// some non-html elements return undefined for offsetWidth, so check for null/undefined
+	// svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
+	// MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
+	if ( val <= 0 || val == null ) {
+		// Fall back to computed then uncomputed css if necessary
+		val = curCSS( elem, name, styles );
+		if ( val < 0 || val == null ) {
+			val = elem.style[ name ];
+		}
+
+		// Computed unit is not pixels. Stop here and return.
+		if ( rnumnonpx.test(val) ) {
+			return val;
+		}
+
+		// we need the check for style in case a browser which returns unreliable values
+		// for getComputedStyle silently falls back to the reliable elem.style
+		valueIsBorderBox = isBorderBox && ( jQuery.support.boxSizingReliable || val === elem.style[ name ] );
+
+		// Normalize "", auto, and prepare for extra
+		val = parseFloat( val ) || 0;
+	}
+
+	// use the active box-sizing model to add/subtract irrelevant styles
+	return ( val +
+		augmentWidthOrHeight(
+			elem,
+			name,
+			extra || ( isBorderBox ? "border" : "content" ),
+			valueIsBorderBox,
+			styles
+		)
+	) + "px";
+}
+
+// Try to determine the default display value of an element
+function css_defaultDisplay( nodeName ) {
+	var doc = document,
+		display = elemdisplay[ nodeName ];
+
+	if ( !display ) {
+		display = actualDisplay( nodeName, doc );
+
+		// If the simple way fails, read from inside an iframe
+		if ( display === "none" || !display ) {
+			// Use the already-created iframe if possible
+			iframe = ( iframe ||
+				jQuery("<iframe frameborder='0' width='0' height='0'/>")
+				.css( "cssText", "display:block !important" )
+			).appendTo( doc.documentElement );
+
+			// Always write a new HTML skeleton so Webkit and Firefox don't choke on reuse
+			doc = ( iframe[0].contentWindow || iframe[0].contentDocument ).document;
+			doc.write("<!doctype html><html><body>");
+			doc.close();
+
+			display = actualDisplay( nodeName, doc );
+			iframe.detach();
+		}
+
+		// Store the correct default display
+		elemdisplay[ nodeName ] = display;
+	}
+
+	return display;
+}
+
+// Called ONLY from within css_defaultDisplay
+function actualDisplay( name, doc ) {
+	var elem = jQuery( doc.createElement( name ) ).appendTo( doc.body ),
+		display = jQuery.css( elem[0], "display" );
+	elem.remove();
+	return display;
+}
+
+jQuery.each([ "height", "width" ], function( i, name ) {
+	jQuery.cssHooks[ name ] = {
+		get: function( elem, computed, extra ) {
+			if ( computed ) {
+				// certain elements can have dimension info if we invisibly show them
+				// however, it must have a current display style that would benefit from this
+				return elem.offsetWidth === 0 && rdisplayswap.test( jQuery.css( elem, "display" ) ) ?
+					jQuery.swap( elem, cssShow, function() {
+						return getWidthOrHeight( elem, name, extra );
+					}) :
+					getWidthOrHeight( elem, name, extra );
+			}
+		},
+
+		set: function( elem, value, extra ) {
+			var styles = extra && getStyles( elem );
+			return setPositiveNumber( elem, value, extra ?
+				augmentWidthOrHeight(
+					elem,
+					name,
+					extra,
+					jQuery.support.boxSizing && jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
+					styles
+				) : 0
+			);
+		}
+	};
+});
+
+// These hooks cannot be added until DOM ready because the support test
+// for it is not run until after DOM ready
+jQuery(function() {
+	// Support: Android 2.3
+	if ( !jQuery.support.reliableMarginRight ) {
+		jQuery.cssHooks.marginRight = {
+			get: function( elem, computed ) {
+				if ( computed ) {
+					// Support: Android 2.3
+					// WebKit Bug 13343 - getComputedStyle returns wrong value for margin-right
+					// Work around by temporarily setting element display to inline-block
+					return jQuery.swap( elem, { "display": "inline-block" },
+						curCSS, [ elem, "marginRight" ] );
+				}
+			}
+		};
+	}
+
+	// Webkit bug: https://bugs.webkit.org/show_bug.cgi?id=29084
+	// getComputedStyle returns percent when specified for top/left/bottom/right
+	// rather than make the css module depend on the offset module, we just check for it here
+	if ( !jQuery.support.pixelPosition && jQuery.fn.position ) {
+		jQuery.each( [ "top", "left" ], function( i, prop ) {
+			jQuery.cssHooks[ prop ] = {
+				get: function( elem, computed ) {
+					if ( computed ) {
+						computed = curCSS( elem, prop );
+						// if curCSS returns percentage, fallback to offset
+						return rnumnonpx.test( computed ) ?
+							jQuery( elem ).position()[ prop ] + "px" :
+							computed;
+					}
+				}
+			};
+		});
+	}
+
+});
+
+if ( jQuery.expr && jQuery.expr.filters ) {
+	jQuery.expr.filters.hidden = function( elem ) {
+		// Support: Opera <= 12.12
+		// Opera reports offsetWidths and offsetHeights less than zero on some elements
+		return elem.offsetWidth <= 0 && elem.offsetHeight <= 0;
+	};
+
+	jQuery.expr.filters.visible = function( elem ) {
+		return !jQuery.expr.filters.hidden( elem );
+	};
+}
+
+// These hooks are used by animate to expand properties
+jQuery.each({
+	margin: "",
+	padding: "",
+	border: "Width"
+}, function( prefix, suffix ) {
+	jQuery.cssHooks[ prefix + suffix ] = {
+		expand: function( value ) {
+			var i = 0,
+				expanded = {},
+
+				// assumes a single number if not a string
+				parts = typeof value === "string" ? value.split(" ") : [ value ];
+
+			for ( ; i < 4; i++ ) {
+				expanded[ prefix + cssExpand[ i ] + suffix ] =
+					parts[ i ] || parts[ i - 2 ] || parts[ 0 ];
+			}
+
+			return expanded;
+		}
+	};
+
+	if ( !rmargin.test( prefix ) ) {
+		jQuery.cssHooks[ prefix + suffix ].set = setPositiveNumber;
+	}
+});
+var r20 = /%20/g,
+	rbracket = /\[\]$/,
+	rCRLF = /\r?\n/g,
+	rsubmitterTypes = /^(?:submit|button|image|reset|file)$/i,
+	rsubmittable = /^(?:input|select|textarea|keygen)/i;
+
+jQuery.fn.extend({
+	serialize: function() {
+		return jQuery.param( this.serializeArray() );
+	},
+	serializeArray: function() {
+		return this.map(function(){
+			// Can add propHook for "elements" to filter or add form elements
+			var elements = jQuery.prop( this, "elements" );
+			return elements ? jQuery.makeArray( elements ) : this;
+		})
+		.filter(function(){
+			var type = this.type;
+			// Use .is(":disabled") so that fieldset[disabled] works
+			return this.name && !jQuery( this ).is( ":disabled" ) &&
+				rsubmittable.test( this.nodeName ) && !rsubmitterTypes.test( type ) &&
+				( this.checked || !manipulation_rcheckableType.test( type ) );
+		})
+		.map(function( i, elem ){
+			var val = jQuery( this ).val();
+
+			return val == null ?
+				null :
+				jQuery.isArray( val ) ?
+					jQuery.map( val, function( val ){
+						return { name: elem.name, value: val.replace( rCRLF, "\r\n" ) };
+					}) :
+					{ name: elem.name, value: val.replace( rCRLF, "\r\n" ) };
+		}).get();
+	}
+});
+
+//Serialize an array of form elements or a set of
+//key/values into a query string
+jQuery.param = function( a, traditional ) {
+	var prefix,
+		s = [],
+		add = function( key, value ) {
+			// If value is a function, invoke it and return its value
+			value = jQuery.isFunction( value ) ? value() : ( value == null ? "" : value );
+			s[ s.length ] = encodeURIComponent( key ) + "=" + encodeURIComponent( value );
+		};
+
+	// Set traditional to true for jQuery <= 1.3.2 behavior.
+	if ( traditional === undefined ) {
+		traditional = jQuery.ajaxSettings && jQuery.ajaxSettings.traditional;
+	}
+
+	// If an array was passed in, assume that it is an array of form elements.
+	if ( jQuery.isArray( a ) || ( a.jquery && !jQuery.isPlainObject( a ) ) ) {
+		// Serialize the form elements
+		jQuery.each( a, function() {
+			add( this.name, this.value );
+		});
+
+	} else {
+		// If traditional, encode the "old" way (the way 1.3.2 or older
+		// did it), otherwise encode params recursively.
+		for ( prefix in a ) {
+			buildParams( prefix, a[ prefix ], traditional, add );
+		}
+	}
+
+	// Return the resulting serialization
+	return s.join( "&" ).replace( r20, "+" );
+};
+
+function buildParams( prefix, obj, traditional, add ) {
+	var name;
+
+	if ( jQuery.isArray( obj ) ) {
+		// Serialize array item.
+		jQuery.each( obj, function( i, v ) {
+			if ( traditional || rbracket.test( prefix ) ) {
+				// Treat each array item as a scalar.
+				add( prefix, v );
+
+			} else {
+				// Item is non-scalar (array or object), encode its numeric index.
+				buildParams( prefix + "[" + ( typeof v === "object" ? i : "" ) + "]", v, traditional, add );
+			}
+		});
+
+	} else if ( !traditional && jQuery.type( obj ) === "object" ) {
+		// Serialize object item.
+		for ( name in obj ) {
+			buildParams( prefix + "[" + name + "]", obj[ name ], traditional, add );
+		}
+
+	} else {
+		// Serialize scalar item.
+		add( prefix, obj );
+	}
+}
+jQuery.each( ("blur focus focusin focusout load resize scroll unload click dblclick " +
+	"mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
+	"change select submit keydown keypress keyup error contextmenu").split(" "), function( i, name ) {
+
+	// Handle event binding
+	jQuery.fn[ name ] = function( data, fn ) {
+		return arguments.length > 0 ?
+			this.on( name, null, data, fn ) :
+			this.trigger( name );
+	};
+});
+
+jQuery.fn.extend({
+	hover: function( fnOver, fnOut ) {
+		return this.mouseenter( fnOver ).mouseleave( fnOut || fnOver );
+	},
+
+	bind: function( types, data, fn ) {
+		return this.on( types, null, data, fn );
+	},
+	unbind: function( types, fn ) {
+		return this.off( types, null, fn );
+	},
+
+	delegate: function( selector, types, data, fn ) {
+		return this.on( types, selector, data, fn );
+	},
+	undelegate: function( selector, types, fn ) {
+		// ( namespace ) or ( selector, types [, fn] )
+		return arguments.length === 1 ? this.off( selector, "**" ) : this.off( types, selector || "**", fn );
+	}
+});
+var
+	// Document location
+	ajaxLocParts,
+	ajaxLocation,
+
+	ajax_nonce = jQuery.now(),
+
+	ajax_rquery = /\?/,
+	rhash = /#.*$/,
+	rts = /([?&])_=[^&]*/,
+	rheaders = /^(.*?):[ \t]*([^\r\n]*)$/mg,
+	// #7653, #8125, #8152: local protocol detection
+	rlocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/,
+	rnoContent = /^(?:GET|HEAD)$/,
+	rprotocol = /^\/\//,
+	rurl = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/,
+
+	// Keep a copy of the old load method
+	_load = jQuery.fn.load,
+
+	/* Prefilters
+	 * 1) They are useful to introduce custom dataTypes (see ajax/jsonp.js for an example)
+	 * 2) These are called:
+	 *    - BEFORE asking for a transport
+	 *    - AFTER param serialization (s.data is a string if s.processData is true)
+	 * 3) key is the dataType
+	 * 4) the catchall symbol "*" can be used
+	 * 5) execution will start with transport dataType and THEN continue down to "*" if needed
+	 */
+	prefilters = {},
+
+	/* Transports bindings
+	 * 1) key is the dataType
+	 * 2) the catchall symbol "*" can be used
+	 * 3) selection will start with transport dataType and THEN go to "*" if needed
+	 */
+	transports = {},
+
+	// Avoid comment-prolog char sequence (#10098); must appease lint and evade compression
+	allTypes = "*/".concat("*");
+
+// #8138, IE may throw an exception when accessing
+// a field from window.location if document.domain has been set
+try {
+	ajaxLocation = location.href;
+} catch( e ) {
+	// Use the href attribute of an A element
+	// since IE will modify it given document.location
+	ajaxLocation = document.createElement( "a" );
+	ajaxLocation.href = "";
+	ajaxLocation = ajaxLocation.href;
+}
+
+// Segment location into parts
+ajaxLocParts = rurl.exec( ajaxLocation.toLowerCase() ) || [];
+
+// Base "constructor" for jQuery.ajaxPrefilter and jQuery.ajaxTransport
+function addToPrefiltersOrTransports( structure ) {
+
+	// dataTypeExpression is optional and defaults to "*"
+	return function( dataTypeExpression, func ) {
+
+		if ( typeof dataTypeExpression !== "string" ) {
+			func = dataTypeExpression;
+			dataTypeExpression = "*";
+		}
+
+		var dataType,
+			i = 0,
+			dataTypes = dataTypeExpression.toLowerCase().match( core_rnotwhite ) || [];
+
+		if ( jQuery.isFunction( func ) ) {
+			// For each dataType in the dataTypeExpression
+			while ( (dataType = dataTypes[i++]) ) {
+				// Prepend if requested
+				if ( dataType[0] === "+" ) {
+					dataType = dataType.slice( 1 ) || "*";
+					(structure[ dataType ] = structure[ dataType ] || []).unshift( func );
+
+				// Otherwise append
+				} else {
+					(structure[ dataType ] = structure[ dataType ] || []).push( func );
+				}
+			}
+		}
+	};
+}
+
+// Base inspection function for prefilters and transports
+function inspectPrefiltersOrTransports( structure, options, originalOptions, jqXHR ) {
+
+	var inspected = {},
+		seekingTransport = ( structure === transports );
+
+	function inspect( dataType ) {
+		var selected;
+		inspected[ dataType ] = true;
+		jQuery.each( structure[ dataType ] || [], function( _, prefilterOrFactory ) {
+			var dataTypeOrTransport = prefilterOrFactory( options, originalOptions, jqXHR );
+			if( typeof dataTypeOrTransport === "string" && !seekingTransport && !inspected[ dataTypeOrTransport ] ) {
+				options.dataTypes.unshift( dataTypeOrTransport );
+				inspect( dataTypeOrTransport );
+				return false;
+			} else if ( seekingTransport ) {
+				return !( selected = dataTypeOrTransport );
+			}
+		});
+		return selected;
+	}
+
+	return inspect( options.dataTypes[ 0 ] ) || !inspected[ "*" ] && inspect( "*" );
+}
+
+// A special extend for ajax options
+// that takes "flat" options (not to be deep extended)
+// Fixes #9887
+function ajaxExtend( target, src ) {
+	var key, deep,
+		flatOptions = jQuery.ajaxSettings.flatOptions || {};
+
+	for ( key in src ) {
+		if ( src[ key ] !== undefined ) {
+			( flatOptions[ key ] ? target : ( deep || (deep = {}) ) )[ key ] = src[ key ];
+		}
+	}
+	if ( deep ) {
+		jQuery.extend( true, target, deep );
+	}
+
+	return target;
+}
+
+jQuery.fn.load = function( url, params, callback ) {
+	if ( typeof url !== "string" && _load ) {
+		return _load.apply( this, arguments );
+	}
+
+	var selector, type, response,
+		self = this,
+		off = url.indexOf(" ");
+
+	if ( off >= 0 ) {
+		selector = url.slice( off );
+		url = url.slice( 0, off );
+	}
+
+	// If it's a function
+	if ( jQuery.isFunction( params ) ) {
+
+		// We assume that it's the callback
+		callback = params;
+		params = undefined;
+
+	// Otherwise, build a param string
+	} else if ( params && typeof params === "object" ) {
+		type = "POST";
+	}
+
+	// If we have elements to modify, make the request
+	if ( self.length > 0 ) {
+		jQuery.ajax({
+			url: url,
+
+			// if "type" variable is undefined, then "GET" method will be used
+			type: type,
+			dataType: "html",
+			data: params
+		}).done(function( responseText ) {
+
+			// Save response for use in complete callback
+			response = arguments;
+
+			self.html( selector ?
+
+				// If a selector was specified, locate the right elements in a dummy div
+				// Exclude scripts to avoid IE 'Permission Denied' errors
+				jQuery("<div>").append( jQuery.parseHTML( responseText ) ).find( selector ) :
+
+				// Otherwise use the full result
+				responseText );
+
+		}).complete( callback && function( jqXHR, status ) {
+			self.each( callback, response || [ jqXHR.responseText, status, jqXHR ] );
+		});
+	}
+
+	return this;
+};
+
+// Attach a bunch of functions for handling common AJAX events
+jQuery.each( [ "ajaxStart", "ajaxStop", "ajaxComplete", "ajaxError", "ajaxSuccess", "ajaxSend" ], function( i, type ){
+	jQuery.fn[ type ] = function( fn ){
+		return this.on( type, fn );
+	};
+});
+
+jQuery.extend({
+
+	// Counter for holding the number of active queries
+	active: 0,
+
+	// Last-Modified header cache for next request
+	lastModified: {},
+	etag: {},
+
+	ajaxSettings: {
+		url: ajaxLocation,
+		type: "GET",
+		isLocal: rlocalProtocol.test( ajaxLocParts[ 1 ] ),
+		global: true,
+		processData: true,
+		async: true,
+		contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+		/*
+		timeout: 0,
+		data: null,
+		dataType: null,
+		username: null,
+		password: null,
+		cache: null,
+		throws: false,
+		traditional: false,
+		headers: {},
+		*/
+
+		accepts: {
+			"*": allTypes,
+			text: "text/plain",
+			html: "text/html",
+			xml: "application/xml, text/xml",
+			json: "application/json, text/javascript"
+		},
+
+		contents: {
+			xml: /xml/,
+			html: /html/,
+			json: /json/
+		},
+
+		responseFields: {
+			xml: "responseXML",
+			text: "responseText",
+			json: "responseJSON"
+		},
+
+		// Data converters
+		// Keys separate source (or catchall "*") and destination types with a single space
+		converters: {
+
+			// Convert anything to text
+			"* text": String,
+
+			// Text to html (true = no transformation)
+			"text html": true,
+
+			// Evaluate text as a json expression
+			"text json": jQuery.parseJSON,
+
+			// Parse text as xml
+			"text xml": jQuery.parseXML
+		},
+
+		// For options that shouldn't be deep extended:
+		// you can add your own custom options here if
+		// and when you create one that shouldn't be
+		// deep extended (see ajaxExtend)
+		flatOptions: {
+			url: true,
+			context: true
+		}
+	},
+
+	// Creates a full fledged settings object into target
+	// with both ajaxSettings and settings fields.
+	// If target is omitted, writes into ajaxSettings.
+	ajaxSetup: function( target, settings ) {
+		return settings ?
+
+			// Building a settings object
+			ajaxExtend( ajaxExtend( target, jQuery.ajaxSettings ), settings ) :
+
+			// Extending ajaxSettings
+			ajaxExtend( jQuery.ajaxSettings, target );
+	},
+
+	ajaxPrefilter: addToPrefiltersOrTransports( prefilters ),
+	ajaxTransport: addToPrefiltersOrTransports( transports ),
+
+	// Main method
+	ajax: function( url, options ) {
+
+		// If url is an object, simulate pre-1.5 signature
+		if ( typeof url === "object" ) {
+			options = url;
+			url = undefined;
+		}
+
+		// Force options to be an object
+		options = options || {};
+
+		var transport,
+			// URL without anti-cache param
+			cacheURL,
+			// Response headers
+			responseHeadersString,
+			responseHeaders,
+			// timeout handle
+			timeoutTimer,
+			// Cross-domain detection vars
+			parts,
+			// To know if global events are to be dispatched
+			fireGlobals,
+			// Loop variable
+			i,
+			// Create the final options object
+			s = jQuery.ajaxSetup( {}, options ),
+			// Callbacks context
+			callbackContext = s.context || s,
+			// Context for global events is callbackContext if it is a DOM node or jQuery collection
+			globalEventContext = s.context && ( callbackContext.nodeType || callbackContext.jquery ) ?
+				jQuery( callbackContext ) :
+				jQuery.event,
+			// Deferreds
+			deferred = jQuery.Deferred(),
+			completeDeferred = jQuery.Callbacks("once memory"),
+			// Status-dependent callbacks
+			statusCode = s.statusCode || {},
+			// Headers (they are sent all at once)
+			requestHeaders = {},
+			requestHeadersNames = {},
+			// The jqXHR state
+			state = 0,
+			// Default abort message
+			strAbort = "canceled",
+			// Fake xhr
+			jqXHR = {
+				readyState: 0,
+
+				// Builds headers hashtable if needed
+				getResponseHeader: function( key ) {
+					var match;
+					if ( state === 2 ) {
+						if ( !responseHeaders ) {
+							responseHeaders = {};
+							while ( (match = rheaders.exec( responseHeadersString )) ) {
+								responseHeaders[ match[1].toLowerCase() ] = match[ 2 ];
+							}
+						}
+						match = responseHeaders[ key.toLowerCase() ];
+					}
+					return match == null ? null : match;
+				},
+
+				// Raw string
+				getAllResponseHeaders: function() {
+					return state === 2 ? responseHeadersString : null;
+				},
+
+				// Caches the header
+				setRequestHeader: function( name, value ) {
+					var lname = name.toLowerCase();
+					if ( !state ) {
+						name = requestHeadersNames[ lname ] = requestHeadersNames[ lname ] || name;
+						requestHeaders[ name ] = value;
+					}
+					return this;
+				},
+
+				// Overrides response content-type header
+				overrideMimeType: function( type ) {
+					if ( !state ) {
+						s.mimeType = type;
+					}
+					return this;
+				},
+
+				// Status-dependent callbacks
+				statusCode: function( map ) {
+					var code;
+					if ( map ) {
+						if ( state < 2 ) {
+							for ( code in map ) {
+								// Lazy-add the new callback in a way that preserves old ones
+								statusCode[ code ] = [ statusCode[ code ], map[ code ] ];
+							}
+						} else {
+							// Execute the appropriate callbacks
+							jqXHR.always( map[ jqXHR.status ] );
+						}
+					}
+					return this;
+				},
+
+				// Cancel the request
+				abort: function( statusText ) {
+					var finalText = statusText || strAbort;
+					if ( transport ) {
+						transport.abort( finalText );
+					}
+					done( 0, finalText );
+					return this;
+				}
+			};
+
+		// Attach deferreds
+		deferred.promise( jqXHR ).complete = completeDeferred.add;
+		jqXHR.success = jqXHR.done;
+		jqXHR.error = jqXHR.fail;
+
+		// Remove hash character (#7531: and string promotion)
+		// Add protocol if not provided (prefilters might expect it)
+		// Handle falsy url in the settings object (#10093: consistency with old signature)
+		// We also use the url parameter if available
+		s.url = ( ( url || s.url || ajaxLocation ) + "" ).replace( rhash, "" )
+			.replace( rprotocol, ajaxLocParts[ 1 ] + "//" );
+
+		// Alias method option to type as per ticket #12004
+		s.type = options.method || options.type || s.method || s.type;
+
+		// Extract dataTypes list
+		s.dataTypes = jQuery.trim( s.dataType || "*" ).toLowerCase().match( core_rnotwhite ) || [""];
+
+		// A cross-domain request is in order when we have a protocol:host:port mismatch
+		if ( s.crossDomain == null ) {
+			parts = rurl.exec( s.url.toLowerCase() );
+			s.crossDomain = !!( parts &&
+				( parts[ 1 ] !== ajaxLocParts[ 1 ] || parts[ 2 ] !== ajaxLocParts[ 2 ] ||
+					( parts[ 3 ] || ( parts[ 1 ] === "http:" ? "80" : "443" ) ) !==
+						( ajaxLocParts[ 3 ] || ( ajaxLocParts[ 1 ] === "http:" ? "80" : "443" ) ) )
+			);
+		}
+
+		// Convert data if not already a string
+		if ( s.data && s.processData && typeof s.data !== "string" ) {
+			s.data = jQuery.param( s.data, s.traditional );
+		}
+
+		// Apply prefilters
+		inspectPrefiltersOrTransports( prefilters, s, options, jqXHR );
+
+		// If request was aborted inside a prefilter, stop there
+		if ( state === 2 ) {
+			return jqXHR;
+		}
+
+		// We can fire global events as of now if asked to
+		fireGlobals = s.global;
+
+		// Watch for a new set of requests
+		if ( fireGlobals && jQuery.active++ === 0 ) {
+			jQuery.event.trigger("ajaxStart");
+		}
+
+		// Uppercase the type
+		s.type = s.type.toUpperCase();
+
+		// Determine if request has content
+		s.hasContent = !rnoContent.test( s.type );
+
+		// Save the URL in case we're toying with the If-Modified-Since
+		// and/or If-None-Match header later on
+		cacheURL = s.url;
+
+		// More options handling for requests with no content
+		if ( !s.hasContent ) {
+
+			// If data is available, append data to url
+			if ( s.data ) {
+				cacheURL = ( s.url += ( ajax_rquery.test( cacheURL ) ? "&" : "?" ) + s.data );
+				// #9682: remove data so that it's not used in an eventual retry
+				delete s.data;
+			}
+
+			// Add anti-cache in url if needed
+			if ( s.cache === false ) {
+				s.url = rts.test( cacheURL ) ?
+
+					// If there is already a '_' parameter, set its value
+					cacheURL.replace( rts, "$1_=" + ajax_nonce++ ) :
+
+					// Otherwise add one to the end
+					cacheURL + ( ajax_rquery.test( cacheURL ) ? "&" : "?" ) + "_=" + ajax_nonce++;
+			}
+		}
+
+		// Set the If-Modified-Since and/or If-None-Match header, if in ifModified mode.
+		if ( s.ifModified ) {
+			if ( jQuery.lastModified[ cacheURL ] ) {
+				jqXHR.setRequestHeader( "If-Modified-Since", jQuery.lastModified[ cacheURL ] );
+			}
+			if ( jQuery.etag[ cacheURL ] ) {
+				jqXHR.setRequestHeader( "If-None-Match", jQuery.etag[ cacheURL ] );
+			}
+		}
+
+		// Set the correct header, if data is being sent
+		if ( s.data && s.hasContent && s.contentType !== false || options.contentType ) {
+			jqXHR.setRequestHeader( "Content-Type", s.contentType );
+		}
+
+		// Set the Accepts header for the server, depending on the dataType
+		jqXHR.setRequestHeader(
+			"Accept",
+			s.dataTypes[ 0 ] && s.accepts[ s.dataTypes[0] ] ?
+				s.accepts[ s.dataTypes[0] ] + ( s.dataTypes[ 0 ] !== "*" ? ", " + allTypes + "; q=0.01" : "" ) :
+				s.accepts[ "*" ]
+		);
+
+		// Check for headers option
+		for ( i in s.headers ) {
+			jqXHR.setRequestHeader( i, s.headers[ i ] );
+		}
+
+		// Allow custom headers/mimetypes and early abort
+		if ( s.beforeSend && ( s.beforeSend.call( callbackContext, jqXHR, s ) === false || state === 2 ) ) {
+			// Abort if not done already and return
+			return jqXHR.abort();
+		}
+
+		// aborting is no longer a cancellation
+		strAbort = "abort";
+
+		// Install callbacks on deferreds
+		for ( i in { success: 1, error: 1, complete: 1 } ) {
+			jqXHR[ i ]( s[ i ] );
+		}
+
+		// Get transport
+		transport = inspectPrefiltersOrTransports( transports, s, options, jqXHR );
+
+		// If no transport, we auto-abort
+		if ( !transport ) {
+			done( -1, "No Transport" );
+		} else {
+			jqXHR.readyState = 1;
+
+			// Send global event
+			if ( fireGlobals ) {
+				globalEventContext.trigger( "ajaxSend", [ jqXHR, s ] );
+			}
+			// Timeout
+			if ( s.async && s.timeout > 0 ) {
+				timeoutTimer = setTimeout(function() {
+					jqXHR.abort("timeout");
+				}, s.timeout );
+			}
+
+			try {
+				state = 1;
+				transport.send( requestHeaders, done );
+			} catch ( e ) {
+				// Propagate exception as error if not done
+				if ( state < 2 ) {
+					done( -1, e );
+				// Simply rethrow otherwise
+				} else {
+					throw e;
+				}
+			}
+		}
+
+		// Callback for when everything is done
+		function done( status, nativeStatusText, responses, headers ) {
+			var isSuccess, success, error, response, modified,
+				statusText = nativeStatusText;
+
+			// Called once
+			if ( state === 2 ) {
+				return;
+			}
+
+			// State is "done" now
+			state = 2;
+
+			// Clear timeout if it exists
+			if ( timeoutTimer ) {
+				clearTimeout( timeoutTimer );
+			}
+
+			// Dereference transport for early garbage collection
+			// (no matter how long the jqXHR object will be used)
+			transport = undefined;
+
+			// Cache response headers
+			responseHeadersString = headers || "";
+
+			// Set readyState
+			jqXHR.readyState = status > 0 ? 4 : 0;
+
+			// Determine if successful
+			isSuccess = status >= 200 && status < 300 || status === 304;
+
+			// Get response data
+			if ( responses ) {
+				response = ajaxHandleResponses( s, jqXHR, responses );
+			}
+
+			// Convert no matter what (that way responseXXX fields are always set)
+			response = ajaxConvert( s, response, jqXHR, isSuccess );
+
+			// If successful, handle type chaining
+			if ( isSuccess ) {
+
+				// Set the If-Modified-Since and/or If-None-Match header, if in ifModified mode.
+				if ( s.ifModified ) {
+					modified = jqXHR.getResponseHeader("Last-Modified");
+					if ( modified ) {
+						jQuery.lastModified[ cacheURL ] = modified;
+					}
+					modified = jqXHR.getResponseHeader("etag");
+					if ( modified ) {
+						jQuery.etag[ cacheURL ] = modified;
+					}
+				}
+
+				// if no content
+				if ( status === 204 || s.type === "HEAD" ) {
+					statusText = "nocontent";
+
+				// if not modified
+				} else if ( status === 304 ) {
+					statusText = "notmodified";
+
+				// If we have data, let's convert it
+				} else {
+					statusText = response.state;
+					success = response.data;
+					error = response.error;
+					isSuccess = !error;
+				}
+			} else {
+				// We extract error from statusText
+				// then normalize statusText and status for non-aborts
+				error = statusText;
+				if ( status || !statusText ) {
+					statusText = "error";
+					if ( status < 0 ) {
+						status = 0;
+					}
+				}
+			}
+
+			// Set data for the fake xhr object
+			jqXHR.status = status;
+			jqXHR.statusText = ( nativeStatusText || statusText ) + "";
+
+			// Success/Error
+			if ( isSuccess ) {
+				deferred.resolveWith( callbackContext, [ success, statusText, jqXHR ] );
+			} else {
+				deferred.rejectWith( callbackContext, [ jqXHR, statusText, error ] );
+			}
+
+			// Status-dependent callbacks
+			jqXHR.statusCode( statusCode );
+			statusCode = undefined;
+
+			if ( fireGlobals ) {
+				globalEventContext.trigger( isSuccess ? "ajaxSuccess" : "ajaxError",
+					[ jqXHR, s, isSuccess ? success : error ] );
+			}
+
+			// Complete
+			completeDeferred.fireWith( callbackContext, [ jqXHR, statusText ] );
+
+			if ( fireGlobals ) {
+				globalEventContext.trigger( "ajaxComplete", [ jqXHR, s ] );
+				// Handle the global AJAX counter
+				if ( !( --jQuery.active ) ) {
+					jQuery.event.trigger("ajaxStop");
+				}
+			}
+		}
+
+		return jqXHR;
+	},
+
+	getJSON: function( url, data, callback ) {
+		return jQuery.get( url, data, callback, "json" );
+	},
+
+	getScript: function( url, callback ) {
+		return jQuery.get( url, undefined, callback, "script" );
+	}
+});
+
+jQuery.each( [ "get", "post" ], function( i, method ) {
+	jQuery[ method ] = function( url, data, callback, type ) {
+		// shift arguments if data argument was omitted
+		if ( jQuery.isFunction( data ) ) {
+			type = type || callback;
+			callback = data;
+			data = undefined;
+		}
+
+		return jQuery.ajax({
+			url: url,
+			type: method,
+			dataType: type,
+			data: data,
+			success: callback
+		});
+	};
+});
+
+/* Handles responses to an ajax request:
+ * - finds the right dataType (mediates between content-type and expected dataType)
+ * - returns the corresponding response
+ */
+function ajaxHandleResponses( s, jqXHR, responses ) {
+
+	var ct, type, finalDataType, firstDataType,
+		contents = s.contents,
+		dataTypes = s.dataTypes;
+
+	// Remove auto dataType and get content-type in the process
+	while( dataTypes[ 0 ] === "*" ) {
+		dataTypes.shift();
+		if ( ct === undefined ) {
+			ct = s.mimeType || jqXHR.getResponseHeader("Content-Type");
+		}
+	}
+
+	// Check if we're dealing with a known content-type
+	if ( ct ) {
+		for ( type in contents ) {
+			if ( contents[ type ] && contents[ type ].test( ct ) ) {
+				dataTypes.unshift( type );
+				break;
+			}
+		}
+	}
+
+	// Check to see if we have a response for the expected dataType
+	if ( dataTypes[ 0 ] in responses ) {
+		finalDataType = dataTypes[ 0 ];
+	} else {
+		// Try convertible dataTypes
+		for ( type in responses ) {
+			if ( !dataTypes[ 0 ] || s.converters[ type + " " + dataTypes[0] ] ) {
+				finalDataType = type;
+				break;
+			}
+			if ( !firstDataType ) {
+				firstDataType = type;
+			}
+		}
+		// Or just use first one
+		finalDataType = finalDataType || firstDataType;
+	}
+
+	// If we found a dataType
+	// We add the dataType to the list if needed
+	// and return the corresponding response
+	if ( finalDataType ) {
+		if ( finalDataType !== dataTypes[ 0 ] ) {
+			dataTypes.unshift( finalDataType );
+		}
+		return responses[ finalDataType ];
+	}
+}
+
+/* Chain conversions given the request and the original response
+ * Also sets the responseXXX fields on the jqXHR instance
+ */
+function ajaxConvert( s, response, jqXHR, isSuccess ) {
+	var conv2, current, conv, tmp, prev,
+		converters = {},
+		// Work with a copy of dataTypes in case we need to modify it for conversion
+		dataTypes = s.dataTypes.slice();
+
+	// Create converters map with lowercased keys
+	if ( dataTypes[ 1 ] ) {
+		for ( conv in s.converters ) {
+			converters[ conv.toLowerCase() ] = s.converters[ conv ];
+		}
+	}
+
+	current = dataTypes.shift();
+
+	// Convert to each sequential dataType
+	while ( current ) {
+
+		if ( s.responseFields[ current ] ) {
+			jqXHR[ s.responseFields[ current ] ] = response;
+		}
+
+		// Apply the dataFilter if provided
+		if ( !prev && isSuccess && s.dataFilter ) {
+			response = s.dataFilter( response, s.dataType );
+		}
+
+		prev = current;
+		current = dataTypes.shift();
+
+		if ( current ) {
+
+		// There's only work to do if current dataType is non-auto
+			if ( current === "*" ) {
+
+				current = prev;
+
+			// Convert response if prev dataType is non-auto and differs from current
+			} else if ( prev !== "*" && prev !== current ) {
+
+				// Seek a direct converter
+				conv = converters[ prev + " " + current ] || converters[ "* " + current ];
+
+				// If none found, seek a pair
+				if ( !conv ) {
+					for ( conv2 in converters ) {
+
+						// If conv2 outputs current
+						tmp = conv2.split( " " );
+						if ( tmp[ 1 ] === current ) {
+
+							// If prev can be converted to accepted input
+							conv = converters[ prev + " " + tmp[ 0 ] ] ||
+								converters[ "* " + tmp[ 0 ] ];
+							if ( conv ) {
+								// Condense equivalence converters
+								if ( conv === true ) {
+									conv = converters[ conv2 ];
+
+								// Otherwise, insert the intermediate dataType
+								} else if ( converters[ conv2 ] !== true ) {
+									current = tmp[ 0 ];
+									dataTypes.unshift( tmp[ 1 ] );
+								}
+								break;
+							}
+						}
+					}
+				}
+
+				// Apply converter (if not an equivalence)
+				if ( conv !== true ) {
+
+					// Unless errors are allowed to bubble, catch and return them
+					if ( conv && s[ "throws" ] ) {
+						response = conv( response );
+					} else {
+						try {
+							response = conv( response );
+						} catch ( e ) {
+							return { state: "parsererror", error: conv ? e : "No conversion from " + prev + " to " + current };
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return { state: "success", data: response };
+}
+// Install script dataType
+jQuery.ajaxSetup({
+	accepts: {
+		script: "text/javascript, application/javascript, application/ecmascript, application/x-ecmascript"
+	},
+	contents: {
+		script: /(?:java|ecma)script/
+	},
+	converters: {
+		"text script": function( text ) {
+			jQuery.globalEval( text );
+			return text;
+		}
+	}
+});
+
+// Handle cache's special case and crossDomain
+jQuery.ajaxPrefilter( "script", function( s ) {
+	if ( s.cache === undefined ) {
+		s.cache = false;
+	}
+	if ( s.crossDomain ) {
+		s.type = "GET";
+	}
+});
+
+// Bind script tag hack transport
+jQuery.ajaxTransport( "script", function( s ) {
+	// This transport only deals with cross domain requests
+	if ( s.crossDomain ) {
+		var script, callback;
+		return {
+			send: function( _, complete ) {
+				script = jQuery("<script>").prop({
+					async: true,
+					charset: s.scriptCharset,
+					src: s.url
+				}).on(
+					"load error",
+					callback = function( evt ) {
+						script.remove();
+						callback = null;
+						if ( evt ) {
+							complete( evt.type === "error" ? 404 : 200, evt.type );
+						}
+					}
+				);
+				document.head.appendChild( script[ 0 ] );
+			},
+			abort: function() {
+				if ( callback ) {
+					callback();
+				}
+			}
+		};
+	}
+});
+var oldCallbacks = [],
+	rjsonp = /(=)\?(?=&|$)|\?\?/;
+
+// Default jsonp settings
+jQuery.ajaxSetup({
+	jsonp: "callback",
+	jsonpCallback: function() {
+		var callback = oldCallbacks.pop() || ( jQuery.expando + "_" + ( ajax_nonce++ ) );
+		this[ callback ] = true;
+		return callback;
+	}
+});
+
+// Detect, normalize options and install callbacks for jsonp requests
+jQuery.ajaxPrefilter( "json jsonp", function( s, originalSettings, jqXHR ) {
+
+	var callbackName, overwritten, responseContainer,
+		jsonProp = s.jsonp !== false && ( rjsonp.test( s.url ) ?
+			"url" :
+			typeof s.data === "string" && !( s.contentType || "" ).indexOf("application/x-www-form-urlencoded") && rjsonp.test( s.data ) && "data"
+		);
+
+	// Handle iff the expected data type is "jsonp" or we have a parameter to set
+	if ( jsonProp || s.dataTypes[ 0 ] === "jsonp" ) {
+
+		// Get callback name, remembering preexisting value associated with it
+		callbackName = s.jsonpCallback = jQuery.isFunction( s.jsonpCallback ) ?
+			s.jsonpCallback() :
+			s.jsonpCallback;
+
+		// Insert callback into url or form data
+		if ( jsonProp ) {
+			s[ jsonProp ] = s[ jsonProp ].replace( rjsonp, "$1" + callbackName );
+		} else if ( s.jsonp !== false ) {
+			s.url += ( ajax_rquery.test( s.url ) ? "&" : "?" ) + s.jsonp + "=" + callbackName;
+		}
+
+		// Use data converter to retrieve json after script execution
+		s.converters["script json"] = function() {
+			if ( !responseContainer ) {
+				jQuery.error( callbackName + " was not called" );
+			}
+			return responseContainer[ 0 ];
+		};
+
+		// force json dataType
+		s.dataTypes[ 0 ] = "json";
+
+		// Install callback
+		overwritten = window[ callbackName ];
+		window[ callbackName ] = function() {
+			responseContainer = arguments;
+		};
+
+		// Clean-up function (fires after converters)
+		jqXHR.always(function() {
+			// Restore preexisting value
+			window[ callbackName ] = overwritten;
+
+			// Save back as free
+			if ( s[ callbackName ] ) {
+				// make sure that re-using the options doesn't screw things around
+				s.jsonpCallback = originalSettings.jsonpCallback;
+
+				// save the callback name for future use
+				oldCallbacks.push( callbackName );
+			}
+
+			// Call if it was a function and we have a response
+			if ( responseContainer && jQuery.isFunction( overwritten ) ) {
+				overwritten( responseContainer[ 0 ] );
+			}
+
+			responseContainer = overwritten = undefined;
+		});
+
+		// Delegate to script
+		return "script";
+	}
+});
+jQuery.ajaxSettings.xhr = function() {
+	try {
+		return new XMLHttpRequest();
+	} catch( e ) {}
+};
+
+var xhrSupported = jQuery.ajaxSettings.xhr(),
+	xhrSuccessStatus = {
+		// file protocol always yields status code 0, assume 200
+		0: 200,
+		// Support: IE9
+		// #1450: sometimes IE returns 1223 when it should be 204
+		1223: 204
+	},
+	// Support: IE9
+	// We need to keep track of outbound xhr and abort them manually
+	// because IE is not smart enough to do it all by itself
+	xhrId = 0,
+	xhrCallbacks = {};
+
+if ( window.ActiveXObject ) {
+	jQuery( window ).on( "unload", function() {
+		for( var key in xhrCallbacks ) {
+			xhrCallbacks[ key ]();
+		}
+		xhrCallbacks = undefined;
+	});
+}
+
+jQuery.support.cors = !!xhrSupported && ( "withCredentials" in xhrSupported );
+jQuery.support.ajax = xhrSupported = !!xhrSupported;
+
+jQuery.ajaxTransport(function( options ) {
+	var callback;
+	// Cross domain only allowed if supported through XMLHttpRequest
+	if ( jQuery.support.cors || xhrSupported && !options.crossDomain ) {
+		return {
+			send: function( headers, complete ) {
+				var i, id,
+					xhr = options.xhr();
+				xhr.open( options.type, options.url, options.async, options.username, options.password );
+				// Apply custom fields if provided
+				if ( options.xhrFields ) {
+					for ( i in options.xhrFields ) {
+						xhr[ i ] = options.xhrFields[ i ];
+					}
+				}
+				// Override mime type if needed
+				if ( options.mimeType && xhr.overrideMimeType ) {
+					xhr.overrideMimeType( options.mimeType );
+				}
+				// X-Requested-With header
+				// For cross-domain requests, seeing as conditions for a preflight are
+				// akin to a jigsaw puzzle, we simply never set it to be sure.
+				// (it can always be set on a per-request basis or even using ajaxSetup)
+				// For same-domain requests, won't change header if already provided.
+				if ( !options.crossDomain && !headers["X-Requested-With"] ) {
+					headers["X-Requested-With"] = "XMLHttpRequest";
+				}
+				// Set headers
+				for ( i in headers ) {
+					xhr.setRequestHeader( i, headers[ i ] );
+				}
+				// Callback
+				callback = function( type ) {
+					return function() {
+						if ( callback ) {
+							delete xhrCallbacks[ id ];
+							callback = xhr.onload = xhr.onerror = null;
+							if ( type === "abort" ) {
+								xhr.abort();
+							} else if ( type === "error" ) {
+								complete(
+									// file protocol always yields status 0, assume 404
+									xhr.status || 404,
+									xhr.statusText
+								);
+							} else {
+								complete(
+									xhrSuccessStatus[ xhr.status ] || xhr.status,
+									xhr.statusText,
+									// Support: IE9
+									// #11426: When requesting binary data, IE9 will throw an exception
+									// on any attempt to access responseText
+									typeof xhr.responseText === "string" ? {
+										text: xhr.responseText
+									} : undefined,
+									xhr.getAllResponseHeaders()
+								);
+							}
+						}
+					};
+				};
+				// Listen to events
+				xhr.onload = callback();
+				xhr.onerror = callback("error");
+				// Create the abort callback
+				callback = xhrCallbacks[( id = xhrId++ )] = callback("abort");
+				// Do send the request
+				// This may raise an exception which is actually
+				// handled in jQuery.ajax (so no try/catch here)
+				xhr.send( options.hasContent && options.data || null );
+			},
+			abort: function() {
+				if ( callback ) {
+					callback();
+				}
+			}
+		};
+	}
+});
+var fxNow, timerId,
+	rfxtypes = /^(?:toggle|show|hide)$/,
+	rfxnum = new RegExp( "^(?:([+-])=|)(" + core_pnum + ")([a-z%]*)$", "i" ),
+	rrun = /queueHooks$/,
+	animationPrefilters = [ defaultPrefilter ],
+	tweeners = {
+		"*": [function( prop, value ) {
+			var tween = this.createTween( prop, value ),
+				target = tween.cur(),
+				parts = rfxnum.exec( value ),
+				unit = parts && parts[ 3 ] || ( jQuery.cssNumber[ prop ] ? "" : "px" ),
+
+				// Starting value computation is required for potential unit mismatches
+				start = ( jQuery.cssNumber[ prop ] || unit !== "px" && +target ) &&
+					rfxnum.exec( jQuery.css( tween.elem, prop ) ),
+				scale = 1,
+				maxIterations = 20;
+
+			if ( start && start[ 3 ] !== unit ) {
+				// Trust units reported by jQuery.css
+				unit = unit || start[ 3 ];
+
+				// Make sure we update the tween properties later on
+				parts = parts || [];
+
+				// Iteratively approximate from a nonzero starting point
+				start = +target || 1;
+
+				do {
+					// If previous iteration zeroed out, double until we get *something*
+					// Use a string for doubling factor so we don't accidentally see scale as unchanged below
+					scale = scale || ".5";
+
+					// Adjust and apply
+					start = start / scale;
+					jQuery.style( tween.elem, prop, start + unit );
+
+				// Update scale, tolerating zero or NaN from tween.cur()
+				// And breaking the loop if scale is unchanged or perfect, or if we've just had enough
+				} while ( scale !== (scale = tween.cur() / target) && scale !== 1 && --maxIterations );
+			}
+
+			// Update tween properties
+			if ( parts ) {
+				start = tween.start = +start || +target || 0;
+				tween.unit = unit;
+				// If a +=/-= token was provided, we're doing a relative animation
+				tween.end = parts[ 1 ] ?
+					start + ( parts[ 1 ] + 1 ) * parts[ 2 ] :
+					+parts[ 2 ];
+			}
+
+			return tween;
+		}]
+	};
+
+// Animations created synchronously will run synchronously
+function createFxNow() {
+	setTimeout(function() {
+		fxNow = undefined;
+	});
+	return ( fxNow = jQuery.now() );
+}
+
+function createTween( value, prop, animation ) {
+	var tween,
+		collection = ( tweeners[ prop ] || [] ).concat( tweeners[ "*" ] ),
+		index = 0,
+		length = collection.length;
+	for ( ; index < length; index++ ) {
+		if ( (tween = collection[ index ].call( animation, prop, value )) ) {
+
+			// we're done with this property
+			return tween;
+		}
+	}
+}
+
+function Animation( elem, properties, options ) {
+	var result,
+		stopped,
+		index = 0,
+		length = animationPrefilters.length,
+		deferred = jQuery.Deferred().always( function() {
+			// don't match elem in the :animated selector
+			delete tick.elem;
+		}),
+		tick = function() {
+			if ( stopped ) {
+				return false;
+			}
+			var currentTime = fxNow || createFxNow(),
+				remaining = Math.max( 0, animation.startTime + animation.duration - currentTime ),
+				// archaic crash bug won't allow us to use 1 - ( 0.5 || 0 ) (#12497)
+				temp = remaining / animation.duration || 0,
+				percent = 1 - temp,
+				index = 0,
+				length = animation.tweens.length;
+
+			for ( ; index < length ; index++ ) {
+				animation.tweens[ index ].run( percent );
+			}
+
+			deferred.notifyWith( elem, [ animation, percent, remaining ]);
+
+			if ( percent < 1 && length ) {
+				return remaining;
+			} else {
+				deferred.resolveWith( elem, [ animation ] );
+				return false;
+			}
+		},
+		animation = deferred.promise({
+			elem: elem,
+			props: jQuery.extend( {}, properties ),
+			opts: jQuery.extend( true, { specialEasing: {} }, options ),
+			originalProperties: properties,
+			originalOptions: options,
+			startTime: fxNow || createFxNow(),
+			duration: options.duration,
+			tweens: [],
+			createTween: function( prop, end ) {
+				var tween = jQuery.Tween( elem, animation.opts, prop, end,
+						animation.opts.specialEasing[ prop ] || animation.opts.easing );
+				animation.tweens.push( tween );
+				return tween;
+			},
+			stop: function( gotoEnd ) {
+				var index = 0,
+					// if we are going to the end, we want to run all the tweens
+					// otherwise we skip this part
+					length = gotoEnd ? animation.tweens.length : 0;
+				if ( stopped ) {
+					return this;
+				}
+				stopped = true;
+				for ( ; index < length ; index++ ) {
+					animation.tweens[ index ].run( 1 );
+				}
+
+				// resolve when we played the last frame
+				// otherwise, reject
+				if ( gotoEnd ) {
+					deferred.resolveWith( elem, [ animation, gotoEnd ] );
+				} else {
+					deferred.rejectWith( elem, [ animation, gotoEnd ] );
+				}
+				return this;
+			}
+		}),
+		props = animation.props;
+
+	propFilter( props, animation.opts.specialEasing );
+
+	for ( ; index < length ; index++ ) {
+		result = animationPrefilters[ index ].call( animation, elem, props, animation.opts );
+		if ( result ) {
+			return result;
+		}
+	}
+
+	jQuery.map( props, createTween, animation );
+
+	if ( jQuery.isFunction( animation.opts.start ) ) {
+		animation.opts.start.call( elem, animation );
+	}
+
+	jQuery.fx.timer(
+		jQuery.extend( tick, {
+			elem: elem,
+			anim: animation,
+			queue: animation.opts.queue
+		})
+	);
+
+	// attach callbacks from options
+	return animation.progress( animation.opts.progress )
+		.done( animation.opts.done, animation.opts.complete )
+		.fail( animation.opts.fail )
+		.always( animation.opts.always );
+}
+
+function propFilter( props, specialEasing ) {
+	var index, name, easing, value, hooks;
+
+	// camelCase, specialEasing and expand cssHook pass
+	for ( index in props ) {
+		name = jQuery.camelCase( index );
+		easing = specialEasing[ name ];
+		value = props[ index ];
+		if ( jQuery.isArray( value ) ) {
+			easing = value[ 1 ];
+			value = props[ index ] = value[ 0 ];
+		}
+
+		if ( index !== name ) {
+			props[ name ] = value;
+			delete props[ index ];
+		}
+
+		hooks = jQuery.cssHooks[ name ];
+		if ( hooks && "expand" in hooks ) {
+			value = hooks.expand( value );
+			delete props[ name ];
+
+			// not quite $.extend, this wont overwrite keys already present.
+			// also - reusing 'index' from above because we have the correct "name"
+			for ( index in value ) {
+				if ( !( index in props ) ) {
+					props[ index ] = value[ index ];
+					specialEasing[ index ] = easing;
+				}
+			}
+		} else {
+			specialEasing[ name ] = easing;
+		}
+	}
+}
+
+jQuery.Animation = jQuery.extend( Animation, {
+
+	tweener: function( props, callback ) {
+		if ( jQuery.isFunction( props ) ) {
+			callback = props;
+			props = [ "*" ];
+		} else {
+			props = props.split(" ");
+		}
+
+		var prop,
+			index = 0,
+			length = props.length;
+
+		for ( ; index < length ; index++ ) {
+			prop = props[ index ];
+			tweeners[ prop ] = tweeners[ prop ] || [];
+			tweeners[ prop ].unshift( callback );
+		}
+	},
+
+	prefilter: function( callback, prepend ) {
+		if ( prepend ) {
+			animationPrefilters.unshift( callback );
+		} else {
+			animationPrefilters.push( callback );
+		}
+	}
+});
+
+function defaultPrefilter( elem, props, opts ) {
+	/* jshint validthis: true */
+	var prop, value, toggle, tween, hooks, oldfire,
+		anim = this,
+		orig = {},
+		style = elem.style,
+		hidden = elem.nodeType && isHidden( elem ),
+		dataShow = data_priv.get( elem, "fxshow" );
+
+	// handle queue: false promises
+	if ( !opts.queue ) {
+		hooks = jQuery._queueHooks( elem, "fx" );
+		if ( hooks.unqueued == null ) {
+			hooks.unqueued = 0;
+			oldfire = hooks.empty.fire;
+			hooks.empty.fire = function() {
+				if ( !hooks.unqueued ) {
+					oldfire();
+				}
+			};
+		}
+		hooks.unqueued++;
+
+		anim.always(function() {
+			// doing this makes sure that the complete handler will be called
+			// before this completes
+			anim.always(function() {
+				hooks.unqueued--;
+				if ( !jQuery.queue( elem, "fx" ).length ) {
+					hooks.empty.fire();
+				}
+			});
+		});
+	}
+
+	// height/width overflow pass
+	if ( elem.nodeType === 1 && ( "height" in props || "width" in props ) ) {
+		// Make sure that nothing sneaks out
+		// Record all 3 overflow attributes because IE9-10 do not
+		// change the overflow attribute when overflowX and
+		// overflowY are set to the same value
+		opts.overflow = [ style.overflow, style.overflowX, style.overflowY ];
+
+		// Set display property to inline-block for height/width
+		// animations on inline elements that are having width/height animated
+		if ( jQuery.css( elem, "display" ) === "inline" &&
+				jQuery.css( elem, "float" ) === "none" ) {
+
+			style.display = "inline-block";
+		}
+	}
+
+	if ( opts.overflow ) {
+		style.overflow = "hidden";
+		anim.always(function() {
+			style.overflow = opts.overflow[ 0 ];
+			style.overflowX = opts.overflow[ 1 ];
+			style.overflowY = opts.overflow[ 2 ];
+		});
+	}
+
+
+	// show/hide pass
+	for ( prop in props ) {
+		value = props[ prop ];
+		if ( rfxtypes.exec( value ) ) {
+			delete props[ prop ];
+			toggle = toggle || value === "toggle";
+			if ( value === ( hidden ? "hide" : "show" ) ) {
+
+				// If there is dataShow left over from a stopped hide or show and we are going to proceed with show, we should pretend to be hidden
+				if ( value === "show" && dataShow && dataShow[ prop ] !== undefined ) {
+					hidden = true;
+				} else {
+					continue;
+				}
+			}
+			orig[ prop ] = dataShow && dataShow[ prop ] || jQuery.style( elem, prop );
+		}
+	}
+
+	if ( !jQuery.isEmptyObject( orig ) ) {
+		if ( dataShow ) {
+			if ( "hidden" in dataShow ) {
+				hidden = dataShow.hidden;
+			}
+		} else {
+			dataShow = data_priv.access( elem, "fxshow", {} );
+		}
+
+		// store state if its toggle - enables .stop().toggle() to "reverse"
+		if ( toggle ) {
+			dataShow.hidden = !hidden;
+		}
+		if ( hidden ) {
+			jQuery( elem ).show();
+		} else {
+			anim.done(function() {
+				jQuery( elem ).hide();
+			});
+		}
+		anim.done(function() {
+			var prop;
+
+			data_priv.remove( elem, "fxshow" );
+			for ( prop in orig ) {
+				jQuery.style( elem, prop, orig[ prop ] );
+			}
+		});
+		for ( prop in orig ) {
+			tween = createTween( hidden ? dataShow[ prop ] : 0, prop, anim );
+
+			if ( !( prop in dataShow ) ) {
+				dataShow[ prop ] = tween.start;
+				if ( hidden ) {
+					tween.end = tween.start;
+					tween.start = prop === "width" || prop === "height" ? 1 : 0;
+				}
+			}
+		}
+	}
+}
+
+function Tween( elem, options, prop, end, easing ) {
+	return new Tween.prototype.init( elem, options, prop, end, easing );
+}
+jQuery.Tween = Tween;
+
+Tween.prototype = {
+	constructor: Tween,
+	init: function( elem, options, prop, end, easing, unit ) {
+		this.elem = elem;
+		this.prop = prop;
+		this.easing = easing || "swing";
+		this.options = options;
+		this.start = this.now = this.cur();
+		this.end = end;
+		this.unit = unit || ( jQuery.cssNumber[ prop ] ? "" : "px" );
+	},
+	cur: function() {
+		var hooks = Tween.propHooks[ this.prop ];
+
+		return hooks && hooks.get ?
+			hooks.get( this ) :
+			Tween.propHooks._default.get( this );
+	},
+	run: function( percent ) {
+		var eased,
+			hooks = Tween.propHooks[ this.prop ];
+
+		if ( this.options.duration ) {
+			this.pos = eased = jQuery.easing[ this.easing ](
+				percent, this.options.duration * percent, 0, 1, this.options.duration
+			);
+		} else {
+			this.pos = eased = percent;
+		}
+		this.now = ( this.end - this.start ) * eased + this.start;
+
+		if ( this.options.step ) {
+			this.options.step.call( this.elem, this.now, this );
+		}
+
+		if ( hooks && hooks.set ) {
+			hooks.set( this );
+		} else {
+			Tween.propHooks._default.set( this );
+		}
+		return this;
+	}
+};
+
+Tween.prototype.init.prototype = Tween.prototype;
+
+Tween.propHooks = {
+	_default: {
+		get: function( tween ) {
+			var result;
+
+			if ( tween.elem[ tween.prop ] != null &&
+				(!tween.elem.style || tween.elem.style[ tween.prop ] == null) ) {
+				return tween.elem[ tween.prop ];
+			}
+
+			// passing an empty string as a 3rd parameter to .css will automatically
+			// attempt a parseFloat and fallback to a string if the parse fails
+			// so, simple values such as "10px" are parsed to Float.
+			// complex values such as "rotate(1rad)" are returned as is.
+			result = jQuery.css( tween.elem, tween.prop, "" );
+			// Empty strings, null, undefined and "auto" are converted to 0.
+			return !result || result === "auto" ? 0 : result;
+		},
+		set: function( tween ) {
+			// use step hook for back compat - use cssHook if its there - use .style if its
+			// available and use plain properties where available
+			if ( jQuery.fx.step[ tween.prop ] ) {
+				jQuery.fx.step[ tween.prop ]( tween );
+			} else if ( tween.elem.style && ( tween.elem.style[ jQuery.cssProps[ tween.prop ] ] != null || jQuery.cssHooks[ tween.prop ] ) ) {
+				jQuery.style( tween.elem, tween.prop, tween.now + tween.unit );
+			} else {
+				tween.elem[ tween.prop ] = tween.now;
+			}
+		}
+	}
+};
+
+// Support: IE9
+// Panic based approach to setting things on disconnected nodes
+
+Tween.propHooks.scrollTop = Tween.propHooks.scrollLeft = {
+	set: function( tween ) {
+		if ( tween.elem.nodeType && tween.elem.parentNode ) {
+			tween.elem[ tween.prop ] = tween.now;
+		}
+	}
+};
+
+jQuery.each([ "toggle", "show", "hide" ], function( i, name ) {
+	var cssFn = jQuery.fn[ name ];
+	jQuery.fn[ name ] = function( speed, easing, callback ) {
+		return speed == null || typeof speed === "boolean" ?
+			cssFn.apply( this, arguments ) :
+			this.animate( genFx( name, true ), speed, easing, callback );
+	};
+});
+
+jQuery.fn.extend({
+	fadeTo: function( speed, to, easing, callback ) {
+
+		// show any hidden elements after setting opacity to 0
+		return this.filter( isHidden ).css( "opacity", 0 ).show()
+
+			// animate to the value specified
+			.end().animate({ opacity: to }, speed, easing, callback );
+	},
+	animate: function( prop, speed, easing, callback ) {
+		var empty = jQuery.isEmptyObject( prop ),
+			optall = jQuery.speed( speed, easing, callback ),
+			doAnimation = function() {
+				// Operate on a copy of prop so per-property easing won't be lost
+				var anim = Animation( this, jQuery.extend( {}, prop ), optall );
+
+				// Empty animations, or finishing resolves immediately
+				if ( empty || data_priv.get( this, "finish" ) ) {
+					anim.stop( true );
+				}
+			};
+			doAnimation.finish = doAnimation;
+
+		return empty || optall.queue === false ?
+			this.each( doAnimation ) :
+			this.queue( optall.queue, doAnimation );
+	},
+	stop: function( type, clearQueue, gotoEnd ) {
+		var stopQueue = function( hooks ) {
+			var stop = hooks.stop;
+			delete hooks.stop;
+			stop( gotoEnd );
+		};
+
+		if ( typeof type !== "string" ) {
+			gotoEnd = clearQueue;
+			clearQueue = type;
+			type = undefined;
+		}
+		if ( clearQueue && type !== false ) {
+			this.queue( type || "fx", [] );
+		}
+
+		return this.each(function() {
+			var dequeue = true,
+				index = type != null && type + "queueHooks",
+				timers = jQuery.timers,
+				data = data_priv.get( this );
+
+			if ( index ) {
+				if ( data[ index ] && data[ index ].stop ) {
+					stopQueue( data[ index ] );
+				}
+			} else {
+				for ( index in data ) {
+					if ( data[ index ] && data[ index ].stop && rrun.test( index ) ) {
+						stopQueue( data[ index ] );
+					}
+				}
+			}
+
+			for ( index = timers.length; index--; ) {
+				if ( timers[ index ].elem === this && (type == null || timers[ index ].queue === type) ) {
+					timers[ index ].anim.stop( gotoEnd );
+					dequeue = false;
+					timers.splice( index, 1 );
+				}
+			}
+
+			// start the next in the queue if the last step wasn't forced
+			// timers currently will call their complete callbacks, which will dequeue
+			// but only if they were gotoEnd
+			if ( dequeue || !gotoEnd ) {
+				jQuery.dequeue( this, type );
+			}
+		});
+	},
+	finish: function( type ) {
+		if ( type !== false ) {
+			type = type || "fx";
+		}
+		return this.each(function() {
+			var index,
+				data = data_priv.get( this ),
+				queue = data[ type + "queue" ],
+				hooks = data[ type + "queueHooks" ],
+				timers = jQuery.timers,
+				length = queue ? queue.length : 0;
+
+			// enable finishing flag on private data
+			data.finish = true;
+
+			// empty the queue first
+			jQuery.queue( this, type, [] );
+
+			if ( hooks && hooks.stop ) {
+				hooks.stop.call( this, true );
+			}
+
+			// look for any active animations, and finish them
+			for ( index = timers.length; index--; ) {
+				if ( timers[ index ].elem === this && timers[ index ].queue === type ) {
+					timers[ index ].anim.stop( true );
+					timers.splice( index, 1 );
+				}
+			}
+
+			// look for any animations in the old queue and finish them
+			for ( index = 0; index < length; index++ ) {
+				if ( queue[ index ] && queue[ index ].finish ) {
+					queue[ index ].finish.call( this );
+				}
+			}
+
+			// turn off finishing flag
+			delete data.finish;
+		});
+	}
+});
+
+// Generate parameters to create a standard animation
+function genFx( type, includeWidth ) {
+	var which,
+		attrs = { height: type },
+		i = 0;
+
+	// if we include width, step value is 1 to do all cssExpand values,
+	// if we don't include width, step value is 2 to skip over Left and Right
+	includeWidth = includeWidth? 1 : 0;
+	for( ; i < 4 ; i += 2 - includeWidth ) {
+		which = cssExpand[ i ];
+		attrs[ "margin" + which ] = attrs[ "padding" + which ] = type;
+	}
+
+	if ( includeWidth ) {
+		attrs.opacity = attrs.width = type;
+	}
+
+	return attrs;
+}
+
+// Generate shortcuts for custom animations
+jQuery.each({
+	slideDown: genFx("show"),
+	slideUp: genFx("hide"),
+	slideToggle: genFx("toggle"),
+	fadeIn: { opacity: "show" },
+	fadeOut: { opacity: "hide" },
+	fadeToggle: { opacity: "toggle" }
+}, function( name, props ) {
+	jQuery.fn[ name ] = function( speed, easing, callback ) {
+		return this.animate( props, speed, easing, callback );
+	};
+});
+
+jQuery.speed = function( speed, easing, fn ) {
+	var opt = speed && typeof speed === "object" ? jQuery.extend( {}, speed ) : {
+		complete: fn || !fn && easing ||
+			jQuery.isFunction( speed ) && speed,
+		duration: speed,
+		easing: fn && easing || easing && !jQuery.isFunction( easing ) && easing
+	};
+
+	opt.duration = jQuery.fx.off ? 0 : typeof opt.duration === "number" ? opt.duration :
+		opt.duration in jQuery.fx.speeds ? jQuery.fx.speeds[ opt.duration ] : jQuery.fx.speeds._default;
+
+	// normalize opt.queue - true/undefined/null -> "fx"
+	if ( opt.queue == null || opt.queue === true ) {
+		opt.queue = "fx";
+	}
+
+	// Queueing
+	opt.old = opt.complete;
+
+	opt.complete = function() {
+		if ( jQuery.isFunction( opt.old ) ) {
+			opt.old.call( this );
+		}
+
+		if ( opt.queue ) {
+			jQuery.dequeue( this, opt.queue );
+		}
+	};
+
+	return opt;
+};
+
+jQuery.easing = {
+	linear: function( p ) {
+		return p;
+	},
+	swing: function( p ) {
+		return 0.5 - Math.cos( p*Math.PI ) / 2;
+	}
+};
+
+jQuery.timers = [];
+jQuery.fx = Tween.prototype.init;
+jQuery.fx.tick = function() {
+	var timer,
+		timers = jQuery.timers,
+		i = 0;
+
+	fxNow = jQuery.now();
+
+	for ( ; i < timers.length; i++ ) {
+		timer = timers[ i ];
+		// Checks the timer has not already been removed
+		if ( !timer() && timers[ i ] === timer ) {
+			timers.splice( i--, 1 );
+		}
+	}
+
+	if ( !timers.length ) {
+		jQuery.fx.stop();
+	}
+	fxNow = undefined;
+};
+
+jQuery.fx.timer = function( timer ) {
+	if ( timer() && jQuery.timers.push( timer ) ) {
+		jQuery.fx.start();
+	}
+};
+
+jQuery.fx.interval = 13;
+
+jQuery.fx.start = function() {
+	if ( !timerId ) {
+		timerId = setInterval( jQuery.fx.tick, jQuery.fx.interval );
+	}
+};
+
+jQuery.fx.stop = function() {
+	clearInterval( timerId );
+	timerId = null;
+};
+
+jQuery.fx.speeds = {
+	slow: 600,
+	fast: 200,
+	// Default speed
+	_default: 400
+};
+
+// Back Compat <1.8 extension point
+jQuery.fx.step = {};
+
+if ( jQuery.expr && jQuery.expr.filters ) {
+	jQuery.expr.filters.animated = function( elem ) {
+		return jQuery.grep(jQuery.timers, function( fn ) {
+			return elem === fn.elem;
+		}).length;
+	};
+}
+jQuery.fn.offset = function( options ) {
+	if ( arguments.length ) {
+		return options === undefined ?
+			this :
+			this.each(function( i ) {
+				jQuery.offset.setOffset( this, options, i );
+			});
+	}
+
+	var docElem, win,
+		elem = this[ 0 ],
+		box = { top: 0, left: 0 },
+		doc = elem && elem.ownerDocument;
+
+	if ( !doc ) {
+		return;
+	}
+
+	docElem = doc.documentElement;
+
+	// Make sure it's not a disconnected DOM node
+	if ( !jQuery.contains( docElem, elem ) ) {
+		return box;
+	}
+
+	// If we don't have gBCR, just use 0,0 rather than error
+	// BlackBerry 5, iOS 3 (original iPhone)
+	if ( typeof elem.getBoundingClientRect !== core_strundefined ) {
+		box = elem.getBoundingClientRect();
+	}
+	win = getWindow( doc );
+	return {
+		top: box.top + win.pageYOffset - docElem.clientTop,
+		left: box.left + win.pageXOffset - docElem.clientLeft
+	};
+};
+
+jQuery.offset = {
+
+	setOffset: function( elem, options, i ) {
+		var curPosition, curLeft, curCSSTop, curTop, curOffset, curCSSLeft, calculatePosition,
+			position = jQuery.css( elem, "position" ),
+			curElem = jQuery( elem ),
+			props = {};
+
+		// Set position first, in-case top/left are set even on static elem
+		if ( position === "static" ) {
+			elem.style.position = "relative";
+		}
+
+		curOffset = curElem.offset();
+		curCSSTop = jQuery.css( elem, "top" );
+		curCSSLeft = jQuery.css( elem, "left" );
+		calculatePosition = ( position === "absolute" || position === "fixed" ) && ( curCSSTop + curCSSLeft ).indexOf("auto") > -1;
+
+		// Need to be able to calculate position if either top or left is auto and position is either absolute or fixed
+		if ( calculatePosition ) {
+			curPosition = curElem.position();
+			curTop = curPosition.top;
+			curLeft = curPosition.left;
+
+		} else {
+			curTop = parseFloat( curCSSTop ) || 0;
+			curLeft = parseFloat( curCSSLeft ) || 0;
+		}
+
+		if ( jQuery.isFunction( options ) ) {
+			options = options.call( elem, i, curOffset );
+		}
+
+		if ( options.top != null ) {
+			props.top = ( options.top - curOffset.top ) + curTop;
+		}
+		if ( options.left != null ) {
+			props.left = ( options.left - curOffset.left ) + curLeft;
+		}
+
+		if ( "using" in options ) {
+			options.using.call( elem, props );
+
+		} else {
+			curElem.css( props );
+		}
+	}
+};
+
+
+jQuery.fn.extend({
+
+	position: function() {
+		if ( !this[ 0 ] ) {
+			return;
+		}
+
+		var offsetParent, offset,
+			elem = this[ 0 ],
+			parentOffset = { top: 0, left: 0 };
+
+		// Fixed elements are offset from window (parentOffset = {top:0, left: 0}, because it is it's only offset parent
+		if ( jQuery.css( elem, "position" ) === "fixed" ) {
+			// We assume that getBoundingClientRect is available when computed position is fixed
+			offset = elem.getBoundingClientRect();
+
+		} else {
+			// Get *real* offsetParent
+			offsetParent = this.offsetParent();
+
+			// Get correct offsets
+			offset = this.offset();
+			if ( !jQuery.nodeName( offsetParent[ 0 ], "html" ) ) {
+				parentOffset = offsetParent.offset();
+			}
+
+			// Add offsetParent borders
+			parentOffset.top += jQuery.css( offsetParent[ 0 ], "borderTopWidth", true );
+			parentOffset.left += jQuery.css( offsetParent[ 0 ], "borderLeftWidth", true );
+		}
+
+		// Subtract parent offsets and element margins
+		return {
+			top: offset.top - parentOffset.top - jQuery.css( elem, "marginTop", true ),
+			left: offset.left - parentOffset.left - jQuery.css( elem, "marginLeft", true )
+		};
+	},
+
+	offsetParent: function() {
+		return this.map(function() {
+			var offsetParent = this.offsetParent || docElem;
+
+			while ( offsetParent && ( !jQuery.nodeName( offsetParent, "html" ) && jQuery.css( offsetParent, "position") === "static" ) ) {
+				offsetParent = offsetParent.offsetParent;
+			}
+
+			return offsetParent || docElem;
+		});
+	}
+});
+
+
+// Create scrollLeft and scrollTop methods
+jQuery.each( {scrollLeft: "pageXOffset", scrollTop: "pageYOffset"}, function( method, prop ) {
+	var top = "pageYOffset" === prop;
+
+	jQuery.fn[ method ] = function( val ) {
+		return jQuery.access( this, function( elem, method, val ) {
+			var win = getWindow( elem );
+
+			if ( val === undefined ) {
+				return win ? win[ prop ] : elem[ method ];
+			}
+
+			if ( win ) {
+				win.scrollTo(
+					!top ? val : window.pageXOffset,
+					top ? val : window.pageYOffset
+				);
+
+			} else {
+				elem[ method ] = val;
+			}
+		}, method, val, arguments.length, null );
+	};
+});
+
+function getWindow( elem ) {
+	return jQuery.isWindow( elem ) ? elem : elem.nodeType === 9 && elem.defaultView;
+}
+// Create innerHeight, innerWidth, height, width, outerHeight and outerWidth methods
+jQuery.each( { Height: "height", Width: "width" }, function( name, type ) {
+	jQuery.each( { padding: "inner" + name, content: type, "": "outer" + name }, function( defaultExtra, funcName ) {
+		// margin is only for outerHeight, outerWidth
+		jQuery.fn[ funcName ] = function( margin, value ) {
+			var chainable = arguments.length && ( defaultExtra || typeof margin !== "boolean" ),
+				extra = defaultExtra || ( margin === true || value === true ? "margin" : "border" );
+
+			return jQuery.access( this, function( elem, type, value ) {
+				var doc;
+
+				if ( jQuery.isWindow( elem ) ) {
+					// As of 5/8/2012 this will yield incorrect results for Mobile Safari, but there
+					// isn't a whole lot we can do. See pull request at this URL for discussion:
+					// https://github.com/jquery/jquery/pull/764
+					return elem.document.documentElement[ "client" + name ];
+				}
+
+				// Get document width or height
+				if ( elem.nodeType === 9 ) {
+					doc = elem.documentElement;
+
+					// Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
+					// whichever is greatest
+					return Math.max(
+						elem.body[ "scroll" + name ], doc[ "scroll" + name ],
+						elem.body[ "offset" + name ], doc[ "offset" + name ],
+						doc[ "client" + name ]
+					);
+				}
+
+				return value === undefined ?
+					// Get width or height on the element, requesting but not forcing parseFloat
+					jQuery.css( elem, type, extra ) :
+
+					// Set width or height on the element
+					jQuery.style( elem, type, value, extra );
+			}, type, chainable ? margin : undefined, chainable, null );
+		};
+	});
+});
+// Limit scope pollution from any deprecated API
+// (function() {
+
+// The number of elements contained in the matched element set
+jQuery.fn.size = function() {
+	return this.length;
+};
+
+jQuery.fn.andSelf = jQuery.fn.addBack;
+
+// })();
+if ( typeof module === "object" && module && typeof module.exports === "object" ) {
+	// Expose jQuery as module.exports in loaders that implement the Node
+	// module pattern (including browserify). Do not create the global, since
+	// the user will be storing it themselves locally, and globals are frowned
+	// upon in the Node module world.
+	module.exports = jQuery;
+} else {
+	// Register as a named AMD module, since jQuery can be concatenated with other
+	// files that may use define, but not via a proper concatenation script that
+	// understands anonymous AMD modules. A named AMD is safest and most robust
+	// way to register. Lowercase jquery is used because AMD module names are
+	// derived from file names, and jQuery is normally delivered in a lowercase
+	// file name. Do this after creating the global so that if an AMD module wants
+	// to call noConflict to hide this version of jQuery, it will work.
+	if ( typeof define === "function" && define.amd ) {
+		define( "jquery", [], function () { return jQuery; } );
+	}
+}
+
+// If there is a window object, that at least has a document property,
+// define jQuery and $ identifiers
+if ( typeof window === "object" && typeof window.document === "object" ) {
+	window.jQuery = window.$ = jQuery;
+}
+
+})( window );
 
 // Copyright (C) 2006 Google Inc.
 //
@@ -43,12 +9256,2049 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+/**
+ * @fileoverview
+ * some functions for browser-side pretty printing of code contained in html.
+ *
+ * <p>
+ * For a fairly comprehensive set of languages see the
+ * <a href="http://google-code-prettify.googlecode.com/svn/trunk/README.html#langs">README</a>
+ * file that came with this source.  At a minimum, the lexer should work on a
+ * number of languages including C and friends, Java, Python, Bash, SQL, HTML,
+ * XML, CSS, Javascript, and Makefiles.  It works passably on Ruby, PHP and Awk
+ * and a subset of Perl, but, because of commenting conventions, doesn't work on
+ * Smalltalk, Lisp-like, or CAML-like languages without an explicit lang class.
+ * <p>
+ * Usage: <ol>
+ * <li> include this source file in an html page via
+ *   {@code <script type="text/javascript" src="/path/to/prettify.js"></script>}
+ * <li> define style rules.  See the example page for examples.
+ * <li> mark the {@code <pre>} and {@code <code>} tags in your source with
+ *    {@code class=prettyprint.}
+ *    You can also use the (html deprecated) {@code <xmp>} tag, but the pretty
+ *    printer needs to do more substantial DOM manipulations to support that, so
+ *    some css styles may not be preserved.
+ * </ol>
+ * That's it.  I wanted to keep the API as simple as possible, so there's no
+ * need to specify which language the code is in, but if you wish, you can add
+ * another class to the {@code <pre>} or {@code <code>} element to specify the
+ * language, as in {@code <pre class="prettyprint lang-java">}.  Any class that
+ * starts with "lang-" followed by a file extension, specifies the file type.
+ * See the "lang-*.js" files in this directory for code that implements
+ * per-language file handlers.
+ * <p>
+ * Change log:<br>
+ * cbeust, 2006/08/22
+ * <blockquote>
+ *   Java annotations (start with "@") are now captured as literals ("lit")
+ * </blockquote>
+ * @requires console
+ */
+
+// JSLint declarations
+/*global console, document, navigator, setTimeout, window, define */
+
+/** @define {boolean} */
+var IN_GLOBAL_SCOPE = true;
+var window;
+
+/**
+ * Split {@code prettyPrint} into multiple timeouts so as not to interfere with
+ * UI events.
+ * If set to {@code false}, {@code prettyPrint()} is synchronous.
+ */
+// window['PR_SHOULD_USE_CONTINUATION'] = true;
+
+/**
+ * Pretty print a chunk of code.
+ * @param {string} sourceCodeHtml The HTML to pretty print.
+ * @param {string} opt_langExtension The language name to use.
+ *     Typically, a filename extension like 'cpp' or 'java'.
+ * @param {number|boolean} opt_numberLines True to number lines,
+ *     or the 1-indexed number of the first line in sourceCodeHtml.
+ * @return {string} code as html, but prettier
+ */
+var prettyPrintOne;
+/**
+ * Find all the {@code <pre>} and {@code <code>} tags in the DOM with
+ * {@code class=prettyprint} and prettify them.
+ *
+ * @param {Function} opt_whenDone called when prettifying is done.
+ * @param {HTMLElement|HTMLDocument} opt_root an element or document
+ *   containing all the elements to pretty print.
+ *   Defaults to {@code document.body}.
+ */
+var prettyPrint;
+
+
+(function () {
+  var win = this;
+  // Keyword lists for various languages.
+  // We use things that coerce to strings to make them compact when minified
+  // and to defeat aggressive optimizers that fold large string constants.
+  var FLOW_CONTROL_KEYWORDS = ["break,continue,do,else,for,if,return,while"];
+  var C_KEYWORDS = [FLOW_CONTROL_KEYWORDS,"auto,case,char,const,default," + 
+      "double,enum,extern,float,goto,inline,int,long,register,short,signed," +
+      "sizeof,static,struct,switch,typedef,union,unsigned,void,volatile"];
+  var COMMON_KEYWORDS = [C_KEYWORDS,"catch,class,delete,false,import," +
+      "new,operator,private,protected,public,this,throw,true,try,typeof"];
+  var CPP_KEYWORDS = [COMMON_KEYWORDS,"alignof,align_union,asm,axiom,bool," +
+      "concept,concept_map,const_cast,constexpr,decltype,delegate," +
+      "dynamic_cast,explicit,export,friend,generic,late_check," +
+      "mutable,namespace,nullptr,property,reinterpret_cast,static_assert," +
+      "static_cast,template,typeid,typename,using,virtual,where"];
+  var JAVA_KEYWORDS = [COMMON_KEYWORDS,
+      "abstract,assert,boolean,byte,extends,final,finally,implements,import," +
+      "instanceof,interface,null,native,package,strictfp,super,synchronized," +
+      "throws,transient"];
+  var CSHARP_KEYWORDS = [JAVA_KEYWORDS,
+      "as,base,by,checked,decimal,delegate,descending,dynamic,event," +
+      "fixed,foreach,from,group,implicit,in,internal,into,is,let," +
+      "lock,object,out,override,orderby,params,partial,readonly,ref,sbyte," +
+      "sealed,stackalloc,string,select,uint,ulong,unchecked,unsafe,ushort," +
+      "var,virtual,where"];
+  var COFFEE_KEYWORDS = "all,and,by,catch,class,else,extends,false,finally," +
+      "for,if,in,is,isnt,loop,new,no,not,null,of,off,on,or,return,super,then," +
+      "throw,true,try,unless,until,when,while,yes";
+  var JSCRIPT_KEYWORDS = [COMMON_KEYWORDS,
+      "debugger,eval,export,function,get,null,set,undefined,var,with," +
+      "Infinity,NaN"];
+  var PERL_KEYWORDS = "caller,delete,die,do,dump,elsif,eval,exit,foreach,for," +
+      "goto,if,import,last,local,my,next,no,our,print,package,redo,require," +
+      "sub,undef,unless,until,use,wantarray,while,BEGIN,END";
+  var PYTHON_KEYWORDS = [FLOW_CONTROL_KEYWORDS, "and,as,assert,class,def,del," +
+      "elif,except,exec,finally,from,global,import,in,is,lambda," +
+      "nonlocal,not,or,pass,print,raise,try,with,yield," +
+      "False,True,None"];
+  var RUBY_KEYWORDS = [FLOW_CONTROL_KEYWORDS, "alias,and,begin,case,class," +
+      "def,defined,elsif,end,ensure,false,in,module,next,nil,not,or,redo," +
+      "rescue,retry,self,super,then,true,undef,unless,until,when,yield," +
+      "BEGIN,END"];
+   var RUST_KEYWORDS = [FLOW_CONTROL_KEYWORDS, "as,assert,const,copy,drop," +
+      "enum,extern,fail,false,fn,impl,let,log,loop,match,mod,move,mut,priv," +
+      "pub,pure,ref,self,static,struct,true,trait,type,unsafe,use"];
+  var SH_KEYWORDS = [FLOW_CONTROL_KEYWORDS, "case,done,elif,esac,eval,fi," +
+      "function,in,local,set,then,until"];
+  var ALL_KEYWORDS = [
+      CPP_KEYWORDS, CSHARP_KEYWORDS, JSCRIPT_KEYWORDS, PERL_KEYWORDS,
+      PYTHON_KEYWORDS, RUBY_KEYWORDS, SH_KEYWORDS];
+  var C_TYPES = /^(DIR|FILE|vector|(de|priority_)?queue|list|stack|(const_)?iterator|(multi)?(set|map)|bitset|u?(int|float)\d*)\b/;
+
+  // token style names.  correspond to css classes
+  /**
+   * token style for a string literal
+   * @const
+   */
+  var PR_STRING = 'str';
+  /**
+   * token style for a keyword
+   * @const
+   */
+  var PR_KEYWORD = 'kwd';
+  /**
+   * token style for a comment
+   * @const
+   */
+  var PR_COMMENT = 'com';
+  /**
+   * token style for a type
+   * @const
+   */
+  var PR_TYPE = 'typ';
+  /**
+   * token style for a literal value.  e.g. 1, null, true.
+   * @const
+   */
+  var PR_LITERAL = 'lit';
+  /**
+   * token style for a punctuation string.
+   * @const
+   */
+  var PR_PUNCTUATION = 'pun';
+  /**
+   * token style for plain text.
+   * @const
+   */
+  var PR_PLAIN = 'pln';
+
+  /**
+   * token style for an sgml tag.
+   * @const
+   */
+  var PR_TAG = 'tag';
+  /**
+   * token style for a markup declaration such as a DOCTYPE.
+   * @const
+   */
+  var PR_DECLARATION = 'dec';
+  /**
+   * token style for embedded source.
+   * @const
+   */
+  var PR_SOURCE = 'src';
+  /**
+   * token style for an sgml attribute name.
+   * @const
+   */
+  var PR_ATTRIB_NAME = 'atn';
+  /**
+   * token style for an sgml attribute value.
+   * @const
+   */
+  var PR_ATTRIB_VALUE = 'atv';
+
+  /**
+   * A class that indicates a section of markup that is not code, e.g. to allow
+   * embedding of line numbers within code listings.
+   * @const
+   */
+  var PR_NOCODE = 'nocode';
+
+  
+  
+  /**
+   * A set of tokens that can precede a regular expression literal in
+   * javascript
+   * http://web.archive.org/web/20070717142515/http://www.mozilla.org/js/language/js20/rationale/syntax.html
+   * has the full list, but I've removed ones that might be problematic when
+   * seen in languages that don't support regular expression literals.
+   *
+   * <p>Specifically, I've removed any keywords that can't precede a regexp
+   * literal in a syntactically legal javascript program, and I've removed the
+   * "in" keyword since it's not a keyword in many languages, and might be used
+   * as a count of inches.
+   *
+   * <p>The link above does not accurately describe EcmaScript rules since
+   * it fails to distinguish between (a=++/b/i) and (a++/b/i) but it works
+   * very well in practice.
+   *
+   * @private
+   * @const
+   */
+  var REGEXP_PRECEDER_PATTERN = '(?:^^\\.?|[+-]|[!=]=?=?|\\#|%=?|&&?=?|\\(|\\*=?|[+\\-]=|->|\\/=?|::?|<<?=?|>>?>?=?|,|;|\\?|@|\\[|~|{|\\^\\^?=?|\\|\\|?=?|break|case|continue|delete|do|else|finally|instanceof|return|throw|try|typeof)\\s*';
+  
+  // CAVEAT: this does not properly handle the case where a regular
+  // expression immediately follows another since a regular expression may
+  // have flags for case-sensitivity and the like.  Having regexp tokens
+  // adjacent is not valid in any language I'm aware of, so I'm punting.
+  // TODO: maybe style special characters inside a regexp as punctuation.
+
+  /**
+   * Given a group of {@link RegExp}s, returns a {@code RegExp} that globally
+   * matches the union of the sets of strings matched by the input RegExp.
+   * Since it matches globally, if the input strings have a start-of-input
+   * anchor (/^.../), it is ignored for the purposes of unioning.
+   * @param {Array.<RegExp>} regexs non multiline, non-global regexs.
+   * @return {RegExp} a global regex.
+   */
+  function combinePrefixPatterns(regexs) {
+    var capturedGroupIndex = 0;
+  
+    var needToFoldCase = false;
+    var ignoreCase = false;
+    for (var i = 0, n = regexs.length; i < n; ++i) {
+      var regex = regexs[i];
+      if (regex.ignoreCase) {
+        ignoreCase = true;
+      } else if (/[a-z]/i.test(regex.source.replace(
+                     /\\u[0-9a-f]{4}|\\x[0-9a-f]{2}|\\[^ux]/gi, ''))) {
+        needToFoldCase = true;
+        ignoreCase = false;
+        break;
+      }
+    }
+  
+    var escapeCharToCodeUnit = {
+      'b': 8,
+      't': 9,
+      'n': 0xa,
+      'v': 0xb,
+      'f': 0xc,
+      'r': 0xd
+    };
+  
+    function decodeEscape(charsetPart) {
+      var cc0 = charsetPart.charCodeAt(0);
+      if (cc0 !== 92 /* \\ */) {
+        return cc0;
+      }
+      var c1 = charsetPart.charAt(1);
+      cc0 = escapeCharToCodeUnit[c1];
+      if (cc0) {
+        return cc0;
+      } else if ('0' <= c1 && c1 <= '7') {
+        return parseInt(charsetPart.substring(1), 8);
+      } else if (c1 === 'u' || c1 === 'x') {
+        return parseInt(charsetPart.substring(2), 16);
+      } else {
+        return charsetPart.charCodeAt(1);
+      }
+    }
+  
+    function encodeEscape(charCode) {
+      if (charCode < 0x20) {
+        return (charCode < 0x10 ? '\\x0' : '\\x') + charCode.toString(16);
+      }
+      var ch = String.fromCharCode(charCode);
+      return (ch === '\\' || ch === '-' || ch === ']' || ch === '^')
+          ? "\\" + ch : ch;
+    }
+  
+    function caseFoldCharset(charSet) {
+      var charsetParts = charSet.substring(1, charSet.length - 1).match(
+          new RegExp(
+              '\\\\u[0-9A-Fa-f]{4}'
+              + '|\\\\x[0-9A-Fa-f]{2}'
+              + '|\\\\[0-3][0-7]{0,2}'
+              + '|\\\\[0-7]{1,2}'
+              + '|\\\\[\\s\\S]'
+              + '|-'
+              + '|[^-\\\\]',
+              'g'));
+      var ranges = [];
+      var inverse = charsetParts[0] === '^';
+  
+      var out = ['['];
+      if (inverse) { out.push('^'); }
+  
+      for (var i = inverse ? 1 : 0, n = charsetParts.length; i < n; ++i) {
+        var p = charsetParts[i];
+        if (/\\[bdsw]/i.test(p)) {  // Don't muck with named groups.
+          out.push(p);
+        } else {
+          var start = decodeEscape(p);
+          var end;
+          if (i + 2 < n && '-' === charsetParts[i + 1]) {
+            end = decodeEscape(charsetParts[i + 2]);
+            i += 2;
+          } else {
+            end = start;
+          }
+          ranges.push([start, end]);
+          // If the range might intersect letters, then expand it.
+          // This case handling is too simplistic.
+          // It does not deal with non-latin case folding.
+          // It works for latin source code identifiers though.
+          if (!(end < 65 || start > 122)) {
+            if (!(end < 65 || start > 90)) {
+              ranges.push([Math.max(65, start) | 32, Math.min(end, 90) | 32]);
+            }
+            if (!(end < 97 || start > 122)) {
+              ranges.push([Math.max(97, start) & ~32, Math.min(end, 122) & ~32]);
+            }
+          }
+        }
+      }
+  
+      // [[1, 10], [3, 4], [8, 12], [14, 14], [16, 16], [17, 17]]
+      // -> [[1, 12], [14, 14], [16, 17]]
+      ranges.sort(function (a, b) { return (a[0] - b[0]) || (b[1]  - a[1]); });
+      var consolidatedRanges = [];
+      var lastRange = [];
+      for (var i = 0; i < ranges.length; ++i) {
+        var range = ranges[i];
+        if (range[0] <= lastRange[1] + 1) {
+          lastRange[1] = Math.max(lastRange[1], range[1]);
+        } else {
+          consolidatedRanges.push(lastRange = range);
+        }
+      }
+  
+      for (var i = 0; i < consolidatedRanges.length; ++i) {
+        var range = consolidatedRanges[i];
+        out.push(encodeEscape(range[0]));
+        if (range[1] > range[0]) {
+          if (range[1] + 1 > range[0]) { out.push('-'); }
+          out.push(encodeEscape(range[1]));
+        }
+      }
+      out.push(']');
+      return out.join('');
+    }
+  
+    function allowAnywhereFoldCaseAndRenumberGroups(regex) {
+      // Split into character sets, escape sequences, punctuation strings
+      // like ('(', '(?:', ')', '^'), and runs of characters that do not
+      // include any of the above.
+      var parts = regex.source.match(
+          new RegExp(
+              '(?:'
+              + '\\[(?:[^\\x5C\\x5D]|\\\\[\\s\\S])*\\]'  // a character set
+              + '|\\\\u[A-Fa-f0-9]{4}'  // a unicode escape
+              + '|\\\\x[A-Fa-f0-9]{2}'  // a hex escape
+              + '|\\\\[0-9]+'  // a back-reference or octal escape
+              + '|\\\\[^ux0-9]'  // other escape sequence
+              + '|\\(\\?[:!=]'  // start of a non-capturing group
+              + '|[\\(\\)\\^]'  // start/end of a group, or line start
+              + '|[^\\x5B\\x5C\\(\\)\\^]+'  // run of other characters
+              + ')',
+              'g'));
+      var n = parts.length;
+  
+      // Maps captured group numbers to the number they will occupy in
+      // the output or to -1 if that has not been determined, or to
+      // undefined if they need not be capturing in the output.
+      var capturedGroups = [];
+  
+      // Walk over and identify back references to build the capturedGroups
+      // mapping.
+      for (var i = 0, groupIndex = 0; i < n; ++i) {
+        var p = parts[i];
+        if (p === '(') {
+          // groups are 1-indexed, so max group index is count of '('
+          ++groupIndex;
+        } else if ('\\' === p.charAt(0)) {
+          var decimalValue = +p.substring(1);
+          if (decimalValue) {
+            if (decimalValue <= groupIndex) {
+              capturedGroups[decimalValue] = -1;
+            } else {
+              // Replace with an unambiguous escape sequence so that
+              // an octal escape sequence does not turn into a backreference
+              // to a capturing group from an earlier regex.
+              parts[i] = encodeEscape(decimalValue);
+            }
+          }
+        }
+      }
+  
+      // Renumber groups and reduce capturing groups to non-capturing groups
+      // where possible.
+      for (var i = 1; i < capturedGroups.length; ++i) {
+        if (-1 === capturedGroups[i]) {
+          capturedGroups[i] = ++capturedGroupIndex;
+        }
+      }
+      for (var i = 0, groupIndex = 0; i < n; ++i) {
+        var p = parts[i];
+        if (p === '(') {
+          ++groupIndex;
+          if (!capturedGroups[groupIndex]) {
+            parts[i] = '(?:';
+          }
+        } else if ('\\' === p.charAt(0)) {
+          var decimalValue = +p.substring(1);
+          if (decimalValue && decimalValue <= groupIndex) {
+            parts[i] = '\\' + capturedGroups[decimalValue];
+          }
+        }
+      }
+  
+      // Remove any prefix anchors so that the output will match anywhere.
+      // ^^ really does mean an anchored match though.
+      for (var i = 0; i < n; ++i) {
+        if ('^' === parts[i] && '^' !== parts[i + 1]) { parts[i] = ''; }
+      }
+  
+      // Expand letters to groups to handle mixing of case-sensitive and
+      // case-insensitive patterns if necessary.
+      if (regex.ignoreCase && needToFoldCase) {
+        for (var i = 0; i < n; ++i) {
+          var p = parts[i];
+          var ch0 = p.charAt(0);
+          if (p.length >= 2 && ch0 === '[') {
+            parts[i] = caseFoldCharset(p);
+          } else if (ch0 !== '\\') {
+            // TODO: handle letters in numeric escapes.
+            parts[i] = p.replace(
+                /[a-zA-Z]/g,
+                function (ch) {
+                  var cc = ch.charCodeAt(0);
+                  return '[' + String.fromCharCode(cc & ~32, cc | 32) + ']';
+                });
+          }
+        }
+      }
+  
+      return parts.join('');
+    }
+  
+    var rewritten = [];
+    for (var i = 0, n = regexs.length; i < n; ++i) {
+      var regex = regexs[i];
+      if (regex.global || regex.multiline) { throw new Error('' + regex); }
+      rewritten.push(
+          '(?:' + allowAnywhereFoldCaseAndRenumberGroups(regex) + ')');
+    }
+  
+    return new RegExp(rewritten.join('|'), ignoreCase ? 'gi' : 'g');
+  }
+
+  /**
+   * Split markup into a string of source code and an array mapping ranges in
+   * that string to the text nodes in which they appear.
+   *
+   * <p>
+   * The HTML DOM structure:</p>
+   * <pre>
+   * (Element   "p"
+   *   (Element "b"
+   *     (Text  "print "))       ; #1
+   *   (Text    "'Hello '")      ; #2
+   *   (Element "br")            ; #3
+   *   (Text    "  + 'World';")) ; #4
+   * </pre>
+   * <p>
+   * corresponds to the HTML
+   * {@code <p><b>print </b>'Hello '<br>  + 'World';</p>}.</p>
+   *
+   * <p>
+   * It will produce the output:</p>
+   * <pre>
+   * {
+   *   sourceCode: "print 'Hello '\n  + 'World';",
+   *   //                     1          2
+   *   //           012345678901234 5678901234567
+   *   spans: [0, #1, 6, #2, 14, #3, 15, #4]
+   * }
+   * </pre>
+   * <p>
+   * where #1 is a reference to the {@code "print "} text node above, and so
+   * on for the other text nodes.
+   * </p>
+   *
+   * <p>
+   * The {@code} spans array is an array of pairs.  Even elements are the start
+   * indices of substrings, and odd elements are the text nodes (or BR elements)
+   * that contain the text for those substrings.
+   * Substrings continue until the next index or the end of the source.
+   * </p>
+   *
+   * @param {Node} node an HTML DOM subtree containing source-code.
+   * @param {boolean} isPreformatted true if white-space in text nodes should
+   *    be considered significant.
+   * @return {Object} source code and the text nodes in which they occur.
+   */
+  function extractSourceSpans(node, isPreformatted) {
+    var nocode = /(?:^|\s)nocode(?:\s|$)/;
+  
+    var chunks = [];
+    var length = 0;
+    var spans = [];
+    var k = 0;
+  
+    function walk(node) {
+      var type = node.nodeType;
+      if (type == 1) {  // Element
+        if (nocode.test(node.className)) { return; }
+        for (var child = node.firstChild; child; child = child.nextSibling) {
+          walk(child);
+        }
+        var nodeName = node.nodeName.toLowerCase();
+        if ('br' === nodeName || 'li' === nodeName) {
+          chunks[k] = '\n';
+          spans[k << 1] = length++;
+          spans[(k++ << 1) | 1] = node;
+        }
+      } else if (type == 3 || type == 4) {  // Text
+        var text = node.nodeValue;
+        if (text.length) {
+          if (!isPreformatted) {
+            text = text.replace(/[ \t\r\n]+/g, ' ');
+          } else {
+            text = text.replace(/\r\n?/g, '\n');  // Normalize newlines.
+          }
+          // TODO: handle tabs here?
+          chunks[k] = text;
+          spans[k << 1] = length;
+          length += text.length;
+          spans[(k++ << 1) | 1] = node;
+        }
+      }
+    }
+  
+    walk(node);
+  
+    return {
+      sourceCode: chunks.join('').replace(/\n$/, ''),
+      spans: spans
+    };
+  }
+
+  /**
+   * Apply the given language handler to sourceCode and add the resulting
+   * decorations to out.
+   * @param {number} basePos the index of sourceCode within the chunk of source
+   *    whose decorations are already present on out.
+   */
+  function appendDecorations(basePos, sourceCode, langHandler, out) {
+    if (!sourceCode) { return; }
+    var job = {
+      sourceCode: sourceCode,
+      basePos: basePos
+    };
+    langHandler(job);
+    out.push.apply(out, job.decorations);
+  }
+
+  var notWs = /\S/;
+
+  /**
+   * Given an element, if it contains only one child element and any text nodes
+   * it contains contain only space characters, return the sole child element.
+   * Otherwise returns undefined.
+   * <p>
+   * This is meant to return the CODE element in {@code <pre><code ...>} when
+   * there is a single child element that contains all the non-space textual
+   * content, but not to return anything where there are multiple child elements
+   * as in {@code <pre><code>...</code><code>...</code></pre>} or when there
+   * is textual content.
+   */
+  function childContentWrapper(element) {
+    var wrapper = undefined;
+    for (var c = element.firstChild; c; c = c.nextSibling) {
+      var type = c.nodeType;
+      wrapper = (type === 1)  // Element Node
+          ? (wrapper ? element : c)
+          : (type === 3)  // Text Node
+          ? (notWs.test(c.nodeValue) ? element : wrapper)
+          : wrapper;
+    }
+    return wrapper === element ? undefined : wrapper;
+  }
+
+  /** Given triples of [style, pattern, context] returns a lexing function,
+    * The lexing function interprets the patterns to find token boundaries and
+    * returns a decoration list of the form
+    * [index_0, style_0, index_1, style_1, ..., index_n, style_n]
+    * where index_n is an index into the sourceCode, and style_n is a style
+    * constant like PR_PLAIN.  index_n-1 <= index_n, and style_n-1 applies to
+    * all characters in sourceCode[index_n-1:index_n].
+    *
+    * The stylePatterns is a list whose elements have the form
+    * [style : string, pattern : RegExp, DEPRECATED, shortcut : string].
+    *
+    * Style is a style constant like PR_PLAIN, or can be a string of the
+    * form 'lang-FOO', where FOO is a language extension describing the
+    * language of the portion of the token in $1 after pattern executes.
+    * E.g., if style is 'lang-lisp', and group 1 contains the text
+    * '(hello (world))', then that portion of the token will be passed to the
+    * registered lisp handler for formatting.
+    * The text before and after group 1 will be restyled using this decorator
+    * so decorators should take care that this doesn't result in infinite
+    * recursion.  For example, the HTML lexer rule for SCRIPT elements looks
+    * something like ['lang-js', /<[s]cript>(.+?)<\/script>/].  This may match
+    * '<script>foo()<\/script>', which would cause the current decorator to
+    * be called with '<script>' which would not match the same rule since
+    * group 1 must not be empty, so it would be instead styled as PR_TAG by
+    * the generic tag rule.  The handler registered for the 'js' extension would
+    * then be called with 'foo()', and finally, the current decorator would
+    * be called with '<\/script>' which would not match the original rule and
+    * so the generic tag rule would identify it as a tag.
+    *
+    * Pattern must only match prefixes, and if it matches a prefix, then that
+    * match is considered a token with the same style.
+    *
+    * Context is applied to the last non-whitespace, non-comment token
+    * recognized.
+    *
+    * Shortcut is an optional string of characters, any of which, if the first
+    * character, gurantee that this pattern and only this pattern matches.
+    *
+    * @param {Array} shortcutStylePatterns patterns that always start with
+    *   a known character.  Must have a shortcut string.
+    * @param {Array} fallthroughStylePatterns patterns that will be tried in
+    *   order if the shortcut ones fail.  May have shortcuts.
+    *
+    * @return {function (Object)} a
+    *   function that takes source code and returns a list of decorations.
+    */
+  function createSimpleLexer(shortcutStylePatterns, fallthroughStylePatterns) {
+    var shortcuts = {};
+    var tokenizer;
+    (function () {
+      var allPatterns = shortcutStylePatterns.concat(fallthroughStylePatterns);
+      var allRegexs = [];
+      var regexKeys = {};
+      for (var i = 0, n = allPatterns.length; i < n; ++i) {
+        var patternParts = allPatterns[i];
+        var shortcutChars = patternParts[3];
+        if (shortcutChars) {
+          for (var c = shortcutChars.length; --c >= 0;) {
+            shortcuts[shortcutChars.charAt(c)] = patternParts;
+          }
+        }
+        var regex = patternParts[1];
+        var k = '' + regex;
+        if (!regexKeys.hasOwnProperty(k)) {
+          allRegexs.push(regex);
+          regexKeys[k] = null;
+        }
+      }
+      allRegexs.push(/[\0-\uffff]/);
+      tokenizer = combinePrefixPatterns(allRegexs);
+    })();
+
+    var nPatterns = fallthroughStylePatterns.length;
+
+    /**
+     * Lexes job.sourceCode and produces an output array job.decorations of
+     * style classes preceded by the position at which they start in
+     * job.sourceCode in order.
+     *
+     * @param {Object} job an object like <pre>{
+     *    sourceCode: {string} sourceText plain text,
+     *    basePos: {int} position of job.sourceCode in the larger chunk of
+     *        sourceCode.
+     * }</pre>
+     */
+    var decorate = function (job) {
+      var sourceCode = job.sourceCode, basePos = job.basePos;
+      /** Even entries are positions in source in ascending order.  Odd enties
+        * are style markers (e.g., PR_COMMENT) that run from that position until
+        * the end.
+        * @type {Array.<number|string>}
+        */
+      var decorations = [basePos, PR_PLAIN];
+      var pos = 0;  // index into sourceCode
+      var tokens = sourceCode.match(tokenizer) || [];
+      var styleCache = {};
+
+      for (var ti = 0, nTokens = tokens.length; ti < nTokens; ++ti) {
+        var token = tokens[ti];
+        var style = styleCache[token];
+        var match = void 0;
+
+        var isEmbedded;
+        if (typeof style === 'string') {
+          isEmbedded = false;
+        } else {
+          var patternParts = shortcuts[token.charAt(0)];
+          if (patternParts) {
+            match = token.match(patternParts[1]);
+            style = patternParts[0];
+          } else {
+            for (var i = 0; i < nPatterns; ++i) {
+              patternParts = fallthroughStylePatterns[i];
+              match = token.match(patternParts[1]);
+              if (match) {
+                style = patternParts[0];
+                break;
+              }
+            }
+
+            if (!match) {  // make sure that we make progress
+              style = PR_PLAIN;
+            }
+          }
+
+          isEmbedded = style.length >= 5 && 'lang-' === style.substring(0, 5);
+          if (isEmbedded && !(match && typeof match[1] === 'string')) {
+            isEmbedded = false;
+            style = PR_SOURCE;
+          }
+
+          if (!isEmbedded) { styleCache[token] = style; }
+        }
+
+        var tokenStart = pos;
+        pos += token.length;
+
+        if (!isEmbedded) {
+          decorations.push(basePos + tokenStart, style);
+        } else {  // Treat group 1 as an embedded block of source code.
+          var embeddedSource = match[1];
+          var embeddedSourceStart = token.indexOf(embeddedSource);
+          var embeddedSourceEnd = embeddedSourceStart + embeddedSource.length;
+          if (match[2]) {
+            // If embeddedSource can be blank, then it would match at the
+            // beginning which would cause us to infinitely recurse on the
+            // entire token, so we catch the right context in match[2].
+            embeddedSourceEnd = token.length - match[2].length;
+            embeddedSourceStart = embeddedSourceEnd - embeddedSource.length;
+          }
+          var lang = style.substring(5);
+          // Decorate the left of the embedded source
+          appendDecorations(
+              basePos + tokenStart,
+              token.substring(0, embeddedSourceStart),
+              decorate, decorations);
+          // Decorate the embedded source
+          appendDecorations(
+              basePos + tokenStart + embeddedSourceStart,
+              embeddedSource,
+              langHandlerForExtension(lang, embeddedSource),
+              decorations);
+          // Decorate the right of the embedded section
+          appendDecorations(
+              basePos + tokenStart + embeddedSourceEnd,
+              token.substring(embeddedSourceEnd),
+              decorate, decorations);
+        }
+      }
+      job.decorations = decorations;
+    };
+    return decorate;
+  }
+
+  /** returns a function that produces a list of decorations from source text.
+    *
+    * This code treats ", ', and ` as string delimiters, and \ as a string
+    * escape.  It does not recognize perl's qq() style strings.
+    * It has no special handling for double delimiter escapes as in basic, or
+    * the tripled delimiters used in python, but should work on those regardless
+    * although in those cases a single string literal may be broken up into
+    * multiple adjacent string literals.
+    *
+    * It recognizes C, C++, and shell style comments.
+    *
+    * @param {Object} options a set of optional parameters.
+    * @return {function (Object)} a function that examines the source code
+    *     in the input job and builds the decoration list.
+    */
+  function sourceDecorator(options) {
+    var shortcutStylePatterns = [], fallthroughStylePatterns = [];
+    if (options['tripleQuotedStrings']) {
+      // '''multi-line-string''', 'single-line-string', and double-quoted
+      shortcutStylePatterns.push(
+          [PR_STRING,  /^(?:\'\'\'(?:[^\'\\]|\\[\s\S]|\'{1,2}(?=[^\']))*(?:\'\'\'|$)|\"\"\"(?:[^\"\\]|\\[\s\S]|\"{1,2}(?=[^\"]))*(?:\"\"\"|$)|\'(?:[^\\\']|\\[\s\S])*(?:\'|$)|\"(?:[^\\\"]|\\[\s\S])*(?:\"|$))/,
+           null, '\'"']);
+    } else if (options['multiLineStrings']) {
+      // 'multi-line-string', "multi-line-string"
+      shortcutStylePatterns.push(
+          [PR_STRING,  /^(?:\'(?:[^\\\']|\\[\s\S])*(?:\'|$)|\"(?:[^\\\"]|\\[\s\S])*(?:\"|$)|\`(?:[^\\\`]|\\[\s\S])*(?:\`|$))/,
+           null, '\'"`']);
+    } else {
+      // 'single-line-string', "single-line-string"
+      shortcutStylePatterns.push(
+          [PR_STRING,
+           /^(?:\'(?:[^\\\'\r\n]|\\.)*(?:\'|$)|\"(?:[^\\\"\r\n]|\\.)*(?:\"|$))/,
+           null, '"\'']);
+    }
+    if (options['verbatimStrings']) {
+      // verbatim-string-literal production from the C# grammar.  See issue 93.
+      fallthroughStylePatterns.push(
+          [PR_STRING, /^@\"(?:[^\"]|\"\")*(?:\"|$)/, null]);
+    }
+    var hc = options['hashComments'];
+    if (hc) {
+      if (options['cStyleComments']) {
+        if (hc > 1) {  // multiline hash comments
+          shortcutStylePatterns.push(
+              [PR_COMMENT, /^#(?:##(?:[^#]|#(?!##))*(?:###|$)|.*)/, null, '#']);
+        } else {
+          // Stop C preprocessor declarations at an unclosed open comment
+          shortcutStylePatterns.push(
+              [PR_COMMENT, /^#(?:(?:define|e(?:l|nd)if|else|error|ifn?def|include|line|pragma|undef|warning)\b|[^\r\n]*)/,
+               null, '#']);
+        }
+        // #include <stdio.h>
+        fallthroughStylePatterns.push(
+            [PR_STRING,
+             /^<(?:(?:(?:\.\.\/)*|\/?)(?:[\w-]+(?:\/[\w-]+)+)?[\w-]+\.h(?:h|pp|\+\+)?|[a-z]\w*)>/,
+             null]);
+      } else {
+        shortcutStylePatterns.push([PR_COMMENT, /^#[^\r\n]*/, null, '#']);
+      }
+    }
+    if (options['cStyleComments']) {
+      fallthroughStylePatterns.push([PR_COMMENT, /^\/\/[^\r\n]*/, null]);
+      fallthroughStylePatterns.push(
+          [PR_COMMENT, /^\/\*[\s\S]*?(?:\*\/|$)/, null]);
+    }
+    var regexLiterals = options['regexLiterals'];
+    if (regexLiterals) {
+      /**
+       * @const
+       */
+      var regexExcls = regexLiterals > 1
+        ? ''  // Multiline regex literals
+        : '\n\r';
+      /**
+       * @const
+       */
+      var regexAny = regexExcls ? '.' : '[\\S\\s]';
+      /**
+       * @const
+       */
+      var REGEX_LITERAL = (
+          // A regular expression literal starts with a slash that is
+          // not followed by * or / so that it is not confused with
+          // comments.
+          '/(?=[^/*' + regexExcls + '])'
+          // and then contains any number of raw characters,
+          + '(?:[^/\\x5B\\x5C' + regexExcls + ']'
+          // escape sequences (\x5C),
+          +    '|\\x5C' + regexAny
+          // or non-nesting character sets (\x5B\x5D);
+          +    '|\\x5B(?:[^\\x5C\\x5D' + regexExcls + ']'
+          +             '|\\x5C' + regexAny + ')*(?:\\x5D|$))+'
+          // finally closed by a /.
+          + '/');
+      fallthroughStylePatterns.push(
+          ['lang-regex',
+           RegExp('^' + REGEXP_PRECEDER_PATTERN + '(' + REGEX_LITERAL + ')')
+           ]);
+    }
+
+    var types = options['types'];
+    if (types) {
+      fallthroughStylePatterns.push([PR_TYPE, types]);
+    }
+
+    var keywords = ("" + options['keywords']).replace(/^ | $/g, '');
+    if (keywords.length) {
+      fallthroughStylePatterns.push(
+          [PR_KEYWORD,
+           new RegExp('^(?:' + keywords.replace(/[\s,]+/g, '|') + ')\\b'),
+           null]);
+    }
+
+    shortcutStylePatterns.push([PR_PLAIN,       /^\s+/, null, ' \r\n\t\xA0']);
+
+    var punctuation =
+      // The Bash man page says
+
+      // A word is a sequence of characters considered as a single
+      // unit by GRUB. Words are separated by metacharacters,
+      // which are the following plus space, tab, and newline: { }
+      // | & $ ; < >
+      // ...
+      
+      // A word beginning with # causes that word and all remaining
+      // characters on that line to be ignored.
+
+      // which means that only a '#' after /(?:^|[{}|&$;<>\s])/ starts a
+      // comment but empirically
+      // $ echo {#}
+      // {#}
+      // $ echo \$#
+      // $#
+      // $ echo }#
+      // }#
+
+      // so /(?:^|[|&;<>\s])/ is more appropriate.
+
+      // http://gcc.gnu.org/onlinedocs/gcc-2.95.3/cpp_1.html#SEC3
+      // suggests that this definition is compatible with a
+      // default mode that tries to use a single token definition
+      // to recognize both bash/python style comments and C
+      // preprocessor directives.
+
+      // This definition of punctuation does not include # in the list of
+      // follow-on exclusions, so # will not be broken before if preceeded
+      // by a punctuation character.  We could try to exclude # after
+      // [|&;<>] but that doesn't seem to cause many major problems.
+      // If that does turn out to be a problem, we should change the below
+      // when hc is truthy to include # in the run of punctuation characters
+      // only when not followint [|&;<>].
+      '^.[^\\s\\w.$@\'"`/\\\\]*';
+    if (options['regexLiterals']) {
+      punctuation += '(?!\s*\/)';
+    }
+
+    fallthroughStylePatterns.push(
+        // TODO(mikesamuel): recognize non-latin letters and numerals in idents
+        [PR_LITERAL,     /^@[a-z_$][a-z_$@0-9]*/i, null],
+        [PR_TYPE,        /^(?:[@_]?[A-Z]+[a-z][A-Za-z_$@0-9]*|\w+_t\b)/, null],
+        [PR_PLAIN,       /^[a-z_$][a-z_$@0-9]*/i, null],
+        [PR_LITERAL,
+         new RegExp(
+             '^(?:'
+             // A hex number
+             + '0x[a-f0-9]+'
+             // or an octal or decimal number,
+             + '|(?:\\d(?:_\\d+)*\\d*(?:\\.\\d*)?|\\.\\d\\+)'
+             // possibly in scientific notation
+             + '(?:e[+\\-]?\\d+)?'
+             + ')'
+             // with an optional modifier like UL for unsigned long
+             + '[a-z]*', 'i'),
+         null, '0123456789'],
+        // Don't treat escaped quotes in bash as starting strings.
+        // See issue 144.
+        [PR_PLAIN,       /^\\[\s\S]?/, null],
+        [PR_PUNCTUATION, new RegExp(punctuation), null]);
+
+    return createSimpleLexer(shortcutStylePatterns, fallthroughStylePatterns);
+  }
+
+  var decorateSource = sourceDecorator({
+        'keywords': ALL_KEYWORDS,
+        'hashComments': true,
+        'cStyleComments': true,
+        'multiLineStrings': true,
+        'regexLiterals': true
+      });
+
+  /**
+   * Given a DOM subtree, wraps it in a list, and puts each line into its own
+   * list item.
+   *
+   * @param {Node} node modified in place.  Its content is pulled into an
+   *     HTMLOListElement, and each line is moved into a separate list item.
+   *     This requires cloning elements, so the input might not have unique
+   *     IDs after numbering.
+   * @param {boolean} isPreformatted true iff white-space in text nodes should
+   *     be treated as significant.
+   */
+  function numberLines(node, opt_startLineNum, isPreformatted) {
+    var nocode = /(?:^|\s)nocode(?:\s|$)/;
+    var lineBreak = /\r\n?|\n/;
+  
+    var document = node.ownerDocument;
+  
+    var li = document.createElement('li');
+    while (node.firstChild) {
+      li.appendChild(node.firstChild);
+    }
+    // An array of lines.  We split below, so this is initialized to one
+    // un-split line.
+    var listItems = [li];
+  
+    function walk(node) {
+      var type = node.nodeType;
+      if (type == 1 && !nocode.test(node.className)) {  // Element
+        if ('br' === node.nodeName) {
+          breakAfter(node);
+          // Discard the <BR> since it is now flush against a </LI>.
+          if (node.parentNode) {
+            node.parentNode.removeChild(node);
+          }
+        } else {
+          for (var child = node.firstChild; child; child = child.nextSibling) {
+            walk(child);
+          }
+        }
+      } else if ((type == 3 || type == 4) && isPreformatted) {  // Text
+        var text = node.nodeValue;
+        var match = text.match(lineBreak);
+        if (match) {
+          var firstLine = text.substring(0, match.index);
+          node.nodeValue = firstLine;
+          var tail = text.substring(match.index + match[0].length);
+          if (tail) {
+            var parent = node.parentNode;
+            parent.insertBefore(
+              document.createTextNode(tail), node.nextSibling);
+          }
+          breakAfter(node);
+          if (!firstLine) {
+            // Don't leave blank text nodes in the DOM.
+            node.parentNode.removeChild(node);
+          }
+        }
+      }
+    }
+  
+    // Split a line after the given node.
+    function breakAfter(lineEndNode) {
+      // If there's nothing to the right, then we can skip ending the line
+      // here, and move root-wards since splitting just before an end-tag
+      // would require us to create a bunch of empty copies.
+      while (!lineEndNode.nextSibling) {
+        lineEndNode = lineEndNode.parentNode;
+        if (!lineEndNode) { return; }
+      }
+  
+      function breakLeftOf(limit, copy) {
+        // Clone shallowly if this node needs to be on both sides of the break.
+        var rightSide = copy ? limit.cloneNode(false) : limit;
+        var parent = limit.parentNode;
+        if (parent) {
+          // We clone the parent chain.
+          // This helps us resurrect important styling elements that cross lines.
+          // E.g. in <i>Foo<br>Bar</i>
+          // should be rewritten to <li><i>Foo</i></li><li><i>Bar</i></li>.
+          var parentClone = breakLeftOf(parent, 1);
+          // Move the clone and everything to the right of the original
+          // onto the cloned parent.
+          var next = limit.nextSibling;
+          parentClone.appendChild(rightSide);
+          for (var sibling = next; sibling; sibling = next) {
+            next = sibling.nextSibling;
+            parentClone.appendChild(sibling);
+          }
+        }
+        return rightSide;
+      }
+  
+      var copiedListItem = breakLeftOf(lineEndNode.nextSibling, 0);
+  
+      // Walk the parent chain until we reach an unattached LI.
+      for (var parent;
+           // Check nodeType since IE invents document fragments.
+           (parent = copiedListItem.parentNode) && parent.nodeType === 1;) {
+        copiedListItem = parent;
+      }
+      // Put it on the list of lines for later processing.
+      listItems.push(copiedListItem);
+    }
+  
+    // Split lines while there are lines left to split.
+    for (var i = 0;  // Number of lines that have been split so far.
+         i < listItems.length;  // length updated by breakAfter calls.
+         ++i) {
+      walk(listItems[i]);
+    }
+  
+    // Make sure numeric indices show correctly.
+    if (opt_startLineNum === (opt_startLineNum|0)) {
+      listItems[0].setAttribute('value', opt_startLineNum);
+    }
+  
+    var ol = document.createElement('ol');
+    ol.className = 'linenums';
+    var offset = Math.max(0, ((opt_startLineNum - 1 /* zero index */)) | 0) || 0;
+    for (var i = 0, n = listItems.length; i < n; ++i) {
+      li = listItems[i];
+      // Stick a class on the LIs so that stylesheets can
+      // color odd/even rows, or any other row pattern that
+      // is co-prime with 10.
+      li.className = 'L' + ((i + offset) % 10);
+      if (!li.firstChild) {
+        li.appendChild(document.createTextNode('\xA0'));
+      }
+      ol.appendChild(li);
+    }
+  
+    node.appendChild(ol);
+  }
+  /**
+   * Breaks {@code job.sourceCode} around style boundaries in
+   * {@code job.decorations} and modifies {@code job.sourceNode} in place.
+   * @param {Object} job like <pre>{
+   *    sourceCode: {string} source as plain text,
+   *    sourceNode: {HTMLElement} the element containing the source,
+   *    spans: {Array.<number|Node>} alternating span start indices into source
+   *       and the text node or element (e.g. {@code <BR>}) corresponding to that
+   *       span.
+   *    decorations: {Array.<number|string} an array of style classes preceded
+   *       by the position at which they start in job.sourceCode in order
+   * }</pre>
+   * @private
+   */
+  function recombineTagsAndDecorations(job) {
+    var isIE8OrEarlier = /\bMSIE\s(\d+)/.exec(navigator.userAgent);
+    isIE8OrEarlier = isIE8OrEarlier && +isIE8OrEarlier[1] <= 8;
+    var newlineRe = /\n/g;
+  
+    var source = job.sourceCode;
+    var sourceLength = source.length;
+    // Index into source after the last code-unit recombined.
+    var sourceIndex = 0;
+  
+    var spans = job.spans;
+    var nSpans = spans.length;
+    // Index into spans after the last span which ends at or before sourceIndex.
+    var spanIndex = 0;
+  
+    var decorations = job.decorations;
+    var nDecorations = decorations.length;
+    // Index into decorations after the last decoration which ends at or before
+    // sourceIndex.
+    var decorationIndex = 0;
+  
+    // Remove all zero-length decorations.
+    decorations[nDecorations] = sourceLength;
+    var decPos, i;
+    for (i = decPos = 0; i < nDecorations;) {
+      if (decorations[i] !== decorations[i + 2]) {
+        decorations[decPos++] = decorations[i++];
+        decorations[decPos++] = decorations[i++];
+      } else {
+        i += 2;
+      }
+    }
+    nDecorations = decPos;
+  
+    // Simplify decorations.
+    for (i = decPos = 0; i < nDecorations;) {
+      var startPos = decorations[i];
+      // Conflate all adjacent decorations that use the same style.
+      var startDec = decorations[i + 1];
+      var end = i + 2;
+      while (end + 2 <= nDecorations && decorations[end + 1] === startDec) {
+        end += 2;
+      }
+      decorations[decPos++] = startPos;
+      decorations[decPos++] = startDec;
+      i = end;
+    }
+  
+    nDecorations = decorations.length = decPos;
+  
+    var sourceNode = job.sourceNode;
+    var oldDisplay;
+    if (sourceNode) {
+      oldDisplay = sourceNode.style.display;
+      sourceNode.style.display = 'none';
+    }
+    try {
+      var decoration = null;
+      while (spanIndex < nSpans) {
+        var spanStart = spans[spanIndex];
+        var spanEnd = spans[spanIndex + 2] || sourceLength;
+  
+        var decEnd = decorations[decorationIndex + 2] || sourceLength;
+  
+        var end = Math.min(spanEnd, decEnd);
+  
+        var textNode = spans[spanIndex + 1];
+        var styledText;
+        if (textNode.nodeType !== 1  // Don't muck with <BR>s or <LI>s
+            // Don't introduce spans around empty text nodes.
+            && (styledText = source.substring(sourceIndex, end))) {
+          // This may seem bizarre, and it is.  Emitting LF on IE causes the
+          // code to display with spaces instead of line breaks.
+          // Emitting Windows standard issue linebreaks (CRLF) causes a blank
+          // space to appear at the beginning of every line but the first.
+          // Emitting an old Mac OS 9 line separator makes everything spiffy.
+          if (isIE8OrEarlier) {
+            styledText = styledText.replace(newlineRe, '\r');
+          }
+          textNode.nodeValue = styledText;
+          var document = textNode.ownerDocument;
+          var span = document.createElement('span');
+          span.className = decorations[decorationIndex + 1];
+          var parentNode = textNode.parentNode;
+          parentNode.replaceChild(span, textNode);
+          span.appendChild(textNode);
+          if (sourceIndex < spanEnd) {  // Split off a text node.
+            spans[spanIndex + 1] = textNode
+                // TODO: Possibly optimize by using '' if there's no flicker.
+                = document.createTextNode(source.substring(end, spanEnd));
+            parentNode.insertBefore(textNode, span.nextSibling);
+          }
+        }
+  
+        sourceIndex = end;
+  
+        if (sourceIndex >= spanEnd) {
+          spanIndex += 2;
+        }
+        if (sourceIndex >= decEnd) {
+          decorationIndex += 2;
+        }
+      }
+    } finally {
+      if (sourceNode) {
+        sourceNode.style.display = oldDisplay;
+      }
+    }
+  }
+
+  /** Maps language-specific file extensions to handlers. */
+  var langHandlerRegistry = {};
+  /** Register a language handler for the given file extensions.
+    * @param {function (Object)} handler a function from source code to a list
+    *      of decorations.  Takes a single argument job which describes the
+    *      state of the computation.   The single parameter has the form
+    *      {@code {
+    *        sourceCode: {string} as plain text.
+    *        decorations: {Array.<number|string>} an array of style classes
+    *                     preceded by the position at which they start in
+    *                     job.sourceCode in order.
+    *                     The language handler should assigned this field.
+    *        basePos: {int} the position of source in the larger source chunk.
+    *                 All positions in the output decorations array are relative
+    *                 to the larger source chunk.
+    *      } }
+    * @param {Array.<string>} fileExtensions
+    */
+  function registerLangHandler(handler, fileExtensions) {
+    for (var i = fileExtensions.length; --i >= 0;) {
+      var ext = fileExtensions[i];
+      if (!langHandlerRegistry.hasOwnProperty(ext)) {
+        langHandlerRegistry[ext] = handler;
+      } else if (win['console']) {
+        console['warn']('cannot override language handler %s', ext);
+      }
+    }
+  }
+  function langHandlerForExtension(extension, source) {
+    if (!(extension && langHandlerRegistry.hasOwnProperty(extension))) {
+      // Treat it as markup if the first non whitespace character is a < and
+      // the last non-whitespace character is a >.
+      extension = /^\s*</.test(source)
+          ? 'default-markup'
+          : 'default-code';
+    }
+    return langHandlerRegistry[extension];
+  }
+  registerLangHandler(decorateSource, ['default-code']);
+  registerLangHandler(
+      createSimpleLexer(
+          [],
+          [
+           [PR_PLAIN,       /^[^<?]+/],
+           [PR_DECLARATION, /^<!\w[^>]*(?:>|$)/],
+           [PR_COMMENT,     /^<\!--[\s\S]*?(?:-\->|$)/],
+           // Unescaped content in an unknown language
+           ['lang-',        /^<\?([\s\S]+?)(?:\?>|$)/],
+           ['lang-',        /^<%([\s\S]+?)(?:%>|$)/],
+           [PR_PUNCTUATION, /^(?:<[%?]|[%?]>)/],
+           ['lang-',        /^<xmp\b[^>]*>([\s\S]+?)<\/xmp\b[^>]*>/i],
+           // Unescaped content in javascript.  (Or possibly vbscript).
+           ['lang-js',      /^<script\b[^>]*>([\s\S]*?)(<\/script\b[^>]*>)/i],
+           // Contains unescaped stylesheet content
+           ['lang-css',     /^<style\b[^>]*>([\s\S]*?)(<\/style\b[^>]*>)/i],
+           ['lang-in.tag',  /^(<\/?[a-z][^<>]*>)/i]
+          ]),
+      ['default-markup', 'htm', 'html', 'mxml', 'xhtml', 'xml', 'xsl']);
+  registerLangHandler(
+      createSimpleLexer(
+          [
+           [PR_PLAIN,        /^[\s]+/, null, ' \t\r\n'],
+           [PR_ATTRIB_VALUE, /^(?:\"[^\"]*\"?|\'[^\']*\'?)/, null, '\"\'']
+           ],
+          [
+           [PR_TAG,          /^^<\/?[a-z](?:[\w.:-]*\w)?|\/?>$/i],
+           [PR_ATTRIB_NAME,  /^(?!style[\s=]|on)[a-z](?:[\w:-]*\w)?/i],
+           ['lang-uq.val',   /^=\s*([^>\'\"\s]*(?:[^>\'\"\s\/]|\/(?=\s)))/],
+           [PR_PUNCTUATION,  /^[=<>\/]+/],
+           ['lang-js',       /^on\w+\s*=\s*\"([^\"]+)\"/i],
+           ['lang-js',       /^on\w+\s*=\s*\'([^\']+)\'/i],
+           ['lang-js',       /^on\w+\s*=\s*([^\"\'>\s]+)/i],
+           ['lang-css',      /^style\s*=\s*\"([^\"]+)\"/i],
+           ['lang-css',      /^style\s*=\s*\'([^\']+)\'/i],
+           ['lang-css',      /^style\s*=\s*([^\"\'>\s]+)/i]
+           ]),
+      ['in.tag']);
+  registerLangHandler(
+      createSimpleLexer([], [[PR_ATTRIB_VALUE, /^[\s\S]+/]]), ['uq.val']);
+  registerLangHandler(sourceDecorator({
+          'keywords': CPP_KEYWORDS,
+          'hashComments': true,
+          'cStyleComments': true,
+          'types': C_TYPES
+        }), ['c', 'cc', 'cpp', 'cxx', 'cyc', 'm']);
+  registerLangHandler(sourceDecorator({
+          'keywords': 'null,true,false'
+        }), ['json']);
+  registerLangHandler(sourceDecorator({
+          'keywords': CSHARP_KEYWORDS,
+          'hashComments': true,
+          'cStyleComments': true,
+          'verbatimStrings': true,
+          'types': C_TYPES
+        }), ['cs']);
+  registerLangHandler(sourceDecorator({
+          'keywords': JAVA_KEYWORDS,
+          'cStyleComments': true
+        }), ['java']);
+  registerLangHandler(sourceDecorator({
+          'keywords': SH_KEYWORDS,
+          'hashComments': true,
+          'multiLineStrings': true
+        }), ['bash', 'bsh', 'csh', 'sh']);
+  registerLangHandler(sourceDecorator({
+          'keywords': PYTHON_KEYWORDS,
+          'hashComments': true,
+          'multiLineStrings': true,
+          'tripleQuotedStrings': true
+        }), ['cv', 'py', 'python']);
+  registerLangHandler(sourceDecorator({
+          'keywords': PERL_KEYWORDS,
+          'hashComments': true,
+          'multiLineStrings': true,
+          'regexLiterals': 2  // multiline regex literals
+        }), ['perl', 'pl', 'pm']);
+  registerLangHandler(sourceDecorator({
+          'keywords': RUBY_KEYWORDS,
+          'hashComments': true,
+          'multiLineStrings': true,
+          'regexLiterals': true
+        }), ['rb', 'ruby']);
+  registerLangHandler(sourceDecorator({
+          'keywords': JSCRIPT_KEYWORDS,
+          'cStyleComments': true,
+          'regexLiterals': true
+        }), ['javascript', 'js']);
+  registerLangHandler(sourceDecorator({
+          'keywords': COFFEE_KEYWORDS,
+          'hashComments': 3,  // ### style block comments
+          'cStyleComments': true,
+          'multilineStrings': true,
+          'tripleQuotedStrings': true,
+          'regexLiterals': true
+        }), ['coffee']);
+  registerLangHandler(sourceDecorator({
+          'keywords': RUST_KEYWORDS,
+          'cStyleComments': true,
+          'multilineStrings': true
+        }), ['rc', 'rs', 'rust']);
+  registerLangHandler(
+      createSimpleLexer([], [[PR_STRING, /^[\s\S]+/]]), ['regex']);
+
+  function applyDecorator(job) {
+    var opt_langExtension = job.langExtension;
+
+    try {
+      // Extract tags, and convert the source code to plain text.
+      var sourceAndSpans = extractSourceSpans(job.sourceNode, job.pre);
+      /** Plain text. @type {string} */
+      var source = sourceAndSpans.sourceCode;
+      job.sourceCode = source;
+      job.spans = sourceAndSpans.spans;
+      job.basePos = 0;
+
+      // Apply the appropriate language handler
+      langHandlerForExtension(opt_langExtension, source)(job);
+
+      // Integrate the decorations and tags back into the source code,
+      // modifying the sourceNode in place.
+      recombineTagsAndDecorations(job);
+    } catch (e) {
+      if (win['console']) {
+        console['log'](e && e['stack'] || e);
+      }
+    }
+  }
+
+  /**
+   * Pretty print a chunk of code.
+   * @param sourceCodeHtml {string} The HTML to pretty print.
+   * @param opt_langExtension {string} The language name to use.
+   *     Typically, a filename extension like 'cpp' or 'java'.
+   * @param opt_numberLines {number|boolean} True to number lines,
+   *     or the 1-indexed number of the first line in sourceCodeHtml.
+   */
+  function $prettyPrintOne(sourceCodeHtml, opt_langExtension, opt_numberLines) {
+    var container = document.createElement('div');
+    // This could cause images to load and onload listeners to fire.
+    // E.g. <img onerror="alert(1337)" src="nosuchimage.png">.
+    // We assume that the inner HTML is from a trusted source.
+    // The pre-tag is required for IE8 which strips newlines from innerHTML
+    // when it is injected into a <pre> tag.
+    // http://stackoverflow.com/questions/451486/pre-tag-loses-line-breaks-when-setting-innerhtml-in-ie
+    // http://stackoverflow.com/questions/195363/inserting-a-newline-into-a-pre-tag-ie-javascript
+    container.innerHTML = '<pre>' + sourceCodeHtml + '</pre>';
+    container = container.firstChild;
+    if (opt_numberLines) {
+      numberLines(container, opt_numberLines, true);
+    }
+
+    var job = {
+      langExtension: opt_langExtension,
+      numberLines: opt_numberLines,
+      sourceNode: container,
+      pre: 1
+    };
+    applyDecorator(job);
+    return container.innerHTML;
+  }
+
+   /**
+    * Find all the {@code <pre>} and {@code <code>} tags in the DOM with
+    * {@code class=prettyprint} and prettify them.
+    *
+    * @param {Function} opt_whenDone called when prettifying is done.
+    * @param {HTMLElement|HTMLDocument} opt_root an element or document
+    *   containing all the elements to pretty print.
+    *   Defaults to {@code document.body}.
+    */
+  function $prettyPrint(opt_whenDone, opt_root) {
+    var root = opt_root || document.body;
+    var doc = root.ownerDocument || document;
+    function byTagName(tn) { return root.getElementsByTagName(tn); }
+    // fetch a list of nodes to rewrite
+    var codeSegments = [byTagName('pre'), byTagName('code'), byTagName('xmp')];
+    var elements = [];
+    for (var i = 0; i < codeSegments.length; ++i) {
+      for (var j = 0, n = codeSegments[i].length; j < n; ++j) {
+        elements.push(codeSegments[i][j]);
+      }
+    }
+    codeSegments = null;
+
+    var clock = Date;
+    if (!clock['now']) {
+      clock = { 'now': function () { return +(new Date); } };
+    }
+
+    // The loop is broken into a series of continuations to make sure that we
+    // don't make the browser unresponsive when rewriting a large page.
+    var k = 0;
+    var prettyPrintingJob;
+
+    var langExtensionRe = /\blang(?:uage)?-([\w.]+)(?!\S)/;
+    var prettyPrintRe = /\bprettyprint\b/;
+    var prettyPrintedRe = /\bprettyprinted\b/;
+    var preformattedTagNameRe = /pre|xmp/i;
+    var codeRe = /^code$/i;
+    var preCodeXmpRe = /^(?:pre|code|xmp)$/i;
+    var EMPTY = {};
+
+    function doWork() {
+      var endTime = (win['PR_SHOULD_USE_CONTINUATION'] ?
+                     clock['now']() + 250 /* ms */ :
+                     Infinity);
+      for (; k < elements.length && clock['now']() < endTime; k++) {
+        var cs = elements[k];
+
+        // Look for a preceding comment like
+        // <?prettify lang="..." linenums="..."?>
+        var attrs = EMPTY;
+        {
+          for (var preceder = cs; (preceder = preceder.previousSibling);) {
+            var nt = preceder.nodeType;
+            // <?foo?> is parsed by HTML 5 to a comment node (8)
+            // like <!--?foo?-->, but in XML is a processing instruction
+            var value = (nt === 7 || nt === 8) && preceder.nodeValue;
+            if (value
+                ? !/^\??prettify\b/.test(value)
+                : (nt !== 3 || /\S/.test(preceder.nodeValue))) {
+              // Skip over white-space text nodes but not others.
+              break;
+            }
+            if (value) {
+              attrs = {};
+              value.replace(
+                  /\b(\w+)=([\w:.%+-]+)/g,
+                function (_, name, value) { attrs[name] = value; });
+              break;
+            }
+          }
+        }
+
+        var className = cs.className;
+        if ((attrs !== EMPTY || prettyPrintRe.test(className))
+            // Don't redo this if we've already done it.
+            // This allows recalling pretty print to just prettyprint elements
+            // that have been added to the page since last call.
+            && !prettyPrintedRe.test(className)) {
+
+          // make sure this is not nested in an already prettified element
+          var nested = false;
+          for (var p = cs.parentNode; p; p = p.parentNode) {
+            var tn = p.tagName;
+            if (preCodeXmpRe.test(tn)
+                && p.className && prettyPrintRe.test(p.className)) {
+              nested = true;
+              break;
+            }
+          }
+          if (!nested) {
+            // Mark done.  If we fail to prettyprint for whatever reason,
+            // we shouldn't try again.
+            cs.className += ' prettyprinted';
+
+            // If the classes includes a language extensions, use it.
+            // Language extensions can be specified like
+            //     <pre class="prettyprint lang-cpp">
+            // the language extension "cpp" is used to find a language handler
+            // as passed to PR.registerLangHandler.
+            // HTML5 recommends that a language be specified using "language-"
+            // as the prefix instead.  Google Code Prettify supports both.
+            // http://dev.w3.org/html5/spec-author-view/the-code-element.html
+            var langExtension = attrs['lang'];
+            if (!langExtension) {
+              langExtension = className.match(langExtensionRe);
+              // Support <pre class="prettyprint"><code class="language-c">
+              var wrapper;
+              if (!langExtension && (wrapper = childContentWrapper(cs))
+                  && codeRe.test(wrapper.tagName)) {
+                langExtension = wrapper.className.match(langExtensionRe);
+              }
+
+              if (langExtension) { langExtension = langExtension[1]; }
+            }
+
+            var preformatted;
+            if (preformattedTagNameRe.test(cs.tagName)) {
+              preformatted = 1;
+            } else {
+              var currentStyle = cs['currentStyle'];
+              var defaultView = doc.defaultView;
+              var whitespace = (
+                  currentStyle
+                  ? currentStyle['whiteSpace']
+                  : (defaultView
+                     && defaultView.getComputedStyle)
+                  ? defaultView.getComputedStyle(cs, null)
+                  .getPropertyValue('white-space')
+                  : 0);
+              preformatted = whitespace
+                  && 'pre' === whitespace.substring(0, 3);
+            }
+
+            // Look for a class like linenums or linenums:<n> where <n> is the
+            // 1-indexed number of the first line.
+            var lineNums = attrs['linenums'];
+            if (!(lineNums = lineNums === 'true' || +lineNums)) {
+              lineNums = className.match(/\blinenums\b(?::(\d+))?/);
+              lineNums =
+                lineNums
+                ? lineNums[1] && lineNums[1].length
+                  ? +lineNums[1] : true
+                : false;
+            }
+            if (lineNums) { numberLines(cs, lineNums, preformatted); }
+
+            // do the pretty printing
+            prettyPrintingJob = {
+              langExtension: langExtension,
+              sourceNode: cs,
+              numberLines: lineNums,
+              pre: preformatted
+            };
+            applyDecorator(prettyPrintingJob);
+          }
+        }
+      }
+      if (k < elements.length) {
+        // finish up in a continuation
+        setTimeout(doWork, 250);
+      } else if ('function' === typeof opt_whenDone) {
+        opt_whenDone();
+      }
+    }
+
+    doWork();
+  }
+
+  /**
+   * Contains functions for creating and registering new language handlers.
+   * @type {Object}
+   */
+  var PR = win['PR'] = {
+        'createSimpleLexer': createSimpleLexer,
+        'registerLangHandler': registerLangHandler,
+        'sourceDecorator': sourceDecorator,
+        'PR_ATTRIB_NAME': PR_ATTRIB_NAME,
+        'PR_ATTRIB_VALUE': PR_ATTRIB_VALUE,
+        'PR_COMMENT': PR_COMMENT,
+        'PR_DECLARATION': PR_DECLARATION,
+        'PR_KEYWORD': PR_KEYWORD,
+        'PR_LITERAL': PR_LITERAL,
+        'PR_NOCODE': PR_NOCODE,
+        'PR_PLAIN': PR_PLAIN,
+        'PR_PUNCTUATION': PR_PUNCTUATION,
+        'PR_SOURCE': PR_SOURCE,
+        'PR_STRING': PR_STRING,
+        'PR_TAG': PR_TAG,
+        'PR_TYPE': PR_TYPE,
+        'prettyPrintOne':
+           IN_GLOBAL_SCOPE
+             ? (win['prettyPrintOne'] = $prettyPrintOne)
+             : (prettyPrintOne = $prettyPrintOne),
+        'prettyPrint': prettyPrint =
+           IN_GLOBAL_SCOPE
+             ? (win['prettyPrint'] = $prettyPrint)
+             : (prettyPrint = $prettyPrint)
+      };
+
+  // Make PR available via the Asynchronous Module Definition (AMD) API.
+  // Per https://github.com/amdjs/amdjs-api/wiki/AMD:
+  // The Asynchronous Module Definition (AMD) API specifies a
+  // mechanism for defining modules such that the module and its
+  // dependencies can be asynchronously loaded.
+  // ...
+  // To allow a clear indicator that a global define function (as
+  // needed for script src browser loading) conforms to the AMD API,
+  // any global define function SHOULD have a property called "amd"
+  // whose value is an object. This helps avoid conflict with any
+  // other existing JavaScript code that could have defined a define()
+  // function that does not conform to the AMD API.
+  if (typeof define === "function" && define['amd']) {
+    define("google-code-prettify", [], function () {
+      return PR; 
+    });
+  }
+}).call(this);
+
+define("prettify", function(){});
+
 /*! fixto - v0.1.7 - 2013-02-02
 * http://github.com/bbarakaci/fixto/*/
 
-/*! Computed Style - v0.1.0 - 2012-07-19
+
+var fixto = (function ($, window, document) {
+
+	// Start Computed Style. Please do not modify this module here. Modify it from its own repo. See address below.
+	
+    /*! Computed Style - v0.1.0 - 2012-07-19
     * https://github.com/bbarakaci/computed-style
     * Copyright (c) 2012 Burak Barakaci; Licensed MIT */
+    var computedStyle = (function() {
+        var computedStyle = {
+            getAll : function(element){
+                return document.defaultView.getComputedStyle(element);
+            },
+            get : function(element, name){
+                return this.getAll(element)[name];
+            },
+            toFloat : function(value){
+                return parseFloat(value, 10) || 0;
+            },
+            getFloat : function(element,name){
+                return this.toFloat(this.get(element, name));
+            },
+            _getAllCurrentStyle : function(element) {
+                return element.currentStyle;
+            }
+        };
+
+        if (document.documentElement.currentStyle) {
+            computedStyle.getAll = computedStyle._getAllCurrentStyle;
+        }
+
+        return computedStyle;
+
+    }());
+
+	// End Computed Style. Modify whatever you want to.
+
+    var mimicNode = (function(){
+        /*
+        Class Mimic Node
+        Dependency : Computed Style
+        Tries to mimick a dom node taking his styles, dimensions. May go to his repo if gets mature.
+        */
+
+        function MimicNode(element) {
+            this.element = element;
+            this.replacer = document.createElement('div');
+            this.replacer.style.visibility = 'hidden';
+            this.hide();
+            element.parentNode.insertBefore(this.replacer, element);
+        }
+
+        MimicNode.prototype = {
+            replace : function(){
+                var rst = this.replacer.style;
+                var styles = computedStyle.getAll(this.element);
+
+                 // rst.width = computedStyle.width(this.element) + 'px';
+                 // rst.height = this.element.offsetHeight + 'px';
+
+                 // Setting offsetWidth
+                 rst.width = this._width();
+                 rst.height = this._height();
+
+                 // Adobt margins
+                 rst.marginTop = styles.marginTop;
+                 rst.marginBottom = styles.marginBottom;
+                 rst.marginLeft = styles.marginLeft;
+                 rst.marginRight = styles.marginRight;
+
+                 // Adopt positioning
+                 rst.cssFloat = styles.cssFloat;
+                 rst.styleFloat = styles.styleFloat; //ie8;
+                 rst.position = styles.position;
+                 rst.top = styles.top;
+                 rst.right = styles.right;
+                 rst.bottom = styles.bottom;
+                 rst.left = styles.left;
+                 // rst.borderStyle = styles.borderStyle;
+
+                 rst.display = styles.display;
+
+            },
+
+            hide: function () {
+                this.replacer.style.display = 'none';
+            },
+
+            _width : function(){
+                return this.element.getBoundingClientRect().width + 'px';
+            },
+
+            _widthOffset : function(){
+                return this.element.offsetWidth + 'px';
+            },
+
+            _height : function(){
+                return this.element.getBoundingClientRect().height + 'px';
+            },
+
+            _heightOffset : function(){
+                return this.element.offsetHeight + 'px';
+            },
+            
+            destroy: function () {
+                $(this.replacer).remove();
+                
+                // set properties to null to break references
+                for (var prop in this) {
+                    if (this.hasOwnProperty(prop)) {
+                      this[prop] = null;
+                    }
+                }
+            }
+        };
+
+        var bcr = document.documentElement.getBoundingClientRect();
+        if(!bcr.width){
+            MimicNode.prototype._width = MimicNode.prototype._widthOffset;
+            MimicNode.prototype._height = MimicNode.prototype._heightOffset;
+        }
+
+        return {
+            MimicNode:MimicNode,
+            computedStyle:computedStyle
+        };
+    }());
+    
+    // Dirty business
+    var ie = navigator.appName === 'Microsoft Internet Explorer';
+    var ieversion;
+    
+    if(ie){
+        ieversion = parseFloat(navigator.appVersion.split("MSIE")[1]);
+    }
+
+    // Class FixToContainer
+
+    function FixToContainer(child, parent, options) {
+        this.child = child;
+        this._$child = $(child);
+        this.parent = parent;
+        this._replacer = new mimicNode.MimicNode(child);
+        this._ghostNode = this._replacer.replacer;
+        this.options = $.extend({
+            className: 'fixto-fixed'
+        }, options);
+        if(this.options.mind) {
+            this._$mind = $(this.options.mind);
+        }
+        if(this.options.zIndex) {
+            this.child.style.zIndex = this.options.zIndex;
+        }
+        
+        this._saveStyles();
+        
+        this._saveViewportHeight();
+        
+        // Create anonymous functions and keep references to register and unregister events.
+        this._proxied_onscroll = this._bind(this._onscroll, this);
+        this._proxied_onresize = this._bind(this._onresize, this);
+        
+        
+        
+        this.start();
+    }
+
+    FixToContainer.prototype = {
+        
+        // Returns an anonymous function that will call the given function in the given context
+        _bind : function (fn, context) {
+            return function () {
+                return fn.call(context);
+            };
+        },
+	
+        // at ie8 maybe only in vm window resize event fires everytime an element is resized.
+        _toresize : ieversion===8 ? document.documentElement : window,
+        
+        // Returns the total outerHeight of the elements passed to mind option. Will return 0 if none.
+        _mindtop: function () {
+            var top = 0;
+            if(this._$mind) {
+                $(this._$mind).each(function () {
+                    top += $(this).outerHeight(true);
+                });
+            }
+            return top;
+        },
+
+        _onscroll: function _onscroll() {
+            this._scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            this._parentBottom = (this.parent.offsetHeight + this._fullOffset('offsetTop', this.parent)) - computedStyle.getFloat(this.parent, 'paddingBottom');
+            if (!this.fixed) {
+                if (
+                    this._scrollTop < this._parentBottom && 
+                    this._scrollTop > (this._fullOffset('offsetTop', this.child) - computedStyle.getFloat(this.child, 'marginTop') - this._mindtop()) && 
+                    this._viewportHeight > (this.child.offsetHeight + computedStyle.getFloat(this.child, 'marginTop') + computedStyle.getFloat(this.child, 'marginBottom'))
+                ) {
+                    this._fix();
+                    this._adjust();
+                }
+            } else {
+                if (this._scrollTop > this._parentBottom || this._scrollTop < (this._fullOffset('offsetTop', this._ghostNode) - computedStyle.getFloat(this._ghostNode, 'marginTop') - this._mindtop())) {
+                    this._unfix();
+                    return;
+                }
+                this._adjust();
+            }
+        },
+
+        _adjust: function _adjust() {
+            var diff = (this._parentBottom - this._scrollTop) - (this.child.offsetHeight + computedStyle.getFloat(this.child, 'marginTop') + computedStyle.getFloat(this.child, 'marginBottom') + this._mindtop());
+            var mindTop = this._mindtop();
+            if (diff < 0) {
+                this.child.style.top = (diff + mindTop) + 'px';
+            }
+            else {
+                this.child.style.top = (0 + mindTop) + 'px';
+            }
+        },
+
+        /*
+        I need some performance on calculating offset as it is called a lot of times.
+        This function calculates cumulative offsetTop way faster than jQuery $.offset
+        todo: check vs getBoundingClientRect
+        */
+
+        _fullOffset: function _fullOffset(offsetName, elm) {
+            var offset = elm[offsetName];
+            while (elm.offsetParent !== null) {
+                elm = elm.offsetParent;
+                offset = offset + elm[offsetName];
+            }
+            return offset;
+        },
+
+        _fix: function _fix() {
+            var child = this.child,
+                childStyle = child.style;
+            this._saveStyles();
+
+            if(document.documentElement.currentStyle){
+                var styles = computedStyle.getAll(child);
+                childStyle.left = (this._fullOffset('offsetLeft', child) - computedStyle.getFloat(child, 'marginLeft')) + 'px';
+                // Function for ie<9. when hasLayout is not triggered in ie7, he will report currentStyle as auto, clientWidth as 0. Thus using offsetWidth.
+                childStyle.width = (child.offsetWidth) - (computedStyle.toFloat(styles.paddingLeft) + computedStyle.toFloat(styles.paddingRight) + computedStyle.toFloat(styles.borderLeftWidth) + computedStyle.toFloat(styles.borderRightWidth)) + 'px';
+            }
+            else {
+                childStyle.width = computedStyle.get(child, 'width');
+                childStyle.left = (child.getBoundingClientRect().left - computedStyle.getFloat(child, 'marginLeft')) + 'px';
+            }
+
+            this._replacer.replace();
+            childStyle.position = 'fixed';
+            childStyle.top = this._mindtop() + 'px';
+            this._$child.addClass(this.options.className);
+            this.fixed = true;
+        },
+
+        _unfix: function _unfix() {
+            var childStyle = this.child.style;
+            this._replacer.hide();
+            childStyle.position = this._childOriginalPosition;
+            childStyle.top = this._childOriginalTop;
+            childStyle.width = this._childOriginalWidth;
+            childStyle.left = this._childOriginalLeft;
+            this._$child.removeClass(this.options.className);
+            this.fixed = false;
+        },
+
+        _saveStyles: function(){
+            var childStyle = this.child.style;
+            this._childOriginalPosition = childStyle.position;
+            this._childOriginalTop = childStyle.top;
+            this._childOriginalWidth = childStyle.width;
+            this._childOriginalLeft = childStyle.left;
+        },
+
+        _onresize: function () {
+            this._saveViewportHeight();
+            this._unfix();
+            this._onscroll();
+        },
+        
+        _saveViewportHeight: function () {
+            // ie8 doesn't support innerHeight
+            this._viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        },
+        
+        // Public method to stop the behaviour of this instance.        
+        stop: function () {
+            
+            // Unfix the container immediately.
+            this._unfix();
+            
+            // remove event listeners
+            $(window).unbind('scroll', this._proxied_onscroll);
+            $(this._toresize).unbind('resize', this._proxied_onresize);
+            
+            this._running = false;
+        },
+        
+        // Public method starts the behaviour of this instance.
+        start: function () {
+            
+            // Start only if it is not running not to attach event listeners multiple times.
+            if(!this._running) {
+                
+                // Trigger onscroll to have the effect immediately.
+                this._onscroll();
+                
+                // Attach event listeners
+                $(window).bind('scroll', this._proxied_onscroll);
+                $(this._toresize).bind('resize', this._proxied_onresize);
+                
+                this._running = true;
+            }
+        },
+        
+        //Public method to destroy fixto behaviour
+        destroy: function () {
+            this.stop();
+            
+            // Remove jquery data from the element
+            this._$child.removeData('fixto-instance');
+            
+            // Destroy mimic node instance
+            this._replacer.destroy();
+            
+            // set properties to null to break references
+            for (var prop in this) {
+                if (this.hasOwnProperty(prop)) {
+                  this[prop] = null;
+                }
+            }
+        }
+        
+    };
+
+    var fixTo = function fixTo(childElement, parentElement, options) {
+        return new FixToContainer(childElement, parentElement, options);
+    };
+
+    /*
+    No support for touch devices and ie lt 8
+    */
+    var touch = !!('ontouchstart' in window);
+    
+    if(touch || ieversion<8){
+        fixTo = function(){
+            return 'not supported';
+        };
+    }
+
+    // Let it be a jQuery Plugin
+    $.fn.fixTo = function (targetSelector, options) {
+         
+         var $targets = $(targetSelector);
+         
+         var i = 0;
+         return this.each(function () {
+                         
+             // Check the data of the element.
+             var instance = $(this).data('fixto-instance');
+             
+             // If the element is not bound to an instance, create the instance and save it to elements data.
+             if(!instance) {
+                 $(this).data('fixto-instance', fixTo(this, $targets[i], options));
+             }
+             else {
+                 // If we already have the instance here, expect that targetSelector parameter will be a string 
+                 // equal to a public methods name. Run the method on the instance without checking if 
+                 // it exists or it is a public method or not. Cause nasty errors when necessary.
+                 var method = targetSelector;
+                 instance[method].call(instance);
+             }
+             i++;
+          });
+    };
+
+    /*
+        Expose
+    */
+
+    return {
+        FixToContainer: FixToContainer,
+        fixTo: fixTo,
+        computedStyle:computedStyle,
+        mimicNode:mimicNode
+    };
+
+
+}(window.jQuery, window, document));
+define("jquery.fixto", ["jquery"], function(){});
 
 /* ========================================================================
  * Bootstrap: scrollspy.js v3.0.0
@@ -68,6 +11318,560 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * ======================================================================== */
+
+
++function ($) { 
+
+  // SCROLLSPY CLASS DEFINITION
+  // ==========================
+
+  function ScrollSpy(element, options) {
+    var href
+    var process  = $.proxy(this.process, this)
+
+    this.$element       = $(element).is('body') ? $(window) : $(element)
+    this.$body          = $('body')
+    this.$scrollElement = this.$element.on('scroll.bs.scroll-spy.data-api', process)
+    this.options        = $.extend({}, ScrollSpy.DEFAULTS, options)
+    this.selector       = (this.options.target
+      || ((href = $(element).attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '')) //strip for ie7
+      || '') + ' .nav li > a'
+    this.offsets        = $([])
+    this.targets        = $([])
+    this.activeTarget   = null
+
+    this.refresh()
+    this.process()
+  }
+
+  ScrollSpy.DEFAULTS = {
+    offset: 10
+  }
+
+  ScrollSpy.prototype.refresh = function () {
+    var offsetMethod = this.$element[0] == window ? 'offset' : 'position'
+
+    this.offsets = $([])
+    this.targets = $([])
+
+    var self     = this
+    var $targets = this.$body
+      .find(this.selector)
+      .map(function () {
+        var $el   = $(this)
+        var href  = $el.data('target') || $el.attr('href')
+        var $href = /^#\w/.test(href) && $(href)
+
+        return ($href
+          && $href.length
+          && [[ $href[offsetMethod]().top + (!$.isWindow(self.$scrollElement.get(0)) && self.$scrollElement.scrollTop()), href ]]) || null
+      })
+      .sort(function (a, b) { return a[0] - b[0] })
+      .each(function () {
+        self.offsets.push(this[0])
+        self.targets.push(this[1])
+      })
+  }
+
+  ScrollSpy.prototype.process = function () {
+    var scrollTop    = this.$scrollElement.scrollTop() + this.options.offset
+    var scrollHeight = this.$scrollElement[0].scrollHeight || this.$body[0].scrollHeight
+    var maxScroll    = scrollHeight - this.$scrollElement.height()
+    var offsets      = this.offsets
+    var targets      = this.targets
+    var activeTarget = this.activeTarget
+    var i
+
+    if (scrollTop >= maxScroll) {
+      return activeTarget != (i = targets.last()[0]) && this.activate(i)
+    }
+
+    for (i = offsets.length; i--;) {
+      activeTarget != targets[i]
+        && scrollTop >= offsets[i]
+        && (!offsets[i + 1] || scrollTop <= offsets[i + 1])
+        && this.activate( targets[i] )
+    }
+  }
+
+  ScrollSpy.prototype.activate = function (target) {
+    this.activeTarget = target
+
+    $(this.selector)
+      .parents('.active')
+      .removeClass('active')
+
+    var selector = this.selector
+      + '[data-target="' + target + '"],'
+      + this.selector + '[href="' + target + '"]'
+
+    var active = $(selector)
+      .parents('li')
+      .addClass('active')
+
+    if (active.parent('.dropdown-menu').length)  {
+      active = active
+        .closest('li.dropdown')
+        .addClass('active')
+    }
+
+    active.trigger('activate')
+  }
+
+
+  // SCROLLSPY PLUGIN DEFINITION
+  // ===========================
+
+  var old = $.fn.scrollspy
+
+  $.fn.scrollspy = function (option) {
+    return this.each(function () {
+      var $this   = $(this)
+      var data    = $this.data('bs.scrollspy')
+      var options = typeof option == 'object' && option
+
+      if (!data) $this.data('bs.scrollspy', (data = new ScrollSpy(this, options)))
+      if (typeof option == 'string') data[option]()
+    })
+  }
+
+  $.fn.scrollspy.Constructor = ScrollSpy
+
+
+  // SCROLLSPY NO CONFLICT
+  // =====================
+
+  $.fn.scrollspy.noConflict = function () {
+    $.fn.scrollspy = old
+    return this
+  }
+
+
+  // SCROLLSPY DATA-API
+  // ==================
+
+  $(window).on('load', function () {
+    $('[data-spy="scroll"]').each(function () {
+      var $spy = $(this)
+      $spy.scrollspy($spy.data())
+    })
+  })
+
+}(window.jQuery);
+
+define("bootstrap.scrollspy", ["jquery"], function(){});
+
+(function() {
+  define('modules/scrollspy',['bootstrap.scrollspy'], function(__scrollSpy) {
+    var Scrollspy;
+    Scrollspy = (function() {
+      function Scrollspy() {}
+
+      Scrollspy.prototype.init = function() {
+        $('body').scrollspy({
+          target: '#doc-navigation',
+          offest: 0
+        });
+        return $('#doc-navigation').on('activate.bs.scrollspy', function(evt) {
+          var $active, $ct, $dom, $navLi, hash, id;
+          $ct = $(evt.currentTarget);
+          $active = $ct.find('.active');
+          $navLi = $('.nav li');
+          $navLi.removeClass('open-subnav');
+          $active.addClass('open-subnav');
+          if ($active.parents('active')) {
+            $active.parents('li').removeClass('active').addClass('open-subnav');
+          }
+          hash = $active.find('> a').attr('href');
+          id = hash.replace('#', '');
+          $dom = $(hash);
+          $dom.attr('id', '');
+          if (history.pushState) {
+            history.replaceState('', hash, hash);
+          } else {
+            location.replace(hash);
+          }
+          return $dom.attr('id', id);
+        });
+      };
+
+      return Scrollspy;
+
+    })();
+    return Scrollspy;
+  });
+
+}).call(this);
+
+(function() {
+  define('modules/process-documentation',['jquery', 'prettify', 'jquery.fixto', 'modules/scrollspy'], function($, __prettify, __fixTo, Scrollspy) {
+    var ProcessDocumentation;
+    return ProcessDocumentation = (function() {
+      function ProcessDocumentation(options) {
+        this.options = options;
+        this.elements = options.elements;
+      }
+
+      ProcessDocumentation.prototype.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+      ProcessDocumentation.prototype.initPrettyPrint = function() {
+        $('pre').addClass('prettyprint');
+        return prettyPrint();
+      };
+
+      ProcessDocumentation.prototype.initFixTo = function() {
+        var el;
+        el = this.elements;
+        $(el.header).fixTo('body');
+        $(el.nav).fixTo('body', {
+          mind: el.header
+        });
+        $(el.humans).fixTo('.document', {
+          mind: el.header
+        });
+        return $(el.machines).each(function(i, obj) {
+          var $document;
+          $document = $(obj).parents('.document');
+          return $(obj).fixTo($document, {
+            mind: el.header
+          });
+        });
+      };
+
+      ProcessDocumentation.prototype.destroyFixTo = function() {
+        var el;
+        el = this.elements;
+        $(el.header).fixTo('destroy');
+        return $(el.nav).fixTo('destroy');
+      };
+
+      ProcessDocumentation.prototype.initScrollSpy = function() {
+        var $imgs, hash, imgLength, scrollSpy;
+        scrollSpy = new Scrollspy();
+        hash = window.location.hash;
+        $imgs = $(this.elements.doc).find('img');
+        return imgLength = $imgs.length;
+      };
+
+      ProcessDocumentation.prototype.initScrollSpy = function() {
+        var $imgs, hash, imgLength, imgLoaded, scrollSpy,
+          _this = this;
+        scrollSpy = new Scrollspy();
+        hash = window.location.hash;
+        $imgs = $(this.elements.doc).find('img');
+        imgLength = $imgs.length;
+        imgLoaded = 0;
+        if (imgLength === 0) {
+          scrollSpy.init();
+          return this.scrollToHash(hash, 50);
+        } else {
+          return $imgs.on('load', function() {
+            imgLoaded++;
+            if (imgLoaded === imgLength) {
+              scrollSpy.init();
+              return _this.scrollToHash(hash);
+            }
+          });
+        }
+      };
+
+      ProcessDocumentation.prototype.addTableWrapper = function() {
+        return $(this.elements.doc).find('table').wrap('<div class="definitions" />');
+      };
+
+      ProcessDocumentation.prototype.centerImages = function() {
+        return $(this.elements.doc).find('img').parent().addClass('center');
+      };
+
+      ProcessDocumentation.prototype.scrollToHash = function(hash, time) {
+        if (hash) {
+          return $('html, body').animate({
+            scrollTop: $(hash).offset().top
+          }, time);
+        }
+      };
+
+      ProcessDocumentation.prototype.bindHeaderNavEvents = function() {
+        var _this = this;
+        return $(this.elements.header).find('a').on('click', function(evt) {
+          var $ct, currentUrl, title, url;
+          if (history.pushState && _this.isMobile !== true) {
+            evt.preventDefault();
+            $ct = $(evt.currentTarget);
+            currentUrl = $(_this.elements.header).find('.active a').attr('href');
+            url = $ct.attr('href');
+            title = $ct.text;
+            $(_this.elements.header).find('li').removeClass('active');
+            $ct.parent().addClass('active');
+            $('body').removeClass('api-page');
+            history.pushState({
+              url: currentUrl
+            }, title, url);
+            $(_this.elements.nav).empty();
+            $(_this.elements.doc).empty();
+            window.scrollTo(0, 0);
+            _this.destroyFixTo();
+            _this.init();
+            return $('body').scrollspy('refresh');
+          }
+        });
+      };
+
+      ProcessDocumentation.prototype.bindPopstate = function() {
+        var $activeLink, title, url,
+          _this = this;
+        $activeLink = $(this.elements.header).find('a[href="' + url + '"]');
+        title = $activeLink.text();
+        url = $activeLink.attr('href');
+        history.pushState({
+          url: url
+        }, title, url);
+        return $(window).on('popstate', function(evt) {
+          $(_this.elements.header).find('li').removeClass('active');
+          $('body').removeClass('api-page');
+          $(_this.elements.nav).empty();
+          $(_this.elements.doc).empty();
+          _this.destroyFixTo();
+          _this.init();
+          return $('body').scrollspy('refresh');
+        });
+      };
+
+      ProcessDocumentation.prototype.bindDocNavEvents = function() {
+        var _this = this;
+        return $(this.elements.nav).find('a').on('click', function(evt) {
+          var hash;
+          evt.preventDefault();
+          hash = $(evt.currentTarget).attr('href');
+          return _this.scrollToHash(hash, 0);
+        });
+      };
+
+      ProcessDocumentation.prototype.activateTopNav = function() {
+        if (this.doc === void 0) {
+          return $('#lcp-nav').find('li:first').addClass('active');
+        } else {
+          return $('a[href="index.html?doc=' + this.doc).parent().addClass('active');
+        }
+      };
+
+      ProcessDocumentation.prototype.responsiveTables = function() {
+        return $('table').each(function(table_id, table) {
+          var $table, $th, $tr, entries, entry, labels, ul;
+          $table = $(table);
+          $th = $table.find('thead').find('th');
+          $tr = $table.find('tbody').find('tr');
+          labels = [];
+          entries = [];
+          entry = {};
+          $th.each(function(i, th) {
+            return labels[i] = $(th).text();
+          });
+          $tr.each(function(row, tr) {
+            $(tr).find('td').each(function(i, td) {
+              var value;
+              value = $(td).html();
+              return entry['"' + labels[i] + '"'] = value;
+            });
+            entries.push(entry);
+            return entry = {};
+          });
+          ul = '<ul id="table-list-id-' + table_id + '" class="list-from-table" />';
+          $table.after(ul);
+          return $.each(entries, function(entry_id, entry) {
+            var li;
+            li = '<li><dl id="entry-id-' + entry_id + '"></dl></li>';
+            $('#table-list-id-' + table_id).append(li);
+            return $.each(labels, function(i, label) {
+              var dd, dt;
+              dt = '<dt>' + label + '</dt>';
+              dd = '<dd>' + entry['"' + label + '"'] + '</dd>';
+              return $('#table-list-id-' + table_id).find('#entry-id-' + entry_id).append(dt + dd);
+            });
+          });
+        });
+      };
+
+      ProcessDocumentation.prototype.initProcess = function() {
+        this.addTableWrapper();
+        this.centerImages();
+        this.responsiveTables();
+        this.initPrettyPrint();
+        this.initFixTo();
+        this.activateTopNav();
+        return this.bindDocNavEvents();
+      };
+
+      return ProcessDocumentation;
+
+    })();
+  });
+
+}).call(this);
+
+define('text',{});
+define('json',{load: function(id){throw new Error("Dynamic load not allowed: " + id);}});
+define("json!api-documents.json", function(){ return {
+  "articles": [
+    {
+      "title": "Documentation Overview",
+      "id": "documentation-overview",
+      "exampleId": "",
+      "parent": ""
+    },
+    {
+      "title": "Accounts",
+      "id": "accounts",
+      "exampleId": "accounts-example",
+      "parent": ""
+    },
+    {
+      "title": "Create an Account",
+      "id": "create-an-account",
+      "exampleId": "create-an-account-example",
+      "parent": "accounts"
+    },
+    {
+      "title": "Get an Account",
+      "id": "get-an-account",
+      "exampleId": "get-an-account-example",
+      "parent": "accounts"
+    },
+    {
+      "title": "Account Credentials",
+      "id": "account-credentials",
+      "exampleId": "account-credentials-example",
+      "parent": ""
+    },
+    {
+      "title": "Create Account Credentials",
+      "id": "create-account-credentials",
+      "exampleId": "create-account-credentials-example",
+      "parent": "account-credentials"
+    },
+    {
+      "title": "Get Account Credentials",
+      "id": "get-account-credentials",
+      "exampleId": "get-account-credentials-example",
+      "parent": "account-credentials"
+    },
+    {
+      "title": "Delete Account Credentials",
+      "id": "delete-account-credentials",
+      "exampleId": "delete-account-credentials-example",
+      "parent": "account-credentials"
+    },
+    {
+      "title": "Apps",
+      "id": "apps",
+      "exampleId": "apps-example",
+      "parent": ""
+    },
+    {
+      "title": "Create an App",
+      "id": "create-an-app",
+      "exampleId": "create-an-app-example",
+      "parent": "apps"
+    },
+    {
+      "title": "Get an App",
+      "id": "get-an-app",
+      "exampleId": "get-an-app-example",
+      "parent": "apps"
+    },
+    {
+      "title": "Get an App by MAC Key Identifier",
+      "id": "get-an-app-by-mac",
+      "exampleId": "get-an-app-by-mac-example",
+      "parent": "apps"
+    },
+    {
+      "title": "Credits",
+      "id": "credits",
+      "exampleId": "credits-example",
+      "parent": ""
+    },
+    {
+      "title": "Create a Credit",
+      "id": "create-a-credit",
+      "exampleId": "create-a-credit-example",
+      "parent": "credits"
+    },
+    {
+      "title": "Get a Credit",
+      "id": "get-a-credit",
+      "exampleId": "get-a-credit-example",
+      "parent": "credits"
+    },
+    {
+      "title": "Debits",
+      "id": "debits",
+      "exampleId": "debits-example",
+      "parent": ""
+    },
+    {
+      "title": "Create a Debit",
+      "id": "create-a-debit",
+      "exampleId": "create-a-debit-example",
+      "parent": "debits"
+    },
+    {
+      "title": "Get a Debit",
+      "id": "get-a-debit",
+      "exampleId": "get-a-debit-example",
+      "parent": "debits"
+    },
+    {
+      "title": "Live Credentials",
+      "id": "live-credentials",
+      "exampleId": "live-credentials-example",
+      "parent": ""
+    },
+    {
+      "title": "Get Live Credentials",
+      "id": "get-live-credentials",
+      "exampleId": "get-live-credentials-example",
+      "parent": "live-credentials"
+    },
+    {
+      "title": "Loyalty Programs (LPs)",
+      "id": "loyalty-programs",
+      "exampleId": "",
+      "parent": ""
+    },
+    {
+      "title": "Member Validations (MVs)",
+      "id": "member-validations",
+      "exampleId": "member-validations-example",
+      "parent": ""
+    },
+    {
+      "title": "Create a MV",
+      "id": "create-a-mv",
+      "exampleId": "create-a-mv-example",
+      "parent": "member-validations"
+    },
+    {
+      "title": "Get a MV",
+      "id": "get-a-mv",
+      "exampleId": "get-a-mv-example",
+      "parent": "member-validations"
+    },
+    {
+      "title": "Sandbox Credentials",
+      "id": "sandbox-credentials",
+      "exampleId": "sandbox-credentials-example",
+      "parent": ""
+    },
+    {
+      "title": "Get Sandbox Credentials",
+      "id": "get-sandbox-credentials",
+      "exampleId": "get-sandbox-credentials-example",
+      "parent": "sandbox-credentials"
+    }
+  ]
+}
+;});
 
 /*
 
@@ -92,6 +11896,2268 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 */
+
+// lib/handlebars/browser-prefix.js
+var Handlebars = {};
+
+(function(Handlebars, undefined) {
+;
+// lib/handlebars/base.js
+
+Handlebars.VERSION = "1.0.0";
+Handlebars.COMPILER_REVISION = 4;
+
+Handlebars.REVISION_CHANGES = {
+  1: '<= 1.0.rc.2', // 1.0.rc.2 is actually rev2 but doesn't report it
+  2: '== 1.0.0-rc.3',
+  3: '== 1.0.0-rc.4',
+  4: '>= 1.0.0'
+};
+
+Handlebars.helpers  = {};
+Handlebars.partials = {};
+
+var toString = Object.prototype.toString,
+    functionType = '[object Function]',
+    objectType = '[object Object]';
+
+Handlebars.registerHelper = function(name, fn, inverse) {
+  if (toString.call(name) === objectType) {
+    if (inverse || fn) { throw new Handlebars.Exception('Arg not supported with multiple helpers'); }
+    Handlebars.Utils.extend(this.helpers, name);
+  } else {
+    if (inverse) { fn.not = inverse; }
+    this.helpers[name] = fn;
+  }
+};
+
+Handlebars.registerPartial = function(name, str) {
+  if (toString.call(name) === objectType) {
+    Handlebars.Utils.extend(this.partials,  name);
+  } else {
+    this.partials[name] = str;
+  }
+};
+
+Handlebars.registerHelper('helperMissing', function(arg) {
+  if(arguments.length === 2) {
+    return undefined;
+  } else {
+    throw new Error("Missing helper: '" + arg + "'");
+  }
+});
+
+Handlebars.registerHelper('blockHelperMissing', function(context, options) {
+  var inverse = options.inverse || function() {}, fn = options.fn;
+
+  var type = toString.call(context);
+
+  if(type === functionType) { context = context.call(this); }
+
+  if(context === true) {
+    return fn(this);
+  } else if(context === false || context == null) {
+    return inverse(this);
+  } else if(type === "[object Array]") {
+    if(context.length > 0) {
+      return Handlebars.helpers.each(context, options);
+    } else {
+      return inverse(this);
+    }
+  } else {
+    return fn(context);
+  }
+});
+
+Handlebars.K = function() {};
+
+Handlebars.createFrame = Object.create || function(object) {
+  Handlebars.K.prototype = object;
+  var obj = new Handlebars.K();
+  Handlebars.K.prototype = null;
+  return obj;
+};
+
+Handlebars.logger = {
+  DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3, level: 3,
+
+  methodMap: {0: 'debug', 1: 'info', 2: 'warn', 3: 'error'},
+
+  // can be overridden in the host environment
+  log: function(level, obj) {
+    if (Handlebars.logger.level <= level) {
+      var method = Handlebars.logger.methodMap[level];
+      if (typeof console !== 'undefined' && console[method]) {
+        console[method].call(console, obj);
+      }
+    }
+  }
+};
+
+Handlebars.log = function(level, obj) { Handlebars.logger.log(level, obj); };
+
+Handlebars.registerHelper('each', function(context, options) {
+  var fn = options.fn, inverse = options.inverse;
+  var i = 0, ret = "", data;
+
+  var type = toString.call(context);
+  if(type === functionType) { context = context.call(this); }
+
+  if (options.data) {
+    data = Handlebars.createFrame(options.data);
+  }
+
+  if(context && typeof context === 'object') {
+    if(context instanceof Array){
+      for(var j = context.length; i<j; i++) {
+        if (data) { data.index = i; }
+        ret = ret + fn(context[i], { data: data });
+      }
+    } else {
+      for(var key in context) {
+        if(context.hasOwnProperty(key)) {
+          if(data) { data.key = key; }
+          ret = ret + fn(context[key], {data: data});
+          i++;
+        }
+      }
+    }
+  }
+
+  if(i === 0){
+    ret = inverse(this);
+  }
+
+  return ret;
+});
+
+Handlebars.registerHelper('if', function(conditional, options) {
+  var type = toString.call(conditional);
+  if(type === functionType) { conditional = conditional.call(this); }
+
+  if(!conditional || Handlebars.Utils.isEmpty(conditional)) {
+    return options.inverse(this);
+  } else {
+    return options.fn(this);
+  }
+});
+
+Handlebars.registerHelper('unless', function(conditional, options) {
+  return Handlebars.helpers['if'].call(this, conditional, {fn: options.inverse, inverse: options.fn});
+});
+
+Handlebars.registerHelper('with', function(context, options) {
+  var type = toString.call(context);
+  if(type === functionType) { context = context.call(this); }
+
+  if (!Handlebars.Utils.isEmpty(context)) return options.fn(context);
+});
+
+Handlebars.registerHelper('log', function(context, options) {
+  var level = options.data && options.data.level != null ? parseInt(options.data.level, 10) : 1;
+  Handlebars.log(level, context);
+});
+;
+// lib/handlebars/compiler/parser.js
+/* Jison generated parser */
+var handlebars = (function(){
+var parser = {trace: function trace() { },
+yy: {},
+symbols_: {"error":2,"root":3,"program":4,"EOF":5,"simpleInverse":6,"statements":7,"statement":8,"openInverse":9,"closeBlock":10,"openBlock":11,"mustache":12,"partial":13,"CONTENT":14,"COMMENT":15,"OPEN_BLOCK":16,"inMustache":17,"CLOSE":18,"OPEN_INVERSE":19,"OPEN_ENDBLOCK":20,"path":21,"OPEN":22,"OPEN_UNESCAPED":23,"CLOSE_UNESCAPED":24,"OPEN_PARTIAL":25,"partialName":26,"params":27,"hash":28,"dataName":29,"param":30,"STRING":31,"INTEGER":32,"BOOLEAN":33,"hashSegments":34,"hashSegment":35,"ID":36,"EQUALS":37,"DATA":38,"pathSegments":39,"SEP":40,"$accept":0,"$end":1},
+terminals_: {2:"error",5:"EOF",14:"CONTENT",15:"COMMENT",16:"OPEN_BLOCK",18:"CLOSE",19:"OPEN_INVERSE",20:"OPEN_ENDBLOCK",22:"OPEN",23:"OPEN_UNESCAPED",24:"CLOSE_UNESCAPED",25:"OPEN_PARTIAL",31:"STRING",32:"INTEGER",33:"BOOLEAN",36:"ID",37:"EQUALS",38:"DATA",40:"SEP"},
+productions_: [0,[3,2],[4,2],[4,3],[4,2],[4,1],[4,1],[4,0],[7,1],[7,2],[8,3],[8,3],[8,1],[8,1],[8,1],[8,1],[11,3],[9,3],[10,3],[12,3],[12,3],[13,3],[13,4],[6,2],[17,3],[17,2],[17,2],[17,1],[17,1],[27,2],[27,1],[30,1],[30,1],[30,1],[30,1],[30,1],[28,1],[34,2],[34,1],[35,3],[35,3],[35,3],[35,3],[35,3],[26,1],[26,1],[26,1],[29,2],[21,1],[39,3],[39,1]],
+performAction: function anonymous(yytext,yyleng,yylineno,yy,yystate,$$,_$) {
+
+var $0 = $$.length - 1;
+switch (yystate) {
+case 1: return $$[$0-1]; 
+break;
+case 2: this.$ = new yy.ProgramNode([], $$[$0]); 
+break;
+case 3: this.$ = new yy.ProgramNode($$[$0-2], $$[$0]); 
+break;
+case 4: this.$ = new yy.ProgramNode($$[$0-1], []); 
+break;
+case 5: this.$ = new yy.ProgramNode($$[$0]); 
+break;
+case 6: this.$ = new yy.ProgramNode([], []); 
+break;
+case 7: this.$ = new yy.ProgramNode([]); 
+break;
+case 8: this.$ = [$$[$0]]; 
+break;
+case 9: $$[$0-1].push($$[$0]); this.$ = $$[$0-1]; 
+break;
+case 10: this.$ = new yy.BlockNode($$[$0-2], $$[$0-1].inverse, $$[$0-1], $$[$0]); 
+break;
+case 11: this.$ = new yy.BlockNode($$[$0-2], $$[$0-1], $$[$0-1].inverse, $$[$0]); 
+break;
+case 12: this.$ = $$[$0]; 
+break;
+case 13: this.$ = $$[$0]; 
+break;
+case 14: this.$ = new yy.ContentNode($$[$0]); 
+break;
+case 15: this.$ = new yy.CommentNode($$[$0]); 
+break;
+case 16: this.$ = new yy.MustacheNode($$[$0-1][0], $$[$0-1][1]); 
+break;
+case 17: this.$ = new yy.MustacheNode($$[$0-1][0], $$[$0-1][1]); 
+break;
+case 18: this.$ = $$[$0-1]; 
+break;
+case 19:
+    // Parsing out the '&' escape token at this level saves ~500 bytes after min due to the removal of one parser node.
+    this.$ = new yy.MustacheNode($$[$0-1][0], $$[$0-1][1], $$[$0-2][2] === '&');
+  
+break;
+case 20: this.$ = new yy.MustacheNode($$[$0-1][0], $$[$0-1][1], true); 
+break;
+case 21: this.$ = new yy.PartialNode($$[$0-1]); 
+break;
+case 22: this.$ = new yy.PartialNode($$[$0-2], $$[$0-1]); 
+break;
+case 23: 
+break;
+case 24: this.$ = [[$$[$0-2]].concat($$[$0-1]), $$[$0]]; 
+break;
+case 25: this.$ = [[$$[$0-1]].concat($$[$0]), null]; 
+break;
+case 26: this.$ = [[$$[$0-1]], $$[$0]]; 
+break;
+case 27: this.$ = [[$$[$0]], null]; 
+break;
+case 28: this.$ = [[$$[$0]], null]; 
+break;
+case 29: $$[$0-1].push($$[$0]); this.$ = $$[$0-1]; 
+break;
+case 30: this.$ = [$$[$0]]; 
+break;
+case 31: this.$ = $$[$0]; 
+break;
+case 32: this.$ = new yy.StringNode($$[$0]); 
+break;
+case 33: this.$ = new yy.IntegerNode($$[$0]); 
+break;
+case 34: this.$ = new yy.BooleanNode($$[$0]); 
+break;
+case 35: this.$ = $$[$0]; 
+break;
+case 36: this.$ = new yy.HashNode($$[$0]); 
+break;
+case 37: $$[$0-1].push($$[$0]); this.$ = $$[$0-1]; 
+break;
+case 38: this.$ = [$$[$0]]; 
+break;
+case 39: this.$ = [$$[$0-2], $$[$0]]; 
+break;
+case 40: this.$ = [$$[$0-2], new yy.StringNode($$[$0])]; 
+break;
+case 41: this.$ = [$$[$0-2], new yy.IntegerNode($$[$0])]; 
+break;
+case 42: this.$ = [$$[$0-2], new yy.BooleanNode($$[$0])]; 
+break;
+case 43: this.$ = [$$[$0-2], $$[$0]]; 
+break;
+case 44: this.$ = new yy.PartialNameNode($$[$0]); 
+break;
+case 45: this.$ = new yy.PartialNameNode(new yy.StringNode($$[$0])); 
+break;
+case 46: this.$ = new yy.PartialNameNode(new yy.IntegerNode($$[$0])); 
+break;
+case 47: this.$ = new yy.DataNode($$[$0]); 
+break;
+case 48: this.$ = new yy.IdNode($$[$0]); 
+break;
+case 49: $$[$0-2].push({part: $$[$0], separator: $$[$0-1]}); this.$ = $$[$0-2]; 
+break;
+case 50: this.$ = [{part: $$[$0]}]; 
+break;
+}
+},
+table: [{3:1,4:2,5:[2,7],6:3,7:4,8:6,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,5],22:[1,14],23:[1,15],25:[1,16]},{1:[3]},{5:[1,17]},{5:[2,6],7:18,8:6,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,19],20:[2,6],22:[1,14],23:[1,15],25:[1,16]},{5:[2,5],6:20,8:21,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,5],20:[2,5],22:[1,14],23:[1,15],25:[1,16]},{17:23,18:[1,22],21:24,29:25,36:[1,28],38:[1,27],39:26},{5:[2,8],14:[2,8],15:[2,8],16:[2,8],19:[2,8],20:[2,8],22:[2,8],23:[2,8],25:[2,8]},{4:29,6:3,7:4,8:6,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,5],20:[2,7],22:[1,14],23:[1,15],25:[1,16]},{4:30,6:3,7:4,8:6,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,5],20:[2,7],22:[1,14],23:[1,15],25:[1,16]},{5:[2,12],14:[2,12],15:[2,12],16:[2,12],19:[2,12],20:[2,12],22:[2,12],23:[2,12],25:[2,12]},{5:[2,13],14:[2,13],15:[2,13],16:[2,13],19:[2,13],20:[2,13],22:[2,13],23:[2,13],25:[2,13]},{5:[2,14],14:[2,14],15:[2,14],16:[2,14],19:[2,14],20:[2,14],22:[2,14],23:[2,14],25:[2,14]},{5:[2,15],14:[2,15],15:[2,15],16:[2,15],19:[2,15],20:[2,15],22:[2,15],23:[2,15],25:[2,15]},{17:31,21:24,29:25,36:[1,28],38:[1,27],39:26},{17:32,21:24,29:25,36:[1,28],38:[1,27],39:26},{17:33,21:24,29:25,36:[1,28],38:[1,27],39:26},{21:35,26:34,31:[1,36],32:[1,37],36:[1,28],39:26},{1:[2,1]},{5:[2,2],8:21,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,19],20:[2,2],22:[1,14],23:[1,15],25:[1,16]},{17:23,21:24,29:25,36:[1,28],38:[1,27],39:26},{5:[2,4],7:38,8:6,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,19],20:[2,4],22:[1,14],23:[1,15],25:[1,16]},{5:[2,9],14:[2,9],15:[2,9],16:[2,9],19:[2,9],20:[2,9],22:[2,9],23:[2,9],25:[2,9]},{5:[2,23],14:[2,23],15:[2,23],16:[2,23],19:[2,23],20:[2,23],22:[2,23],23:[2,23],25:[2,23]},{18:[1,39]},{18:[2,27],21:44,24:[2,27],27:40,28:41,29:48,30:42,31:[1,45],32:[1,46],33:[1,47],34:43,35:49,36:[1,50],38:[1,27],39:26},{18:[2,28],24:[2,28]},{18:[2,48],24:[2,48],31:[2,48],32:[2,48],33:[2,48],36:[2,48],38:[2,48],40:[1,51]},{21:52,36:[1,28],39:26},{18:[2,50],24:[2,50],31:[2,50],32:[2,50],33:[2,50],36:[2,50],38:[2,50],40:[2,50]},{10:53,20:[1,54]},{10:55,20:[1,54]},{18:[1,56]},{18:[1,57]},{24:[1,58]},{18:[1,59],21:60,36:[1,28],39:26},{18:[2,44],36:[2,44]},{18:[2,45],36:[2,45]},{18:[2,46],36:[2,46]},{5:[2,3],8:21,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,19],20:[2,3],22:[1,14],23:[1,15],25:[1,16]},{14:[2,17],15:[2,17],16:[2,17],19:[2,17],20:[2,17],22:[2,17],23:[2,17],25:[2,17]},{18:[2,25],21:44,24:[2,25],28:61,29:48,30:62,31:[1,45],32:[1,46],33:[1,47],34:43,35:49,36:[1,50],38:[1,27],39:26},{18:[2,26],24:[2,26]},{18:[2,30],24:[2,30],31:[2,30],32:[2,30],33:[2,30],36:[2,30],38:[2,30]},{18:[2,36],24:[2,36],35:63,36:[1,64]},{18:[2,31],24:[2,31],31:[2,31],32:[2,31],33:[2,31],36:[2,31],38:[2,31]},{18:[2,32],24:[2,32],31:[2,32],32:[2,32],33:[2,32],36:[2,32],38:[2,32]},{18:[2,33],24:[2,33],31:[2,33],32:[2,33],33:[2,33],36:[2,33],38:[2,33]},{18:[2,34],24:[2,34],31:[2,34],32:[2,34],33:[2,34],36:[2,34],38:[2,34]},{18:[2,35],24:[2,35],31:[2,35],32:[2,35],33:[2,35],36:[2,35],38:[2,35]},{18:[2,38],24:[2,38],36:[2,38]},{18:[2,50],24:[2,50],31:[2,50],32:[2,50],33:[2,50],36:[2,50],37:[1,65],38:[2,50],40:[2,50]},{36:[1,66]},{18:[2,47],24:[2,47],31:[2,47],32:[2,47],33:[2,47],36:[2,47],38:[2,47]},{5:[2,10],14:[2,10],15:[2,10],16:[2,10],19:[2,10],20:[2,10],22:[2,10],23:[2,10],25:[2,10]},{21:67,36:[1,28],39:26},{5:[2,11],14:[2,11],15:[2,11],16:[2,11],19:[2,11],20:[2,11],22:[2,11],23:[2,11],25:[2,11]},{14:[2,16],15:[2,16],16:[2,16],19:[2,16],20:[2,16],22:[2,16],23:[2,16],25:[2,16]},{5:[2,19],14:[2,19],15:[2,19],16:[2,19],19:[2,19],20:[2,19],22:[2,19],23:[2,19],25:[2,19]},{5:[2,20],14:[2,20],15:[2,20],16:[2,20],19:[2,20],20:[2,20],22:[2,20],23:[2,20],25:[2,20]},{5:[2,21],14:[2,21],15:[2,21],16:[2,21],19:[2,21],20:[2,21],22:[2,21],23:[2,21],25:[2,21]},{18:[1,68]},{18:[2,24],24:[2,24]},{18:[2,29],24:[2,29],31:[2,29],32:[2,29],33:[2,29],36:[2,29],38:[2,29]},{18:[2,37],24:[2,37],36:[2,37]},{37:[1,65]},{21:69,29:73,31:[1,70],32:[1,71],33:[1,72],36:[1,28],38:[1,27],39:26},{18:[2,49],24:[2,49],31:[2,49],32:[2,49],33:[2,49],36:[2,49],38:[2,49],40:[2,49]},{18:[1,74]},{5:[2,22],14:[2,22],15:[2,22],16:[2,22],19:[2,22],20:[2,22],22:[2,22],23:[2,22],25:[2,22]},{18:[2,39],24:[2,39],36:[2,39]},{18:[2,40],24:[2,40],36:[2,40]},{18:[2,41],24:[2,41],36:[2,41]},{18:[2,42],24:[2,42],36:[2,42]},{18:[2,43],24:[2,43],36:[2,43]},{5:[2,18],14:[2,18],15:[2,18],16:[2,18],19:[2,18],20:[2,18],22:[2,18],23:[2,18],25:[2,18]}],
+defaultActions: {17:[2,1]},
+parseError: function parseError(str, hash) {
+    throw new Error(str);
+},
+parse: function parse(input) {
+    var self = this, stack = [0], vstack = [null], lstack = [], table = this.table, yytext = "", yylineno = 0, yyleng = 0, recovering = 0, TERROR = 2, EOF = 1;
+    this.lexer.setInput(input);
+    this.lexer.yy = this.yy;
+    this.yy.lexer = this.lexer;
+    this.yy.parser = this;
+    if (typeof this.lexer.yylloc == "undefined")
+        this.lexer.yylloc = {};
+    var yyloc = this.lexer.yylloc;
+    lstack.push(yyloc);
+    var ranges = this.lexer.options && this.lexer.options.ranges;
+    if (typeof this.yy.parseError === "function")
+        this.parseError = this.yy.parseError;
+    function popStack(n) {
+        stack.length = stack.length - 2 * n;
+        vstack.length = vstack.length - n;
+        lstack.length = lstack.length - n;
+    }
+    function lex() {
+        var token;
+        token = self.lexer.lex() || 1;
+        if (typeof token !== "number") {
+            token = self.symbols_[token] || token;
+        }
+        return token;
+    }
+    var symbol, preErrorSymbol, state, action, a, r, yyval = {}, p, len, newState, expected;
+    while (true) {
+        state = stack[stack.length - 1];
+        if (this.defaultActions[state]) {
+            action = this.defaultActions[state];
+        } else {
+            if (symbol === null || typeof symbol == "undefined") {
+                symbol = lex();
+            }
+            action = table[state] && table[state][symbol];
+        }
+        if (typeof action === "undefined" || !action.length || !action[0]) {
+            var errStr = "";
+            if (!recovering) {
+                expected = [];
+                for (p in table[state])
+                    if (this.terminals_[p] && p > 2) {
+                        expected.push("'" + this.terminals_[p] + "'");
+                    }
+                if (this.lexer.showPosition) {
+                    errStr = "Parse error on line " + (yylineno + 1) + ":\n" + this.lexer.showPosition() + "\nExpecting " + expected.join(", ") + ", got '" + (this.terminals_[symbol] || symbol) + "'";
+                } else {
+                    errStr = "Parse error on line " + (yylineno + 1) + ": Unexpected " + (symbol == 1?"end of input":"'" + (this.terminals_[symbol] || symbol) + "'");
+                }
+                this.parseError(errStr, {text: this.lexer.match, token: this.terminals_[symbol] || symbol, line: this.lexer.yylineno, loc: yyloc, expected: expected});
+            }
+        }
+        if (action[0] instanceof Array && action.length > 1) {
+            throw new Error("Parse Error: multiple actions possible at state: " + state + ", token: " + symbol);
+        }
+        switch (action[0]) {
+        case 1:
+            stack.push(symbol);
+            vstack.push(this.lexer.yytext);
+            lstack.push(this.lexer.yylloc);
+            stack.push(action[1]);
+            symbol = null;
+            if (!preErrorSymbol) {
+                yyleng = this.lexer.yyleng;
+                yytext = this.lexer.yytext;
+                yylineno = this.lexer.yylineno;
+                yyloc = this.lexer.yylloc;
+                if (recovering > 0)
+                    recovering--;
+            } else {
+                symbol = preErrorSymbol;
+                preErrorSymbol = null;
+            }
+            break;
+        case 2:
+            len = this.productions_[action[1]][1];
+            yyval.$ = vstack[vstack.length - len];
+            yyval._$ = {first_line: lstack[lstack.length - (len || 1)].first_line, last_line: lstack[lstack.length - 1].last_line, first_column: lstack[lstack.length - (len || 1)].first_column, last_column: lstack[lstack.length - 1].last_column};
+            if (ranges) {
+                yyval._$.range = [lstack[lstack.length - (len || 1)].range[0], lstack[lstack.length - 1].range[1]];
+            }
+            r = this.performAction.call(yyval, yytext, yyleng, yylineno, this.yy, action[1], vstack, lstack);
+            if (typeof r !== "undefined") {
+                return r;
+            }
+            if (len) {
+                stack = stack.slice(0, -1 * len * 2);
+                vstack = vstack.slice(0, -1 * len);
+                lstack = lstack.slice(0, -1 * len);
+            }
+            stack.push(this.productions_[action[1]][0]);
+            vstack.push(yyval.$);
+            lstack.push(yyval._$);
+            newState = table[stack[stack.length - 2]][stack[stack.length - 1]];
+            stack.push(newState);
+            break;
+        case 3:
+            return true;
+        }
+    }
+    return true;
+}
+};
+/* Jison generated lexer */
+var lexer = (function(){
+var lexer = ({EOF:1,
+parseError:function parseError(str, hash) {
+        if (this.yy.parser) {
+            this.yy.parser.parseError(str, hash);
+        } else {
+            throw new Error(str);
+        }
+    },
+setInput:function (input) {
+        this._input = input;
+        this._more = this._less = this.done = false;
+        this.yylineno = this.yyleng = 0;
+        this.yytext = this.matched = this.match = '';
+        this.conditionStack = ['INITIAL'];
+        this.yylloc = {first_line:1,first_column:0,last_line:1,last_column:0};
+        if (this.options.ranges) this.yylloc.range = [0,0];
+        this.offset = 0;
+        return this;
+    },
+input:function () {
+        var ch = this._input[0];
+        this.yytext += ch;
+        this.yyleng++;
+        this.offset++;
+        this.match += ch;
+        this.matched += ch;
+        var lines = ch.match(/(?:\r\n?|\n).*/g);
+        if (lines) {
+            this.yylineno++;
+            this.yylloc.last_line++;
+        } else {
+            this.yylloc.last_column++;
+        }
+        if (this.options.ranges) this.yylloc.range[1]++;
+
+        this._input = this._input.slice(1);
+        return ch;
+    },
+unput:function (ch) {
+        var len = ch.length;
+        var lines = ch.split(/(?:\r\n?|\n)/g);
+
+        this._input = ch + this._input;
+        this.yytext = this.yytext.substr(0, this.yytext.length-len-1);
+        //this.yyleng -= len;
+        this.offset -= len;
+        var oldLines = this.match.split(/(?:\r\n?|\n)/g);
+        this.match = this.match.substr(0, this.match.length-1);
+        this.matched = this.matched.substr(0, this.matched.length-1);
+
+        if (lines.length-1) this.yylineno -= lines.length-1;
+        var r = this.yylloc.range;
+
+        this.yylloc = {first_line: this.yylloc.first_line,
+          last_line: this.yylineno+1,
+          first_column: this.yylloc.first_column,
+          last_column: lines ?
+              (lines.length === oldLines.length ? this.yylloc.first_column : 0) + oldLines[oldLines.length - lines.length].length - lines[0].length:
+              this.yylloc.first_column - len
+          };
+
+        if (this.options.ranges) {
+            this.yylloc.range = [r[0], r[0] + this.yyleng - len];
+        }
+        return this;
+    },
+more:function () {
+        this._more = true;
+        return this;
+    },
+less:function (n) {
+        this.unput(this.match.slice(n));
+    },
+pastInput:function () {
+        var past = this.matched.substr(0, this.matched.length - this.match.length);
+        return (past.length > 20 ? '...':'') + past.substr(-20).replace(/\n/g, "");
+    },
+upcomingInput:function () {
+        var next = this.match;
+        if (next.length < 20) {
+            next += this._input.substr(0, 20-next.length);
+        }
+        return (next.substr(0,20)+(next.length > 20 ? '...':'')).replace(/\n/g, "");
+    },
+showPosition:function () {
+        var pre = this.pastInput();
+        var c = new Array(pre.length + 1).join("-");
+        return pre + this.upcomingInput() + "\n" + c+"^";
+    },
+next:function () {
+        if (this.done) {
+            return this.EOF;
+        }
+        if (!this._input) this.done = true;
+
+        var token,
+            match,
+            tempMatch,
+            index,
+            col,
+            lines;
+        if (!this._more) {
+            this.yytext = '';
+            this.match = '';
+        }
+        var rules = this._currentRules();
+        for (var i=0;i < rules.length; i++) {
+            tempMatch = this._input.match(this.rules[rules[i]]);
+            if (tempMatch && (!match || tempMatch[0].length > match[0].length)) {
+                match = tempMatch;
+                index = i;
+                if (!this.options.flex) break;
+            }
+        }
+        if (match) {
+            lines = match[0].match(/(?:\r\n?|\n).*/g);
+            if (lines) this.yylineno += lines.length;
+            this.yylloc = {first_line: this.yylloc.last_line,
+                           last_line: this.yylineno+1,
+                           first_column: this.yylloc.last_column,
+                           last_column: lines ? lines[lines.length-1].length-lines[lines.length-1].match(/\r?\n?/)[0].length : this.yylloc.last_column + match[0].length};
+            this.yytext += match[0];
+            this.match += match[0];
+            this.matches = match;
+            this.yyleng = this.yytext.length;
+            if (this.options.ranges) {
+                this.yylloc.range = [this.offset, this.offset += this.yyleng];
+            }
+            this._more = false;
+            this._input = this._input.slice(match[0].length);
+            this.matched += match[0];
+            token = this.performAction.call(this, this.yy, this, rules[index],this.conditionStack[this.conditionStack.length-1]);
+            if (this.done && this._input) this.done = false;
+            if (token) return token;
+            else return;
+        }
+        if (this._input === "") {
+            return this.EOF;
+        } else {
+            return this.parseError('Lexical error on line '+(this.yylineno+1)+'. Unrecognized text.\n'+this.showPosition(),
+                    {text: "", token: null, line: this.yylineno});
+        }
+    },
+lex:function lex() {
+        var r = this.next();
+        if (typeof r !== 'undefined') {
+            return r;
+        } else {
+            return this.lex();
+        }
+    },
+begin:function begin(condition) {
+        this.conditionStack.push(condition);
+    },
+popState:function popState() {
+        return this.conditionStack.pop();
+    },
+_currentRules:function _currentRules() {
+        return this.conditions[this.conditionStack[this.conditionStack.length-1]].rules;
+    },
+topState:function () {
+        return this.conditionStack[this.conditionStack.length-2];
+    },
+pushState:function begin(condition) {
+        this.begin(condition);
+    }});
+lexer.options = {};
+lexer.performAction = function anonymous(yy,yy_,$avoiding_name_collisions,YY_START) {
+
+var YYSTATE=YY_START
+switch($avoiding_name_collisions) {
+case 0: yy_.yytext = "\\"; return 14; 
+break;
+case 1:
+                                   if(yy_.yytext.slice(-1) !== "\\") this.begin("mu");
+                                   if(yy_.yytext.slice(-1) === "\\") yy_.yytext = yy_.yytext.substr(0,yy_.yyleng-1), this.begin("emu");
+                                   if(yy_.yytext) return 14;
+                                 
+break;
+case 2: return 14; 
+break;
+case 3:
+                                   if(yy_.yytext.slice(-1) !== "\\") this.popState();
+                                   if(yy_.yytext.slice(-1) === "\\") yy_.yytext = yy_.yytext.substr(0,yy_.yyleng-1);
+                                   return 14;
+                                 
+break;
+case 4: yy_.yytext = yy_.yytext.substr(0, yy_.yyleng-4); this.popState(); return 15; 
+break;
+case 5: return 25; 
+break;
+case 6: return 16; 
+break;
+case 7: return 20; 
+break;
+case 8: return 19; 
+break;
+case 9: return 19; 
+break;
+case 10: return 23; 
+break;
+case 11: return 22; 
+break;
+case 12: this.popState(); this.begin('com'); 
+break;
+case 13: yy_.yytext = yy_.yytext.substr(3,yy_.yyleng-5); this.popState(); return 15; 
+break;
+case 14: return 22; 
+break;
+case 15: return 37; 
+break;
+case 16: return 36; 
+break;
+case 17: return 36; 
+break;
+case 18: return 40; 
+break;
+case 19: /*ignore whitespace*/ 
+break;
+case 20: this.popState(); return 24; 
+break;
+case 21: this.popState(); return 18; 
+break;
+case 22: yy_.yytext = yy_.yytext.substr(1,yy_.yyleng-2).replace(/\\"/g,'"'); return 31; 
+break;
+case 23: yy_.yytext = yy_.yytext.substr(1,yy_.yyleng-2).replace(/\\'/g,"'"); return 31; 
+break;
+case 24: return 38; 
+break;
+case 25: return 33; 
+break;
+case 26: return 33; 
+break;
+case 27: return 32; 
+break;
+case 28: return 36; 
+break;
+case 29: yy_.yytext = yy_.yytext.substr(1, yy_.yyleng-2); return 36; 
+break;
+case 30: return 'INVALID'; 
+break;
+case 31: return 5; 
+break;
+}
+};
+lexer.rules = [/^(?:\\\\(?=(\{\{)))/,/^(?:[^\x00]*?(?=(\{\{)))/,/^(?:[^\x00]+)/,/^(?:[^\x00]{2,}?(?=(\{\{|$)))/,/^(?:[\s\S]*?--\}\})/,/^(?:\{\{>)/,/^(?:\{\{#)/,/^(?:\{\{\/)/,/^(?:\{\{\^)/,/^(?:\{\{\s*else\b)/,/^(?:\{\{\{)/,/^(?:\{\{&)/,/^(?:\{\{!--)/,/^(?:\{\{![\s\S]*?\}\})/,/^(?:\{\{)/,/^(?:=)/,/^(?:\.(?=[}\/ ]))/,/^(?:\.\.)/,/^(?:[\/.])/,/^(?:\s+)/,/^(?:\}\}\})/,/^(?:\}\})/,/^(?:"(\\["]|[^"])*")/,/^(?:'(\\[']|[^'])*')/,/^(?:@)/,/^(?:true(?=[}\s]))/,/^(?:false(?=[}\s]))/,/^(?:-?[0-9]+(?=[}\s]))/,/^(?:[^\s!"#%-,\.\/;->@\[-\^`\{-~]+(?=[=}\s\/.]))/,/^(?:\[[^\]]*\])/,/^(?:.)/,/^(?:$)/];
+lexer.conditions = {"mu":{"rules":[5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],"inclusive":false},"emu":{"rules":[3],"inclusive":false},"com":{"rules":[4],"inclusive":false},"INITIAL":{"rules":[0,1,2,31],"inclusive":true}};
+return lexer;})()
+parser.lexer = lexer;
+function Parser () { this.yy = {}; }Parser.prototype = parser;parser.Parser = Parser;
+return new Parser;
+})();;
+// lib/handlebars/compiler/base.js
+
+Handlebars.Parser = handlebars;
+
+Handlebars.parse = function(input) {
+
+  // Just return if an already-compile AST was passed in.
+  if(input.constructor === Handlebars.AST.ProgramNode) { return input; }
+
+  Handlebars.Parser.yy = Handlebars.AST;
+  return Handlebars.Parser.parse(input);
+};
+;
+// lib/handlebars/compiler/ast.js
+Handlebars.AST = {};
+
+Handlebars.AST.ProgramNode = function(statements, inverse) {
+  this.type = "program";
+  this.statements = statements;
+  if(inverse) { this.inverse = new Handlebars.AST.ProgramNode(inverse); }
+};
+
+Handlebars.AST.MustacheNode = function(rawParams, hash, unescaped) {
+  this.type = "mustache";
+  this.escaped = !unescaped;
+  this.hash = hash;
+
+  var id = this.id = rawParams[0];
+  var params = this.params = rawParams.slice(1);
+
+  // a mustache is an eligible helper if:
+  // * its id is simple (a single part, not `this` or `..`)
+  var eligibleHelper = this.eligibleHelper = id.isSimple;
+
+  // a mustache is definitely a helper if:
+  // * it is an eligible helper, and
+  // * it has at least one parameter or hash segment
+  this.isHelper = eligibleHelper && (params.length || hash);
+
+  // if a mustache is an eligible helper but not a definite
+  // helper, it is ambiguous, and will be resolved in a later
+  // pass or at runtime.
+};
+
+Handlebars.AST.PartialNode = function(partialName, context) {
+  this.type         = "partial";
+  this.partialName  = partialName;
+  this.context      = context;
+};
+
+Handlebars.AST.BlockNode = function(mustache, program, inverse, close) {
+  var verifyMatch = function(open, close) {
+    if(open.original !== close.original) {
+      throw new Handlebars.Exception(open.original + " doesn't match " + close.original);
+    }
+  };
+
+  verifyMatch(mustache.id, close);
+  this.type = "block";
+  this.mustache = mustache;
+  this.program  = program;
+  this.inverse  = inverse;
+
+  if (this.inverse && !this.program) {
+    this.isInverse = true;
+  }
+};
+
+Handlebars.AST.ContentNode = function(string) {
+  this.type = "content";
+  this.string = string;
+};
+
+Handlebars.AST.HashNode = function(pairs) {
+  this.type = "hash";
+  this.pairs = pairs;
+};
+
+Handlebars.AST.IdNode = function(parts) {
+  this.type = "ID";
+
+  var original = "",
+      dig = [],
+      depth = 0;
+
+  for(var i=0,l=parts.length; i<l; i++) {
+    var part = parts[i].part;
+    original += (parts[i].separator || '') + part;
+
+    if (part === ".." || part === "." || part === "this") {
+      if (dig.length > 0) { throw new Handlebars.Exception("Invalid path: " + original); }
+      else if (part === "..") { depth++; }
+      else { this.isScoped = true; }
+    }
+    else { dig.push(part); }
+  }
+
+  this.original = original;
+  this.parts    = dig;
+  this.string   = dig.join('.');
+  this.depth    = depth;
+
+  // an ID is simple if it only has one part, and that part is not
+  // `..` or `this`.
+  this.isSimple = parts.length === 1 && !this.isScoped && depth === 0;
+
+  this.stringModeValue = this.string;
+};
+
+Handlebars.AST.PartialNameNode = function(name) {
+  this.type = "PARTIAL_NAME";
+  this.name = name.original;
+};
+
+Handlebars.AST.DataNode = function(id) {
+  this.type = "DATA";
+  this.id = id;
+};
+
+Handlebars.AST.StringNode = function(string) {
+  this.type = "STRING";
+  this.original =
+    this.string =
+    this.stringModeValue = string;
+};
+
+Handlebars.AST.IntegerNode = function(integer) {
+  this.type = "INTEGER";
+  this.original =
+    this.integer = integer;
+  this.stringModeValue = Number(integer);
+};
+
+Handlebars.AST.BooleanNode = function(bool) {
+  this.type = "BOOLEAN";
+  this.bool = bool;
+  this.stringModeValue = bool === "true";
+};
+
+Handlebars.AST.CommentNode = function(comment) {
+  this.type = "comment";
+  this.comment = comment;
+};
+;
+// lib/handlebars/utils.js
+
+var errorProps = ['description', 'fileName', 'lineNumber', 'message', 'name', 'number', 'stack'];
+
+Handlebars.Exception = function(message) {
+  var tmp = Error.prototype.constructor.apply(this, arguments);
+
+  // Unfortunately errors are not enumerable in Chrome (at least), so `for prop in tmp` doesn't work.
+  for (var idx = 0; idx < errorProps.length; idx++) {
+    this[errorProps[idx]] = tmp[errorProps[idx]];
+  }
+};
+Handlebars.Exception.prototype = new Error();
+
+// Build out our basic SafeString type
+Handlebars.SafeString = function(string) {
+  this.string = string;
+};
+Handlebars.SafeString.prototype.toString = function() {
+  return this.string.toString();
+};
+
+var escape = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#x27;",
+  "`": "&#x60;"
+};
+
+var badChars = /[&<>"'`]/g;
+var possible = /[&<>"'`]/;
+
+var escapeChar = function(chr) {
+  return escape[chr] || "&amp;";
+};
+
+Handlebars.Utils = {
+  extend: function(obj, value) {
+    for(var key in value) {
+      if(value.hasOwnProperty(key)) {
+        obj[key] = value[key];
+      }
+    }
+  },
+
+  escapeExpression: function(string) {
+    // don't escape SafeStrings, since they're already safe
+    if (string instanceof Handlebars.SafeString) {
+      return string.toString();
+    } else if (string == null || string === false) {
+      return "";
+    }
+
+    // Force a string conversion as this will be done by the append regardless and
+    // the regex test will do this transparently behind the scenes, causing issues if
+    // an object's to string has escaped characters in it.
+    string = string.toString();
+
+    if(!possible.test(string)) { return string; }
+    return string.replace(badChars, escapeChar);
+  },
+
+  isEmpty: function(value) {
+    if (!value && value !== 0) {
+      return true;
+    } else if(toString.call(value) === "[object Array]" && value.length === 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+};
+;
+// lib/handlebars/compiler/compiler.js
+
+/*jshint eqnull:true*/
+var Compiler = Handlebars.Compiler = function() {};
+var JavaScriptCompiler = Handlebars.JavaScriptCompiler = function() {};
+
+// the foundHelper register will disambiguate helper lookup from finding a
+// function in a context. This is necessary for mustache compatibility, which
+// requires that context functions in blocks are evaluated by blockHelperMissing,
+// and then proceed as if the resulting value was provided to blockHelperMissing.
+
+Compiler.prototype = {
+  compiler: Compiler,
+
+  disassemble: function() {
+    var opcodes = this.opcodes, opcode, out = [], params, param;
+
+    for (var i=0, l=opcodes.length; i<l; i++) {
+      opcode = opcodes[i];
+
+      if (opcode.opcode === 'DECLARE') {
+        out.push("DECLARE " + opcode.name + "=" + opcode.value);
+      } else {
+        params = [];
+        for (var j=0; j<opcode.args.length; j++) {
+          param = opcode.args[j];
+          if (typeof param === "string") {
+            param = "\"" + param.replace("\n", "\\n") + "\"";
+          }
+          params.push(param);
+        }
+        out.push(opcode.opcode + " " + params.join(" "));
+      }
+    }
+
+    return out.join("\n");
+  },
+  equals: function(other) {
+    var len = this.opcodes.length;
+    if (other.opcodes.length !== len) {
+      return false;
+    }
+
+    for (var i = 0; i < len; i++) {
+      var opcode = this.opcodes[i],
+          otherOpcode = other.opcodes[i];
+      if (opcode.opcode !== otherOpcode.opcode || opcode.args.length !== otherOpcode.args.length) {
+        return false;
+      }
+      for (var j = 0; j < opcode.args.length; j++) {
+        if (opcode.args[j] !== otherOpcode.args[j]) {
+          return false;
+        }
+      }
+    }
+
+    len = this.children.length;
+    if (other.children.length !== len) {
+      return false;
+    }
+    for (i = 0; i < len; i++) {
+      if (!this.children[i].equals(other.children[i])) {
+        return false;
+      }
+    }
+
+    return true;
+  },
+
+  guid: 0,
+
+  compile: function(program, options) {
+    this.children = [];
+    this.depths = {list: []};
+    this.options = options;
+
+    // These changes will propagate to the other compiler components
+    var knownHelpers = this.options.knownHelpers;
+    this.options.knownHelpers = {
+      'helperMissing': true,
+      'blockHelperMissing': true,
+      'each': true,
+      'if': true,
+      'unless': true,
+      'with': true,
+      'log': true
+    };
+    if (knownHelpers) {
+      for (var name in knownHelpers) {
+        this.options.knownHelpers[name] = knownHelpers[name];
+      }
+    }
+
+    return this.program(program);
+  },
+
+  accept: function(node) {
+    return this[node.type](node);
+  },
+
+  program: function(program) {
+    var statements = program.statements, statement;
+    this.opcodes = [];
+
+    for(var i=0, l=statements.length; i<l; i++) {
+      statement = statements[i];
+      this[statement.type](statement);
+    }
+    this.isSimple = l === 1;
+
+    this.depths.list = this.depths.list.sort(function(a, b) {
+      return a - b;
+    });
+
+    return this;
+  },
+
+  compileProgram: function(program) {
+    var result = new this.compiler().compile(program, this.options);
+    var guid = this.guid++, depth;
+
+    this.usePartial = this.usePartial || result.usePartial;
+
+    this.children[guid] = result;
+
+    for(var i=0, l=result.depths.list.length; i<l; i++) {
+      depth = result.depths.list[i];
+
+      if(depth < 2) { continue; }
+      else { this.addDepth(depth - 1); }
+    }
+
+    return guid;
+  },
+
+  block: function(block) {
+    var mustache = block.mustache,
+        program = block.program,
+        inverse = block.inverse;
+
+    if (program) {
+      program = this.compileProgram(program);
+    }
+
+    if (inverse) {
+      inverse = this.compileProgram(inverse);
+    }
+
+    var type = this.classifyMustache(mustache);
+
+    if (type === "helper") {
+      this.helperMustache(mustache, program, inverse);
+    } else if (type === "simple") {
+      this.simpleMustache(mustache);
+
+      // now that the simple mustache is resolved, we need to
+      // evaluate it by executing `blockHelperMissing`
+      this.opcode('pushProgram', program);
+      this.opcode('pushProgram', inverse);
+      this.opcode('emptyHash');
+      this.opcode('blockValue');
+    } else {
+      this.ambiguousMustache(mustache, program, inverse);
+
+      // now that the simple mustache is resolved, we need to
+      // evaluate it by executing `blockHelperMissing`
+      this.opcode('pushProgram', program);
+      this.opcode('pushProgram', inverse);
+      this.opcode('emptyHash');
+      this.opcode('ambiguousBlockValue');
+    }
+
+    this.opcode('append');
+  },
+
+  hash: function(hash) {
+    var pairs = hash.pairs, pair, val;
+
+    this.opcode('pushHash');
+
+    for(var i=0, l=pairs.length; i<l; i++) {
+      pair = pairs[i];
+      val  = pair[1];
+
+      if (this.options.stringParams) {
+        if(val.depth) {
+          this.addDepth(val.depth);
+        }
+        this.opcode('getContext', val.depth || 0);
+        this.opcode('pushStringParam', val.stringModeValue, val.type);
+      } else {
+        this.accept(val);
+      }
+
+      this.opcode('assignToHash', pair[0]);
+    }
+    this.opcode('popHash');
+  },
+
+  partial: function(partial) {
+    var partialName = partial.partialName;
+    this.usePartial = true;
+
+    if(partial.context) {
+      this.ID(partial.context);
+    } else {
+      this.opcode('push', 'depth0');
+    }
+
+    this.opcode('invokePartial', partialName.name);
+    this.opcode('append');
+  },
+
+  content: function(content) {
+    this.opcode('appendContent', content.string);
+  },
+
+  mustache: function(mustache) {
+    var options = this.options;
+    var type = this.classifyMustache(mustache);
+
+    if (type === "simple") {
+      this.simpleMustache(mustache);
+    } else if (type === "helper") {
+      this.helperMustache(mustache);
+    } else {
+      this.ambiguousMustache(mustache);
+    }
+
+    if(mustache.escaped && !options.noEscape) {
+      this.opcode('appendEscaped');
+    } else {
+      this.opcode('append');
+    }
+  },
+
+  ambiguousMustache: function(mustache, program, inverse) {
+    var id = mustache.id,
+        name = id.parts[0],
+        isBlock = program != null || inverse != null;
+
+    this.opcode('getContext', id.depth);
+
+    this.opcode('pushProgram', program);
+    this.opcode('pushProgram', inverse);
+
+    this.opcode('invokeAmbiguous', name, isBlock);
+  },
+
+  simpleMustache: function(mustache) {
+    var id = mustache.id;
+
+    if (id.type === 'DATA') {
+      this.DATA(id);
+    } else if (id.parts.length) {
+      this.ID(id);
+    } else {
+      // Simplified ID for `this`
+      this.addDepth(id.depth);
+      this.opcode('getContext', id.depth);
+      this.opcode('pushContext');
+    }
+
+    this.opcode('resolvePossibleLambda');
+  },
+
+  helperMustache: function(mustache, program, inverse) {
+    var params = this.setupFullMustacheParams(mustache, program, inverse),
+        name = mustache.id.parts[0];
+
+    if (this.options.knownHelpers[name]) {
+      this.opcode('invokeKnownHelper', params.length, name);
+    } else if (this.options.knownHelpersOnly) {
+      throw new Error("You specified knownHelpersOnly, but used the unknown helper " + name);
+    } else {
+      this.opcode('invokeHelper', params.length, name);
+    }
+  },
+
+  ID: function(id) {
+    this.addDepth(id.depth);
+    this.opcode('getContext', id.depth);
+
+    var name = id.parts[0];
+    if (!name) {
+      this.opcode('pushContext');
+    } else {
+      this.opcode('lookupOnContext', id.parts[0]);
+    }
+
+    for(var i=1, l=id.parts.length; i<l; i++) {
+      this.opcode('lookup', id.parts[i]);
+    }
+  },
+
+  DATA: function(data) {
+    this.options.data = true;
+    if (data.id.isScoped || data.id.depth) {
+      throw new Handlebars.Exception('Scoped data references are not supported: ' + data.original);
+    }
+
+    this.opcode('lookupData');
+    var parts = data.id.parts;
+    for(var i=0, l=parts.length; i<l; i++) {
+      this.opcode('lookup', parts[i]);
+    }
+  },
+
+  STRING: function(string) {
+    this.opcode('pushString', string.string);
+  },
+
+  INTEGER: function(integer) {
+    this.opcode('pushLiteral', integer.integer);
+  },
+
+  BOOLEAN: function(bool) {
+    this.opcode('pushLiteral', bool.bool);
+  },
+
+  comment: function() {},
+
+  // HELPERS
+  opcode: function(name) {
+    this.opcodes.push({ opcode: name, args: [].slice.call(arguments, 1) });
+  },
+
+  declare: function(name, value) {
+    this.opcodes.push({ opcode: 'DECLARE', name: name, value: value });
+  },
+
+  addDepth: function(depth) {
+    if(isNaN(depth)) { throw new Error("EWOT"); }
+    if(depth === 0) { return; }
+
+    if(!this.depths[depth]) {
+      this.depths[depth] = true;
+      this.depths.list.push(depth);
+    }
+  },
+
+  classifyMustache: function(mustache) {
+    var isHelper   = mustache.isHelper;
+    var isEligible = mustache.eligibleHelper;
+    var options    = this.options;
+
+    // if ambiguous, we can possibly resolve the ambiguity now
+    if (isEligible && !isHelper) {
+      var name = mustache.id.parts[0];
+
+      if (options.knownHelpers[name]) {
+        isHelper = true;
+      } else if (options.knownHelpersOnly) {
+        isEligible = false;
+      }
+    }
+
+    if (isHelper) { return "helper"; }
+    else if (isEligible) { return "ambiguous"; }
+    else { return "simple"; }
+  },
+
+  pushParams: function(params) {
+    var i = params.length, param;
+
+    while(i--) {
+      param = params[i];
+
+      if(this.options.stringParams) {
+        if(param.depth) {
+          this.addDepth(param.depth);
+        }
+
+        this.opcode('getContext', param.depth || 0);
+        this.opcode('pushStringParam', param.stringModeValue, param.type);
+      } else {
+        this[param.type](param);
+      }
+    }
+  },
+
+  setupMustacheParams: function(mustache) {
+    var params = mustache.params;
+    this.pushParams(params);
+
+    if(mustache.hash) {
+      this.hash(mustache.hash);
+    } else {
+      this.opcode('emptyHash');
+    }
+
+    return params;
+  },
+
+  // this will replace setupMustacheParams when we're done
+  setupFullMustacheParams: function(mustache, program, inverse) {
+    var params = mustache.params;
+    this.pushParams(params);
+
+    this.opcode('pushProgram', program);
+    this.opcode('pushProgram', inverse);
+
+    if(mustache.hash) {
+      this.hash(mustache.hash);
+    } else {
+      this.opcode('emptyHash');
+    }
+
+    return params;
+  }
+};
+
+var Literal = function(value) {
+  this.value = value;
+};
+
+JavaScriptCompiler.prototype = {
+  // PUBLIC API: You can override these methods in a subclass to provide
+  // alternative compiled forms for name lookup and buffering semantics
+  nameLookup: function(parent, name /* , type*/) {
+    if (/^[0-9]+$/.test(name)) {
+      return parent + "[" + name + "]";
+    } else if (JavaScriptCompiler.isValidJavaScriptVariableName(name)) {
+      return parent + "." + name;
+    }
+    else {
+      return parent + "['" + name + "']";
+    }
+  },
+
+  appendToBuffer: function(string) {
+    if (this.environment.isSimple) {
+      return "return " + string + ";";
+    } else {
+      return {
+        appendToBuffer: true,
+        content: string,
+        toString: function() { return "buffer += " + string + ";"; }
+      };
+    }
+  },
+
+  initializeBuffer: function() {
+    return this.quotedString("");
+  },
+
+  namespace: "Handlebars",
+  // END PUBLIC API
+
+  compile: function(environment, options, context, asObject) {
+    this.environment = environment;
+    this.options = options || {};
+
+    Handlebars.log(Handlebars.logger.DEBUG, this.environment.disassemble() + "\n\n");
+
+    this.name = this.environment.name;
+    this.isChild = !!context;
+    this.context = context || {
+      programs: [],
+      environments: [],
+      aliases: { }
+    };
+
+    this.preamble();
+
+    this.stackSlot = 0;
+    this.stackVars = [];
+    this.registers = { list: [] };
+    this.compileStack = [];
+    this.inlineStack = [];
+
+    this.compileChildren(environment, options);
+
+    var opcodes = environment.opcodes, opcode;
+
+    this.i = 0;
+
+    for(l=opcodes.length; this.i<l; this.i++) {
+      opcode = opcodes[this.i];
+
+      if(opcode.opcode === 'DECLARE') {
+        this[opcode.name] = opcode.value;
+      } else {
+        this[opcode.opcode].apply(this, opcode.args);
+      }
+    }
+
+    return this.createFunctionContext(asObject);
+  },
+
+  nextOpcode: function() {
+    var opcodes = this.environment.opcodes;
+    return opcodes[this.i + 1];
+  },
+
+  eat: function() {
+    this.i = this.i + 1;
+  },
+
+  preamble: function() {
+    var out = [];
+
+    if (!this.isChild) {
+      var namespace = this.namespace;
+
+      var copies = "helpers = this.merge(helpers, " + namespace + ".helpers);";
+      if (this.environment.usePartial) { copies = copies + " partials = this.merge(partials, " + namespace + ".partials);"; }
+      if (this.options.data) { copies = copies + " data = data || {};"; }
+      out.push(copies);
+    } else {
+      out.push('');
+    }
+
+    if (!this.environment.isSimple) {
+      out.push(", buffer = " + this.initializeBuffer());
+    } else {
+      out.push("");
+    }
+
+    // track the last context pushed into place to allow skipping the
+    // getContext opcode when it would be a noop
+    this.lastContext = 0;
+    this.source = out;
+  },
+
+  createFunctionContext: function(asObject) {
+    var locals = this.stackVars.concat(this.registers.list);
+
+    if(locals.length > 0) {
+      this.source[1] = this.source[1] + ", " + locals.join(", ");
+    }
+
+    // Generate minimizer alias mappings
+    if (!this.isChild) {
+      for (var alias in this.context.aliases) {
+        if (this.context.aliases.hasOwnProperty(alias)) {
+          this.source[1] = this.source[1] + ', ' + alias + '=' + this.context.aliases[alias];
+        }
+      }
+    }
+
+    if (this.source[1]) {
+      this.source[1] = "var " + this.source[1].substring(2) + ";";
+    }
+
+    // Merge children
+    if (!this.isChild) {
+      this.source[1] += '\n' + this.context.programs.join('\n') + '\n';
+    }
+
+    if (!this.environment.isSimple) {
+      this.source.push("return buffer;");
+    }
+
+    var params = this.isChild ? ["depth0", "data"] : ["Handlebars", "depth0", "helpers", "partials", "data"];
+
+    for(var i=0, l=this.environment.depths.list.length; i<l; i++) {
+      params.push("depth" + this.environment.depths.list[i]);
+    }
+
+    // Perform a second pass over the output to merge content when possible
+    var source = this.mergeSource();
+
+    if (!this.isChild) {
+      var revision = Handlebars.COMPILER_REVISION,
+          versions = Handlebars.REVISION_CHANGES[revision];
+      source = "this.compilerInfo = ["+revision+",'"+versions+"'];\n"+source;
+    }
+
+    if (asObject) {
+      params.push(source);
+
+      return Function.apply(this, params);
+    } else {
+      var functionSource = 'function ' + (this.name || '') + '(' + params.join(',') + ') {\n  ' + source + '}';
+      Handlebars.log(Handlebars.logger.DEBUG, functionSource + "\n\n");
+      return functionSource;
+    }
+  },
+  mergeSource: function() {
+    // WARN: We are not handling the case where buffer is still populated as the source should
+    // not have buffer append operations as their final action.
+    var source = '',
+        buffer;
+    for (var i = 0, len = this.source.length; i < len; i++) {
+      var line = this.source[i];
+      if (line.appendToBuffer) {
+        if (buffer) {
+          buffer = buffer + '\n    + ' + line.content;
+        } else {
+          buffer = line.content;
+        }
+      } else {
+        if (buffer) {
+          source += 'buffer += ' + buffer + ';\n  ';
+          buffer = undefined;
+        }
+        source += line + '\n  ';
+      }
+    }
+    return source;
+  },
+
+  // [blockValue]
+  //
+  // On stack, before: hash, inverse, program, value
+  // On stack, after: return value of blockHelperMissing
+  //
+  // The purpose of this opcode is to take a block of the form
+  // `{{#foo}}...{{/foo}}`, resolve the value of `foo`, and
+  // replace it on the stack with the result of properly
+  // invoking blockHelperMissing.
+  blockValue: function() {
+    this.context.aliases.blockHelperMissing = 'helpers.blockHelperMissing';
+
+    var params = ["depth0"];
+    this.setupParams(0, params);
+
+    this.replaceStack(function(current) {
+      params.splice(1, 0, current);
+      return "blockHelperMissing.call(" + params.join(", ") + ")";
+    });
+  },
+
+  // [ambiguousBlockValue]
+  //
+  // On stack, before: hash, inverse, program, value
+  // Compiler value, before: lastHelper=value of last found helper, if any
+  // On stack, after, if no lastHelper: same as [blockValue]
+  // On stack, after, if lastHelper: value
+  ambiguousBlockValue: function() {
+    this.context.aliases.blockHelperMissing = 'helpers.blockHelperMissing';
+
+    var params = ["depth0"];
+    this.setupParams(0, params);
+
+    var current = this.topStack();
+    params.splice(1, 0, current);
+
+    // Use the options value generated from the invocation
+    params[params.length-1] = 'options';
+
+    this.source.push("if (!" + this.lastHelper + ") { " + current + " = blockHelperMissing.call(" + params.join(", ") + "); }");
+  },
+
+  // [appendContent]
+  //
+  // On stack, before: ...
+  // On stack, after: ...
+  //
+  // Appends the string value of `content` to the current buffer
+  appendContent: function(content) {
+    this.source.push(this.appendToBuffer(this.quotedString(content)));
+  },
+
+  // [append]
+  //
+  // On stack, before: value, ...
+  // On stack, after: ...
+  //
+  // Coerces `value` to a String and appends it to the current buffer.
+  //
+  // If `value` is truthy, or 0, it is coerced into a string and appended
+  // Otherwise, the empty string is appended
+  append: function() {
+    // Force anything that is inlined onto the stack so we don't have duplication
+    // when we examine local
+    this.flushInline();
+    var local = this.popStack();
+    this.source.push("if(" + local + " || " + local + " === 0) { " + this.appendToBuffer(local) + " }");
+    if (this.environment.isSimple) {
+      this.source.push("else { " + this.appendToBuffer("''") + " }");
+    }
+  },
+
+  // [appendEscaped]
+  //
+  // On stack, before: value, ...
+  // On stack, after: ...
+  //
+  // Escape `value` and append it to the buffer
+  appendEscaped: function() {
+    this.context.aliases.escapeExpression = 'this.escapeExpression';
+
+    this.source.push(this.appendToBuffer("escapeExpression(" + this.popStack() + ")"));
+  },
+
+  // [getContext]
+  //
+  // On stack, before: ...
+  // On stack, after: ...
+  // Compiler value, after: lastContext=depth
+  //
+  // Set the value of the `lastContext` compiler value to the depth
+  getContext: function(depth) {
+    if(this.lastContext !== depth) {
+      this.lastContext = depth;
+    }
+  },
+
+  // [lookupOnContext]
+  //
+  // On stack, before: ...
+  // On stack, after: currentContext[name], ...
+  //
+  // Looks up the value of `name` on the current context and pushes
+  // it onto the stack.
+  lookupOnContext: function(name) {
+    this.push(this.nameLookup('depth' + this.lastContext, name, 'context'));
+  },
+
+  // [pushContext]
+  //
+  // On stack, before: ...
+  // On stack, after: currentContext, ...
+  //
+  // Pushes the value of the current context onto the stack.
+  pushContext: function() {
+    this.pushStackLiteral('depth' + this.lastContext);
+  },
+
+  // [resolvePossibleLambda]
+  //
+  // On stack, before: value, ...
+  // On stack, after: resolved value, ...
+  //
+  // If the `value` is a lambda, replace it on the stack by
+  // the return value of the lambda
+  resolvePossibleLambda: function() {
+    this.context.aliases.functionType = '"function"';
+
+    this.replaceStack(function(current) {
+      return "typeof " + current + " === functionType ? " + current + ".apply(depth0) : " + current;
+    });
+  },
+
+  // [lookup]
+  //
+  // On stack, before: value, ...
+  // On stack, after: value[name], ...
+  //
+  // Replace the value on the stack with the result of looking
+  // up `name` on `value`
+  lookup: function(name) {
+    this.replaceStack(function(current) {
+      return current + " == null || " + current + " === false ? " + current + " : " + this.nameLookup(current, name, 'context');
+    });
+  },
+
+  // [lookupData]
+  //
+  // On stack, before: ...
+  // On stack, after: data[id], ...
+  //
+  // Push the result of looking up `id` on the current data
+  lookupData: function(id) {
+    this.push('data');
+  },
+
+  // [pushStringParam]
+  //
+  // On stack, before: ...
+  // On stack, after: string, currentContext, ...
+  //
+  // This opcode is designed for use in string mode, which
+  // provides the string value of a parameter along with its
+  // depth rather than resolving it immediately.
+  pushStringParam: function(string, type) {
+    this.pushStackLiteral('depth' + this.lastContext);
+
+    this.pushString(type);
+
+    if (typeof string === 'string') {
+      this.pushString(string);
+    } else {
+      this.pushStackLiteral(string);
+    }
+  },
+
+  emptyHash: function() {
+    this.pushStackLiteral('{}');
+
+    if (this.options.stringParams) {
+      this.register('hashTypes', '{}');
+      this.register('hashContexts', '{}');
+    }
+  },
+  pushHash: function() {
+    this.hash = {values: [], types: [], contexts: []};
+  },
+  popHash: function() {
+    var hash = this.hash;
+    this.hash = undefined;
+
+    if (this.options.stringParams) {
+      this.register('hashContexts', '{' + hash.contexts.join(',') + '}');
+      this.register('hashTypes', '{' + hash.types.join(',') + '}');
+    }
+    this.push('{\n    ' + hash.values.join(',\n    ') + '\n  }');
+  },
+
+  // [pushString]
+  //
+  // On stack, before: ...
+  // On stack, after: quotedString(string), ...
+  //
+  // Push a quoted version of `string` onto the stack
+  pushString: function(string) {
+    this.pushStackLiteral(this.quotedString(string));
+  },
+
+  // [push]
+  //
+  // On stack, before: ...
+  // On stack, after: expr, ...
+  //
+  // Push an expression onto the stack
+  push: function(expr) {
+    this.inlineStack.push(expr);
+    return expr;
+  },
+
+  // [pushLiteral]
+  //
+  // On stack, before: ...
+  // On stack, after: value, ...
+  //
+  // Pushes a value onto the stack. This operation prevents
+  // the compiler from creating a temporary variable to hold
+  // it.
+  pushLiteral: function(value) {
+    this.pushStackLiteral(value);
+  },
+
+  // [pushProgram]
+  //
+  // On stack, before: ...
+  // On stack, after: program(guid), ...
+  //
+  // Push a program expression onto the stack. This takes
+  // a compile-time guid and converts it into a runtime-accessible
+  // expression.
+  pushProgram: function(guid) {
+    if (guid != null) {
+      this.pushStackLiteral(this.programExpression(guid));
+    } else {
+      this.pushStackLiteral(null);
+    }
+  },
+
+  // [invokeHelper]
+  //
+  // On stack, before: hash, inverse, program, params..., ...
+  // On stack, after: result of helper invocation
+  //
+  // Pops off the helper's parameters, invokes the helper,
+  // and pushes the helper's return value onto the stack.
+  //
+  // If the helper is not found, `helperMissing` is called.
+  invokeHelper: function(paramSize, name) {
+    this.context.aliases.helperMissing = 'helpers.helperMissing';
+
+    var helper = this.lastHelper = this.setupHelper(paramSize, name, true);
+    var nonHelper = this.nameLookup('depth' + this.lastContext, name, 'context');
+
+    this.push(helper.name + ' || ' + nonHelper);
+    this.replaceStack(function(name) {
+      return name + ' ? ' + name + '.call(' +
+          helper.callParams + ") " + ": helperMissing.call(" +
+          helper.helperMissingParams + ")";
+    });
+  },
+
+  // [invokeKnownHelper]
+  //
+  // On stack, before: hash, inverse, program, params..., ...
+  // On stack, after: result of helper invocation
+  //
+  // This operation is used when the helper is known to exist,
+  // so a `helperMissing` fallback is not required.
+  invokeKnownHelper: function(paramSize, name) {
+    var helper = this.setupHelper(paramSize, name);
+    this.push(helper.name + ".call(" + helper.callParams + ")");
+  },
+
+  // [invokeAmbiguous]
+  //
+  // On stack, before: hash, inverse, program, params..., ...
+  // On stack, after: result of disambiguation
+  //
+  // This operation is used when an expression like `{{foo}}`
+  // is provided, but we don't know at compile-time whether it
+  // is a helper or a path.
+  //
+  // This operation emits more code than the other options,
+  // and can be avoided by passing the `knownHelpers` and
+  // `knownHelpersOnly` flags at compile-time.
+  invokeAmbiguous: function(name, helperCall) {
+    this.context.aliases.functionType = '"function"';
+
+    this.pushStackLiteral('{}');    // Hash value
+    var helper = this.setupHelper(0, name, helperCall);
+
+    var helperName = this.lastHelper = this.nameLookup('helpers', name, 'helper');
+
+    var nonHelper = this.nameLookup('depth' + this.lastContext, name, 'context');
+    var nextStack = this.nextStack();
+
+    this.source.push('if (' + nextStack + ' = ' + helperName + ') { ' + nextStack + ' = ' + nextStack + '.call(' + helper.callParams + '); }');
+    this.source.push('else { ' + nextStack + ' = ' + nonHelper + '; ' + nextStack + ' = typeof ' + nextStack + ' === functionType ? ' + nextStack + '.apply(depth0) : ' + nextStack + '; }');
+  },
+
+  // [invokePartial]
+  //
+  // On stack, before: context, ...
+  // On stack after: result of partial invocation
+  //
+  // This operation pops off a context, invokes a partial with that context,
+  // and pushes the result of the invocation back.
+  invokePartial: function(name) {
+    var params = [this.nameLookup('partials', name, 'partial'), "'" + name + "'", this.popStack(), "helpers", "partials"];
+
+    if (this.options.data) {
+      params.push("data");
+    }
+
+    this.context.aliases.self = "this";
+    this.push("self.invokePartial(" + params.join(", ") + ")");
+  },
+
+  // [assignToHash]
+  //
+  // On stack, before: value, hash, ...
+  // On stack, after: hash, ...
+  //
+  // Pops a value and hash off the stack, assigns `hash[key] = value`
+  // and pushes the hash back onto the stack.
+  assignToHash: function(key) {
+    var value = this.popStack(),
+        context,
+        type;
+
+    if (this.options.stringParams) {
+      type = this.popStack();
+      context = this.popStack();
+    }
+
+    var hash = this.hash;
+    if (context) {
+      hash.contexts.push("'" + key + "': " + context);
+    }
+    if (type) {
+      hash.types.push("'" + key + "': " + type);
+    }
+    hash.values.push("'" + key + "': (" + value + ")");
+  },
+
+  // HELPERS
+
+  compiler: JavaScriptCompiler,
+
+  compileChildren: function(environment, options) {
+    var children = environment.children, child, compiler;
+
+    for(var i=0, l=children.length; i<l; i++) {
+      child = children[i];
+      compiler = new this.compiler();
+
+      var index = this.matchExistingProgram(child);
+
+      if (index == null) {
+        this.context.programs.push('');     // Placeholder to prevent name conflicts for nested children
+        index = this.context.programs.length;
+        child.index = index;
+        child.name = 'program' + index;
+        this.context.programs[index] = compiler.compile(child, options, this.context);
+        this.context.environments[index] = child;
+      } else {
+        child.index = index;
+        child.name = 'program' + index;
+      }
+    }
+  },
+  matchExistingProgram: function(child) {
+    for (var i = 0, len = this.context.environments.length; i < len; i++) {
+      var environment = this.context.environments[i];
+      if (environment && environment.equals(child)) {
+        return i;
+      }
+    }
+  },
+
+  programExpression: function(guid) {
+    this.context.aliases.self = "this";
+
+    if(guid == null) {
+      return "self.noop";
+    }
+
+    var child = this.environment.children[guid],
+        depths = child.depths.list, depth;
+
+    var programParams = [child.index, child.name, "data"];
+
+    for(var i=0, l = depths.length; i<l; i++) {
+      depth = depths[i];
+
+      if(depth === 1) { programParams.push("depth0"); }
+      else { programParams.push("depth" + (depth - 1)); }
+    }
+
+    return (depths.length === 0 ? "self.program(" : "self.programWithDepth(") + programParams.join(", ") + ")";
+  },
+
+  register: function(name, val) {
+    this.useRegister(name);
+    this.source.push(name + " = " + val + ";");
+  },
+
+  useRegister: function(name) {
+    if(!this.registers[name]) {
+      this.registers[name] = true;
+      this.registers.list.push(name);
+    }
+  },
+
+  pushStackLiteral: function(item) {
+    return this.push(new Literal(item));
+  },
+
+  pushStack: function(item) {
+    this.flushInline();
+
+    var stack = this.incrStack();
+    if (item) {
+      this.source.push(stack + " = " + item + ";");
+    }
+    this.compileStack.push(stack);
+    return stack;
+  },
+
+  replaceStack: function(callback) {
+    var prefix = '',
+        inline = this.isInline(),
+        stack;
+
+    // If we are currently inline then we want to merge the inline statement into the
+    // replacement statement via ','
+    if (inline) {
+      var top = this.popStack(true);
+
+      if (top instanceof Literal) {
+        // Literals do not need to be inlined
+        stack = top.value;
+      } else {
+        // Get or create the current stack name for use by the inline
+        var name = this.stackSlot ? this.topStackName() : this.incrStack();
+
+        prefix = '(' + this.push(name) + ' = ' + top + '),';
+        stack = this.topStack();
+      }
+    } else {
+      stack = this.topStack();
+    }
+
+    var item = callback.call(this, stack);
+
+    if (inline) {
+      if (this.inlineStack.length || this.compileStack.length) {
+        this.popStack();
+      }
+      this.push('(' + prefix + item + ')');
+    } else {
+      // Prevent modification of the context depth variable. Through replaceStack
+      if (!/^stack/.test(stack)) {
+        stack = this.nextStack();
+      }
+
+      this.source.push(stack + " = (" + prefix + item + ");");
+    }
+    return stack;
+  },
+
+  nextStack: function() {
+    return this.pushStack();
+  },
+
+  incrStack: function() {
+    this.stackSlot++;
+    if(this.stackSlot > this.stackVars.length) { this.stackVars.push("stack" + this.stackSlot); }
+    return this.topStackName();
+  },
+  topStackName: function() {
+    return "stack" + this.stackSlot;
+  },
+  flushInline: function() {
+    var inlineStack = this.inlineStack;
+    if (inlineStack.length) {
+      this.inlineStack = [];
+      for (var i = 0, len = inlineStack.length; i < len; i++) {
+        var entry = inlineStack[i];
+        if (entry instanceof Literal) {
+          this.compileStack.push(entry);
+        } else {
+          this.pushStack(entry);
+        }
+      }
+    }
+  },
+  isInline: function() {
+    return this.inlineStack.length;
+  },
+
+  popStack: function(wrapped) {
+    var inline = this.isInline(),
+        item = (inline ? this.inlineStack : this.compileStack).pop();
+
+    if (!wrapped && (item instanceof Literal)) {
+      return item.value;
+    } else {
+      if (!inline) {
+        this.stackSlot--;
+      }
+      return item;
+    }
+  },
+
+  topStack: function(wrapped) {
+    var stack = (this.isInline() ? this.inlineStack : this.compileStack),
+        item = stack[stack.length - 1];
+
+    if (!wrapped && (item instanceof Literal)) {
+      return item.value;
+    } else {
+      return item;
+    }
+  },
+
+  quotedString: function(str) {
+    return '"' + str
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r')
+      .replace(/\u2028/g, '\\u2028')   // Per Ecma-262 7.3 + 7.8.4
+      .replace(/\u2029/g, '\\u2029') + '"';
+  },
+
+  setupHelper: function(paramSize, name, missingParams) {
+    var params = [];
+    this.setupParams(paramSize, params, missingParams);
+    var foundHelper = this.nameLookup('helpers', name, 'helper');
+
+    return {
+      params: params,
+      name: foundHelper,
+      callParams: ["depth0"].concat(params).join(", "),
+      helperMissingParams: missingParams && ["depth0", this.quotedString(name)].concat(params).join(", ")
+    };
+  },
+
+  // the params and contexts arguments are passed in arrays
+  // to fill in
+  setupParams: function(paramSize, params, useRegister) {
+    var options = [], contexts = [], types = [], param, inverse, program;
+
+    options.push("hash:" + this.popStack());
+
+    inverse = this.popStack();
+    program = this.popStack();
+
+    // Avoid setting fn and inverse if neither are set. This allows
+    // helpers to do a check for `if (options.fn)`
+    if (program || inverse) {
+      if (!program) {
+        this.context.aliases.self = "this";
+        program = "self.noop";
+      }
+
+      if (!inverse) {
+       this.context.aliases.self = "this";
+        inverse = "self.noop";
+      }
+
+      options.push("inverse:" + inverse);
+      options.push("fn:" + program);
+    }
+
+    for(var i=0; i<paramSize; i++) {
+      param = this.popStack();
+      params.push(param);
+
+      if(this.options.stringParams) {
+        types.push(this.popStack());
+        contexts.push(this.popStack());
+      }
+    }
+
+    if (this.options.stringParams) {
+      options.push("contexts:[" + contexts.join(",") + "]");
+      options.push("types:[" + types.join(",") + "]");
+      options.push("hashContexts:hashContexts");
+      options.push("hashTypes:hashTypes");
+    }
+
+    if(this.options.data) {
+      options.push("data:data");
+    }
+
+    options = "{" + options.join(",") + "}";
+    if (useRegister) {
+      this.register('options', options);
+      params.push('options');
+    } else {
+      params.push(options);
+    }
+    return params.join(", ");
+  }
+};
+
+var reservedWords = (
+  "break else new var" +
+  " case finally return void" +
+  " catch for switch while" +
+  " continue function this with" +
+  " default if throw" +
+  " delete in try" +
+  " do instanceof typeof" +
+  " abstract enum int short" +
+  " boolean export interface static" +
+  " byte extends long super" +
+  " char final native synchronized" +
+  " class float package throws" +
+  " const goto private transient" +
+  " debugger implements protected volatile" +
+  " double import public let yield"
+).split(" ");
+
+var compilerWords = JavaScriptCompiler.RESERVED_WORDS = {};
+
+for(var i=0, l=reservedWords.length; i<l; i++) {
+  compilerWords[reservedWords[i]] = true;
+}
+
+JavaScriptCompiler.isValidJavaScriptVariableName = function(name) {
+  if(!JavaScriptCompiler.RESERVED_WORDS[name] && /^[a-zA-Z_$][0-9a-zA-Z_$]+$/.test(name)) {
+    return true;
+  }
+  return false;
+};
+
+Handlebars.precompile = function(input, options) {
+  if (input == null || (typeof input !== 'string' && input.constructor !== Handlebars.AST.ProgramNode)) {
+    throw new Handlebars.Exception("You must pass a string or Handlebars AST to Handlebars.precompile. You passed " + input);
+  }
+
+  options = options || {};
+  if (!('data' in options)) {
+    options.data = true;
+  }
+  var ast = Handlebars.parse(input);
+  var environment = new Compiler().compile(ast, options);
+  return new JavaScriptCompiler().compile(environment, options);
+};
+
+Handlebars.compile = function(input, options) {
+  if (input == null || (typeof input !== 'string' && input.constructor !== Handlebars.AST.ProgramNode)) {
+    throw new Handlebars.Exception("You must pass a string or Handlebars AST to Handlebars.compile. You passed " + input);
+  }
+
+  options = options || {};
+  if (!('data' in options)) {
+    options.data = true;
+  }
+  var compiled;
+  function compile() {
+    var ast = Handlebars.parse(input);
+    var environment = new Compiler().compile(ast, options);
+    var templateSpec = new JavaScriptCompiler().compile(environment, options, undefined, true);
+    return Handlebars.template(templateSpec);
+  }
+
+  // Template is only compiled on first use and cached after that point.
+  return function(context, options) {
+    if (!compiled) {
+      compiled = compile();
+    }
+    return compiled.call(this, context, options);
+  };
+};
+
+;
+// lib/handlebars/runtime.js
+
+Handlebars.VM = {
+  template: function(templateSpec) {
+    // Just add water
+    var container = {
+      escapeExpression: Handlebars.Utils.escapeExpression,
+      invokePartial: Handlebars.VM.invokePartial,
+      programs: [],
+      program: function(i, fn, data) {
+        var programWrapper = this.programs[i];
+        if(data) {
+          programWrapper = Handlebars.VM.program(i, fn, data);
+        } else if (!programWrapper) {
+          programWrapper = this.programs[i] = Handlebars.VM.program(i, fn);
+        }
+        return programWrapper;
+      },
+      merge: function(param, common) {
+        var ret = param || common;
+
+        if (param && common) {
+          ret = {};
+          Handlebars.Utils.extend(ret, common);
+          Handlebars.Utils.extend(ret, param);
+        }
+        return ret;
+      },
+      programWithDepth: Handlebars.VM.programWithDepth,
+      noop: Handlebars.VM.noop,
+      compilerInfo: null
+    };
+
+    return function(context, options) {
+      options = options || {};
+      var result = templateSpec.call(container, Handlebars, context, options.helpers, options.partials, options.data);
+
+      var compilerInfo = container.compilerInfo || [],
+          compilerRevision = compilerInfo[0] || 1,
+          currentRevision = Handlebars.COMPILER_REVISION;
+
+      if (compilerRevision !== currentRevision) {
+        if (compilerRevision < currentRevision) {
+          var runtimeVersions = Handlebars.REVISION_CHANGES[currentRevision],
+              compilerVersions = Handlebars.REVISION_CHANGES[compilerRevision];
+          throw "Template was precompiled with an older version of Handlebars than the current runtime. "+
+                "Please update your precompiler to a newer version ("+runtimeVersions+") or downgrade your runtime to an older version ("+compilerVersions+").";
+        } else {
+          // Use the embedded version info since the runtime doesn't know about this revision yet
+          throw "Template was precompiled with a newer version of Handlebars than the current runtime. "+
+                "Please update your runtime to a newer version ("+compilerInfo[1]+").";
+        }
+      }
+
+      return result;
+    };
+  },
+
+  programWithDepth: function(i, fn, data /*, $depth */) {
+    var args = Array.prototype.slice.call(arguments, 3);
+
+    var program = function(context, options) {
+      options = options || {};
+
+      return fn.apply(this, [context, options.data || data].concat(args));
+    };
+    program.program = i;
+    program.depth = args.length;
+    return program;
+  },
+  program: function(i, fn, data) {
+    var program = function(context, options) {
+      options = options || {};
+
+      return fn(context, options.data || data);
+    };
+    program.program = i;
+    program.depth = 0;
+    return program;
+  },
+  noop: function() { return ""; },
+  invokePartial: function(partial, name, context, helpers, partials, data) {
+    var options = { helpers: helpers, partials: partials, data: data };
+
+    if(partial === undefined) {
+      throw new Handlebars.Exception("The partial " + name + " could not be found");
+    } else if(partial instanceof Function) {
+      return partial(context, options);
+    } else if (!Handlebars.compile) {
+      throw new Handlebars.Exception("The partial " + name + " could not be compiled when running in runtime-only mode");
+    } else {
+      partials[name] = Handlebars.compile(partial, {data: data !== undefined});
+      return partials[name](context, options);
+    }
+  }
+};
+
+Handlebars.template = Handlebars.VM.template;
+;
+// lib/handlebars/browser-suffix.js
+})(Handlebars);
+;
+
+define("Handlebars", (function (global) {
+    return function () {
+        var ret, fn;
+        return ret || global.Handlebars;
+    };
+}(this)));
 
 // RequireJS Handlebars template plugin
 // http://github.com/jfparadis/requirejs-handlebars
@@ -123,6 +14189,59 @@ THE SOFTWARE.
 //     }
 //   });
 
+/*jslint nomen: true */
+/*global define: false */
+
+define('hbars',['text', 'Handlebars'], function (text, Handlebars) {
+    
+
+    var sourceMap = {},
+        buildMap = {},
+        buildTemplateSource = "define('{pluginName}!{moduleName}', ['Handlebars'], function (Handlebars) { return Handlebars.compile('{content}'); });\n";
+
+    return {
+        version: '0.0.2',
+
+        load: function (moduleName, parentRequire, onload, config) {
+            if (buildMap[moduleName]) {
+                onload(buildMap[moduleName]);
+
+            } else {
+                var ext = (config.hbars && config.hbars.extension) || '.html';
+                var path = (config.hbars && config.hbars.path) || '';
+                text.load(path + moduleName + ext, parentRequire, function (source) {
+                    if (config.isBuild) {
+                        sourceMap[moduleName] = source;
+                        onload();
+                    } else {
+                        buildMap[moduleName] = Handlebars.compile(source);
+                        onload(buildMap[moduleName]);
+                    }
+                }, config);
+            }
+        },
+
+        write: function (pluginName, moduleName, write, config) {
+            var source = sourceMap[moduleName],
+                content = source && text.jsEscape(source);
+            if (content) {
+                write.asModule(pluginName + '!' + moduleName,
+                    buildTemplateSource
+                    .replace('{pluginName}', pluginName)
+                    .replace('{moduleName}', moduleName)
+                    .replace('{content}', content));
+            }
+        }
+    };
+});
+
+define('hbars!modules/../../templates/navigation', ['Handlebars'], function (Handlebars) { return Handlebars.compile('<li><a href="#{{id}}">{{title}}</a></li>\n'); });
+
+define('hbars!modules/../../templates/api-section', ['Handlebars'], function (Handlebars) { return Handlebars.compile('<section class="api-documents" id="section-{{id}}"></section>\n'); });
+
+define('hbars!modules/../../templates/api-article', ['Handlebars'], function (Handlebars) { return Handlebars.compile('<article class="document">\n  <div class="for-humans" id={{id}}>\n    {{{content}}}\n  </div>\n  <div class="for-machines">\n    {{{example}}}\n  </div>\n</article>\n'); });
+
+;
 /** @license
  * RequireJS plugin for loading Markdown files and converting them into HTML.
  * Author: Miller Medeiros
@@ -130,4 +14249,436 @@ THE SOFTWARE.
  * Released under the MIT license
  */
 
-var requirejs,require,define;(function(e){function c(e,t){return f.call(e,t)}function h(e,t){var n,r,i,s,o,a,f,l,c,h,p=t&&t.split("/"),d=u.map,v=d&&d["*"]||{};if(e&&e.charAt(0)===".")if(t){p=p.slice(0,p.length-1),e=p.concat(e.split("/"));for(l=0;l<e.length;l+=1){h=e[l];if(h===".")e.splice(l,1),l-=1;else if(h===".."){if(l===1&&(e[2]===".."||e[0]===".."))break;l>0&&(e.splice(l-1,2),l-=2)}}e=e.join("/")}else e.indexOf("./")===0&&(e=e.substring(2));if((p||v)&&d){n=e.split("/");for(l=n.length;l>0;l-=1){r=n.slice(0,l).join("/");if(p)for(c=p.length;c>0;c-=1){i=d[p.slice(0,c).join("/")];if(i){i=i[r];if(i){s=i,o=l;break}}}if(s)break;!a&&v&&v[r]&&(a=v[r],f=l)}!s&&a&&(s=a,o=f),s&&(n.splice(0,o,s),e=n.join("/"))}return e}function p(t,r){return function(){return n.apply(e,l.call(arguments,0).concat([t,r]))}}function d(e){return function(t){return h(t,e)}}function v(e){return function(t){s[e]=t}}function m(n){if(c(o,n)){var r=o[n];delete o[n],a[n]=!0,t.apply(e,r)}if(!c(s,n)&&!c(a,n))throw new Error("No "+n);return s[n]}function g(e){var t,n=e?e.indexOf("!"):-1;return n>-1&&(t=e.substring(0,n),e=e.substring(n+1,e.length)),[t,e]}function y(e){return function(){return u&&u.config&&u.config[e]||{}}}var t,n,r,i,s={},o={},u={},a={},f=Object.prototype.hasOwnProperty,l=[].slice;r=function(e,t){var n,r=g(e),i=r[0];return e=r[1],i&&(i=h(i,t),n=m(i)),i?n&&n.normalize?e=n.normalize(e,d(t)):e=h(e,t):(e=h(e,t),r=g(e),i=r[0],e=r[1],i&&(n=m(i))),{f:i?i+"!"+e:e,n:e,pr:i,p:n}},i={require:function(e){return p(e)},exports:function(e){var t=s[e];return typeof t!="undefined"?t:s[e]={}},module:function(e){return{id:e,uri:"",exports:s[e],config:y(e)}}},t=function(t,n,u,f){var l,h,d,g,y,b=[],w;f=f||t;if(typeof u=="function"){n=!n.length&&u.length?["require","exports","module"]:n;for(y=0;y<n.length;y+=1){g=r(n[y],f),h=g.f;if(h==="require")b[y]=i.require(t);else if(h==="exports")b[y]=i.exports(t),w=!0;else if(h==="module")l=b[y]=i.module(t);else if(c(s,h)||c(o,h)||c(a,h))b[y]=m(h);else{if(!g.p)throw new Error(t+" missing "+h);g.p.load(g.n,p(f,!0),v(h),{}),b[y]=s[h]}}d=u.apply(s[t],b);if(t)if(l&&l.exports!==e&&l.exports!==s[t])s[t]=l.exports;else if(d!==e||!w)s[t]=d}else t&&(s[t]=u)},requirejs=require=n=function(s,o,a,f,l){return typeof s=="string"?i[s]?i[s](o):m(r(s,o).f):(s.splice||(u=s,o.splice?(s=o,o=a,a=null):s=e),o=o||function(){},typeof a=="function"&&(a=f,f=l),f?t(e,s,o,a):setTimeout(function(){t(e,s,o,a)},4),n)},n.config=function(e){return u=e,u.deps&&n(u.deps,u.callback),n},requirejs._defined=s,define=function(e,t,n){t.splice||(n=t,t=[]),!c(s,e)&&!c(o,e)&&(o[e]=[e,t,n])},define.amd={jQuery:!0}})(),define("almond",function(){}),function(window,undefined){function isArraylike(e){var t=e.length,n=jQuery.type(e);return jQuery.isWindow(e)?!1:e.nodeType===1&&t?!0:n==="array"||n!=="function"&&(t===0||typeof t=="number"&&t>0&&t-1 in e)}function createOptions(e){var t=optionsCache[e]={};return jQuery.each(e.match(core_rnotwhite)||[],function(e,n){t[n]=!0}),t}function Data(){Object.defineProperty(this.cache={},0,{get:function(){return{}}}),this.expando=jQuery.expando+Math.random()}function dataAttr(e,t,n){var r;if(n===undefined&&e.nodeType===1){r="data-"+t.replace(rmultiDash,"-$1").toLowerCase(),n=e.getAttribute(r);if(typeof n=="string"){try{n=n==="true"?!0:n==="false"?!1:n==="null"?null:+n+""===n?+n:rbrace.test(n)?JSON.parse(n):n}catch(i){}data_user.set(e,t,n)}else n=undefined}return n}function returnTrue(){return!0}function returnFalse(){return!1}function safeActiveElement(){try{return document.activeElement}catch(e){}}function sibling(e,t){while((e=e[t])&&e.nodeType!==1);return e}function winnow(e,t,n){if(jQuery.isFunction(t))return jQuery.grep(e,function(e,r){return!!t.call(e,r,e)!==n});if(t.nodeType)return jQuery.grep(e,function(e){return e===t!==n});if(typeof t=="string"){if(isSimple.test(t))return jQuery.filter(t,e,n);t=jQuery.filter(t,e)}return jQuery.grep(e,function(e){return core_indexOf.call(t,e)>=0!==n})}function manipulationTarget(e,t){return jQuery.nodeName(e,"table")&&jQuery.nodeName(t.nodeType===1?t:t.firstChild,"tr")?e.getElementsByTagName("tbody")[0]||e.appendChild(e.ownerDocument.createElement("tbody")):e}function disableScript(e){return e.type=(e.getAttribute("type")!==null)+"/"+e.type,e}function restoreScript(e){var t=rscriptTypeMasked.exec(e.type);return t?e.type=t[1]:e.removeAttribute("type"),e}function setGlobalEval(e,t){var n=e.length,r=0;for(;r<n;r++)data_priv.set(e[r],"globalEval",!t||data_priv.get(t[r],"globalEval"))}function cloneCopyEvent(e,t){var n,r,i,s,o,u,a,f;if(t.nodeType!==1)return;if(data_priv.hasData(e)){s=data_priv.access(e),o=data_priv.set(t,s),f=s.events;if(f){delete o.handle,o.events={};for(i in f)for(n=0,r=f[i].length;n<r;n++)jQuery.event.add(t,i,f[i][n])}}data_user.hasData(e)&&(u=data_user.access(e),a=jQuery.extend({},u),data_user.set(t,a))}function getAll(e,t){var n=e.getElementsByTagName?e.getElementsByTagName(t||"*"):e.querySelectorAll?e.querySelectorAll(t||"*"):[];return t===undefined||t&&jQuery.nodeName(e,t)?jQuery.merge([e],n):n}function fixInput(e,t){var n=t.nodeName.toLowerCase();if(n==="input"&&manipulation_rcheckableType.test(e.type))t.checked=e.checked;else if(n==="input"||n==="textarea")t.defaultValue=e.defaultValue}function vendorPropName(e,t){if(t in e)return t;var n=t.charAt(0).toUpperCase()+t.slice(1),r=t,i=cssPrefixes.length;while(i--){t=cssPrefixes[i]+n;if(t in e)return t}return r}function isHidden(e,t){return e=t||e,jQuery.css(e,"display")==="none"||!jQuery.contains(e.ownerDocument,e)}function getStyles(e){return window.getComputedStyle(e,null)}function showHide(e,t){var n,r,i,s=[],o=0,u=e.length;for(;o<u;o++){r=e[o];if(!r.style)continue;s[o]=data_priv.get(r,"olddisplay"),n=r.style.display,t?(!s[o]&&n==="none"&&(r.style.display=""),r.style.display===""&&isHidden(r)&&(s[o]=data_priv.access(r,"olddisplay",css_defaultDisplay(r.nodeName)))):s[o]||(i=isHidden(r),(n&&n!=="none"||!i)&&data_priv.set(r,"olddisplay",i?n:jQuery.css(r,"display")))}for(o=0;o<u;o++){r=e[o];if(!r.style)continue;if(!t||r.style.display==="none"||r.style.display==="")r.style.display=t?s[o]||"":"none"}return e}function setPositiveNumber(e,t,n){var r=rnumsplit.exec(t);return r?Math.max(0,r[1]-(n||0))+(r[2]||"px"):t}function augmentWidthOrHeight(e,t,n,r,i){var s=n===(r?"border":"content")?4:t==="width"?1:0,o=0;for(;s<4;s+=2)n==="margin"&&(o+=jQuery.css(e,n+cssExpand[s],!0,i)),r?(n==="content"&&(o-=jQuery.css(e,"padding"+cssExpand[s],!0,i)),n!=="margin"&&(o-=jQuery.css(e,"border"+cssExpand[s]+"Width",!0,i))):(o+=jQuery.css(e,"padding"+cssExpand[s],!0,i),n!=="padding"&&(o+=jQuery.css(e,"border"+cssExpand[s]+"Width",!0,i)));return o}function getWidthOrHeight(e,t,n){var r=!0,i=t==="width"?e.offsetWidth:e.offsetHeight,s=getStyles(e),o=jQuery.support.boxSizing&&jQuery.css(e,"boxSizing",!1,s)==="border-box";if(i<=0||i==null){i=curCSS(e,t,s);if(i<0||i==null)i=e.style[t];if(rnumnonpx.test(i))return i;r=o&&(jQuery.support.boxSizingReliable||i===e.style[t]),i=parseFloat(i)||0}return i+augmentWidthOrHeight(e,t,n||(o?"border":"content"),r,s)+"px"}function css_defaultDisplay(e){var t=document,n=elemdisplay[e];if(!n){n=actualDisplay(e,t);if(n==="none"||!n)iframe=(iframe||jQuery("<iframe frameborder='0' width='0' height='0'/>").css("cssText","display:block !important")).appendTo(t.documentElement),t=(iframe[0].contentWindow||iframe[0].contentDocument).document,t.write("<!doctype html><html><body>"),t.close(),n=actualDisplay(e,t),iframe.detach();elemdisplay[e]=n}return n}function actualDisplay(e,t){var n=jQuery(t.createElement(e)).appendTo(t.body),r=jQuery.css(n[0],"display");return n.remove(),r}function buildParams(e,t,n,r){var i;if(jQuery.isArray(t))jQuery.each(t,function(t,i){n||rbracket.test(e)?r(e,i):buildParams(e+"["+(typeof i=="object"?t:"")+"]",i,n,r)});else if(!n&&jQuery.type(t)==="object")for(i in t)buildParams(e+"["+i+"]",t[i],n,r);else r(e,t)}function addToPrefiltersOrTransports(e){return function(t,n){typeof t!="string"&&(n=t,t="*");var r,i=0,s=t.toLowerCase().match(core_rnotwhite)||[];if(jQuery.isFunction(n))while(r=s[i++])r[0]==="+"?(r=r.slice(1)||"*",(e[r]=e[r]||[]).unshift(n)):(e[r]=e[r]||[]).push(n)}}function inspectPrefiltersOrTransports(e,t,n,r){function o(u){var a;return i[u]=!0,jQuery.each(e[u]||[],function(e,u){var f=u(t,n,r);if(typeof f=="string"&&!s&&!i[f])return t.dataTypes.unshift(f),o(f),!1;if(s)return!(a=f)}),a}var i={},s=e===transports;return o(t.dataTypes[0])||!i["*"]&&o("*")}function ajaxExtend(e,t){var n,r,i=jQuery.ajaxSettings.flatOptions||{};for(n in t)t[n]!==undefined&&((i[n]?e:r||(r={}))[n]=t[n]);return r&&jQuery.extend(!0,e,r),e}function ajaxHandleResponses(e,t,n){var r,i,s,o,u=e.contents,a=e.dataTypes;while(a[0]==="*")a.shift(),r===undefined&&(r=e.mimeType||t.getResponseHeader("Content-Type"));if(r)for(i in u)if(u[i]&&u[i].test(r)){a.unshift(i);break}if(a[0]in n)s=a[0];else{for(i in n){if(!a[0]||e.converters[i+" "+a[0]]){s=i;break}o||(o=i)}s=s||o}if(s)return s!==a[0]&&a.unshift(s),n[s]}function ajaxConvert(e,t,n,r){var i,s,o,u,a,f={},l=e.dataTypes.slice();if(l[1])for(o in e.converters)f[o.toLowerCase()]=e.converters[o];s=l.shift();while(s){e.responseFields[s]&&(n[e.responseFields[s]]=t),!a&&r&&e.dataFilter&&(t=e.dataFilter(t,e.dataType)),a=s,s=l.shift();if(s)if(s==="*")s=a;else if(a!=="*"&&a!==s){o=f[a+" "+s]||f["* "+s];if(!o)for(i in f){u=i.split(" ");if(u[1]===s){o=f[a+" "+u[0]]||f["* "+u[0]];if(o){o===!0?o=f[i]:f[i]!==!0&&(s=u[0],l.unshift(u[1]));break}}}if(o!==!0)if(o&&e["throws"])t=o(t);else try{t=o(t)}catch(c){return{state:"parsererror",error:o?c:"No conversion from "+a+" to "+s}}}}return{state:"success",data:t}}function createFxNow(){return setTimeout(function(){fxNow=undefined}),fxNow=jQuery.now()}function createTween(e,t,n){var r,i=(tweeners[t]||[]).concat(tweeners["*"]),s=0,o=i.length;for(;s<o;s++)if(r=i[s].call(n,t,e))return r}function Animation(e,t,n){var r,i,s=0,o=animationPrefilters.length,u=jQuery.Deferred().always(function(){delete a.elem}),a=function(){if(i)return!1;var t=fxNow||createFxNow(),n=Math.max(0,f.startTime+f.duration-t),r=n/f.duration||0,s=1-r,o=0,a=f.tweens.length;for(;o<a;o++)f.tweens[o].run(s);return u.notifyWith(e,[f,s,n]),s<1&&a?n:(u.resolveWith(e,[f]),!1)},f=u.promise({elem:e,props:jQuery.extend({},t),opts:jQuery.extend(!0,{specialEasing:{}},n),originalProperties:t,originalOptions:n,startTime:fxNow||createFxNow(),duration:n.duration,tweens:[],createTween:function(t,n){var r=jQuery.Tween(e,f.opts,t,n,f.opts.specialEasing[t]||f.opts.easing);return f.tweens.push(r),r},stop:function(t){var n=0,r=t?f.tweens.length:0;if(i)return this;i=!0;for(;n<r;n++)f.tweens[n].run(1);return t?u.resolveWith(e,[f,t]):u.rejectWith(e,[f,t]),this}}),l=f.props;propFilter(l,f.opts.specialEasing);for(;s<o;s++){r=animationPrefilters[s].call(f,e,l,f.opts);if(r)return r}return jQuery.map(l,createTween,f),jQuery.isFunction(f.opts.start)&&f.opts.start.call(e,f),jQuery.fx.timer(jQuery.extend(a,{elem:e,anim:f,queue:f.opts.queue})),f.progress(f.opts.progress).done(f.opts.done,f.opts.complete).fail(f.opts.fail).always(f.opts.always)}function propFilter(e,t){var n,r,i,s,o;for(n in e){r=jQuery.camelCase(n),i=t[r],s=e[n],jQuery.isArray(s)&&(i=s[1],s=e[n]=s[0]),n!==r&&(e[r]=s,delete e[n]),o=jQuery.cssHooks[r];if(o&&"expand"in o){s=o.expand(s),delete e[r];for(n in s)n in e||(e[n]=s[n],t[n]=i)}else t[r]=i}}function defaultPrefilter(e,t,n){var r,i,s,o,u,a,f=this,l={},c=e.style,h=e.nodeType&&isHidden(e),p=data_priv.get(e,"fxshow");n.queue||(u=jQuery._queueHooks(e,"fx"),u.unqueued==null&&(u.unqueued=0,a=u.empty.fire,u.empty.fire=function(){u.unqueued||a()}),u.unqueued++,f.always(function(){f.always(function(){u.unqueued--,jQuery.queue(e,"fx").length||u.empty.fire()})})),e.nodeType===1&&("height"in t||"width"in t)&&(n.overflow=[c.overflow,c.overflowX,c.overflowY],jQuery.css(e,"display")==="inline"&&jQuery.css(e,"float")==="none"&&(c.display="inline-block")),n.overflow&&(c.overflow="hidden",f.always(function(){c.overflow=n.overflow[0],c.overflowX=n.overflow[1],c.overflowY=n.overflow[2]}));for(r in t){i=t[r];if(rfxtypes.exec(i)){delete t[r],s=s||i==="toggle";if(i===(h?"hide":"show")){if(i!=="show"||!p||p[r]===undefined)continue;h=!0}l[r]=p&&p[r]||jQuery.style(e,r)}}if(!jQuery.isEmptyObject(l)){p?"hidden"in p&&(h=p.hidden):p=data_priv.access(e,"fxshow",{}),s&&(p.hidden=!h),h?jQuery(e).show():f.done(function(){jQuery(e).hide()}),f.done(function(){var t;data_priv.remove(e,"fxshow");for(t in l)jQuery.style(e,t,l[t])});for(r in l)o=createTween(h?p[r]:0,r,f),r in p||(p[r]=o.start,h&&(o.end=o.start,o.start=r==="width"||r==="height"?1:0))}}function Tween(e,t,n,r,i){return new Tween.prototype.init(e,t,n,r,i)}function genFx(e,t){var n,r={height:e},i=0;t=t?1:0;for(;i<4;i+=2-t)n=cssExpand[i],r["margin"+n]=r["padding"+n]=e;return t&&(r.opacity=r.width=e),r}function getWindow(e){return jQuery.isWindow(e)?e:e.nodeType===9&&e.defaultView}var rootjQuery,readyList,core_strundefined=typeof undefined,location=window.location,document=window.document,docElem=document.documentElement,_jQuery=window.jQuery,_$=window.$,class2type={},core_deletedIds=[],core_version="2.0.3",core_concat=core_deletedIds.concat,core_push=core_deletedIds.push,core_slice=core_deletedIds.slice,core_indexOf=core_deletedIds.indexOf,core_toString=class2type.toString,core_hasOwn=class2type.hasOwnProperty,core_trim=core_version.trim,jQuery=function(e,t){return new jQuery.fn.init(e,t,rootjQuery)},core_pnum=/[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source,core_rnotwhite=/\S+/g,rquickExpr=/^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/,rsingleTag=/^<(\w+)\s*\/?>(?:<\/\1>|)$/,rmsPrefix=/^-ms-/,rdashAlpha=/-([\da-z])/gi,fcamelCase=function(e,t){return t.toUpperCase()},completed=function(){document.removeEventListener("DOMContentLoaded",completed,!1),window.removeEventListener("load",completed,!1),jQuery.ready()};jQuery.fn=jQuery.prototype={jquery:core_version,constructor:jQuery,init:function(e,t,n){var r,i;if(!e)return this;if(typeof e=="string"){e.charAt(0)==="<"&&e.charAt(e.length-1)===">"&&e.length>=3?r=[null,e,null]:r=rquickExpr.exec(e);if(r&&(r[1]||!t)){if(r[1]){t=t instanceof jQuery?t[0]:t,jQuery.merge(this,jQuery.parseHTML(r[1],t&&t.nodeType?t.ownerDocument||t:document,!0));if(rsingleTag.test(r[1])&&jQuery.isPlainObject(t))for(r in t)jQuery.isFunction(this[r])?this[r](t[r]):this.attr(r,t[r]);return this}return i=document.getElementById(r[2]),i&&i.parentNode&&(this.length=1,this[0]=i),this.context=document,this.selector=e,this}return!t||t.jquery?(t||n).find(e):this.constructor(t).find(e)}return e.nodeType?(this.context=this[0]=e,this.length=1,this):jQuery.isFunction(e)?n.ready(e):(e.selector!==undefined&&(this.selector=e.selector,this.context=e.context),jQuery.makeArray(e,this))},selector:"",length:0,toArray:function(){return core_slice.call(this)},get:function(e){return e==null?this.toArray():e<0?this[this.length+e]:this[e]},pushStack:function(e){var t=jQuery.merge(this.constructor(),e);return t.prevObject=this,t.context=this.context,t},each:function(e,t){return jQuery.each(this,e,t)},ready:function(e){return jQuery.ready.promise().done(e),this},slice:function(){return this.pushStack(core_slice.apply(this,arguments))},first:function(){return this.eq(0)},last:function(){return this.eq(-1)},eq:function(e){var t=this.length,n=+e+(e<0?t:0);return this.pushStack(n>=0&&n<t?[this[n]]:[])},map:function(e){return this.pushStack(jQuery.map(this,function(t,n){return e.call(t,n,t)}))},end:function(){return this.prevObject||this.constructor(null)},push:core_push,sort:[].sort,splice:[].splice},jQuery.fn.init.prototype=jQuery.fn,jQuery.extend=jQuery.fn.extend=function(){var e,t,n,r,i,s,o=arguments[0]||{},u=1,a=arguments.length,f=!1;typeof o=="boolean"&&(f=o,o=arguments[1]||{},u=2),typeof o!="object"&&!jQuery.isFunction(o)&&(o={}),a===u&&(o=this,--u);for(;u<a;u++)if((e=arguments[u])!=null)for(t in e){n=o[t],r=e[t];if(o===r)continue;f&&r&&(jQuery.isPlainObject(r)||(i=jQuery.isArray(r)))?(i?(i=!1,s=n&&jQuery.isArray(n)?n:[]):s=n&&jQuery.isPlainObject(n)?n:{},o[t]=jQuery.extend(f,s,r)):r!==undefined&&(o[t]=r)}return o},jQuery.extend({expando:"jQuery"+(core_version+Math.random()).replace(/\D/g,""),noConflict:function(e){return window.$===jQuery&&(window.$=_$),e&&window.jQuery===jQuery&&(window.jQuery=_jQuery),jQuery},isReady:!1,readyWait:1,holdReady:function(e){e?jQuery.readyWait++:jQuery.ready(!0)},ready:function(e){if(e===!0?--jQuery.readyWait:jQuery.isReady)return;jQuery.isReady=!0;if(e!==!0&&--jQuery.readyWait>0)return;readyList.resolveWith(document,[jQuery]),jQuery.fn.trigger&&jQuery(document).trigger("ready").off("ready")},isFunction:function(e){return jQuery.type(e)==="function"},isArray:Array.isArray,isWindow:function(e){return e!=null&&e===e.window},isNumeric:function(e){return!isNaN(parseFloat(e))&&isFinite(e)},type:function(e){return e==null?String(e):typeof e=="object"||typeof e=="function"?class2type[core_toString.call(e)]||"object":typeof e},isPlainObject:function(e){if(jQuery.type(e)!=="object"||e.nodeType||jQuery.isWindow(e))return!1;try{if(e.constructor&&!core_hasOwn.call(e.constructor.prototype,"isPrototypeOf"))return!1}catch(t){return!1}return!0},isEmptyObject:function(e){var t;for(t in e)return!1;return!0},error:function(e){throw new Error(e)},parseHTML:function(e,t,n){if(!e||typeof e!="string")return null;typeof t=="boolean"&&(n=t,t=!1),t=t||document;var r=rsingleTag.exec(e),i=!n&&[];return r?[t.createElement(r[1])]:(r=jQuery.buildFragment([e],t,i),i&&jQuery(i).remove(),jQuery.merge([],r.childNodes))},parseJSON:JSON.parse,parseXML:function(e){var t,n;if(!e||typeof e!="string")return null;try{n=new DOMParser,t=n.parseFromString(e,"text/xml")}catch(r){t=undefined}return(!t||t.getElementsByTagName("parsererror").length)&&jQuery.error("Invalid XML: "+e),t},noop:function(){},globalEval:function(code){var script,indirect=eval;code=jQuery.trim(code),code&&(code.indexOf("use strict")===1?(script=document.createElement("script"),script.text=code,document.head.appendChild(script).parentNode.removeChild(script)):indirect(code))},camelCase:function(e){return e.replace(rmsPrefix,"ms-").replace(rdashAlpha,fcamelCase)},nodeName:function(e,t){return e.nodeName&&e.nodeName.toLowerCase()===t.toLowerCase()},each:function(e,t,n){var r,i=0,s=e.length,o=isArraylike(e);if(n)if(o)for(;i<s;i++){r=t.apply(e[i],n);if(r===!1)break}else for(i in e){r=t.apply(e[i],n);if(r===!1)break}else if(o)for(;i<s;i++){r=t.call(e[i],i,e[i]);if(r===!1)break}else for(i in e){r=t.call(e[i],i,e[i]);if(r===!1)break}return e},trim:function(e){return e==null?"":core_trim.call(e)},makeArray:function(e,t){var n=t||[];return e!=null&&(isArraylike(Object(e))?jQuery.merge(n,typeof e=="string"?[e]:e):core_push.call(n,e)),n},inArray:function(e,t,n){return t==null?-1:core_indexOf.call(t,e,n)},merge:function(e,t){var n=t.length,r=e.length,i=0;if(typeof n=="number")for(;i<n;i++)e[r++]=t[i];else while(t[i]!==undefined)e[r++]=t[i++];return e.length=r,e},grep:function(e,t,n){var r,i=[],s=0,o=e.length;n=!!n;for(;s<o;s++)r=!!t(e[s],s),n!==r&&i.push(e[s]);return i},map:function(e,t,n){var r,i=0,s=e.length,o=isArraylike(e),u=[];if(o)for(;i<s;i++)r=t(e[i],i,n),r!=null&&(u[u.length]=r);else for(i in e)r=t(e[i],i,n),r!=null&&(u[u.length]=r);return core_concat.apply([],u)},guid:1,proxy:function(e,t){var n,r,i;return typeof t=="string"&&(n=e[t],t=e,e=n),jQuery.isFunction(e)?(r=core_slice.call(arguments,2),i=function(){return e.apply(t||this,r.concat(core_slice.call(arguments)))},i.guid=e.guid=e.guid||jQuery.guid++,i):undefined},access:function(e,t,n,r,i,s,o){var u=0,a=e.length,f=n==null;if(jQuery.type(n)==="object"){i=!0;for(u in n)jQuery.access(e,t,u,n[u],!0,s,o)}else if(r!==undefined){i=!0,jQuery.isFunction(r)||(o=!0),f&&(o?(t.call(e,r),t=null):(f=t,t=function(e,t,n){return f.call(jQuery(e),n)}));if(t)for(;u<a;u++)t(e[u],n,o?r:r.call(e[u],u,t(e[u],n)))}return i?e:f?t.call(e):a?t(e[0],n):s},now:Date.now,swap:function(e,t,n,r){var i,s,o={};for(s in t)o[s]=e.style[s],e.style[s]=t[s];i=n.apply(e,r||[]);for(s in t)e.style[s]=o[s];return i}}),jQuery.ready.promise=function(e){return readyList||(readyList=jQuery.Deferred(),document.readyState==="complete"?setTimeout(jQuery.ready):(document.addEventListener("DOMContentLoaded",completed,!1),window.addEventListener("load",completed,!1))),readyList.promise(e)},jQuery.each("Boolean Number String Function Array Date RegExp Object Error".split(" "),function(e,t){class2type["[object "+t+"]"]=t.toLowerCase()}),rootjQuery=jQuery(document),function(e,t){function st(e,t,n,i){var s,o,u,a,f,l,p,m,g,E;(t?t.ownerDocument||t:w)!==h&&c(t),t=t||h,n=n||[];if(!e||typeof e!="string")return n;if((a=t.nodeType)!==1&&a!==9)return[];if(d&&!i){if(s=Y.exec(e))if(u=s[1]){if(a===9){o=t.getElementById(u);if(!o||!o.parentNode)return n;if(o.id===u)return n.push(o),n}else if(t.ownerDocument&&(o=t.ownerDocument.getElementById(u))&&y(t,o)&&o.id===u)return n.push(o),n}else{if(s[2])return P.apply(n,t.getElementsByTagName(e)),n;if((u=s[3])&&r.getElementsByClassName&&t.getElementsByClassName)return P.apply(n,t.getElementsByClassName(u)),n}if(r.qsa&&(!v||!v.test(e))){m=p=b,g=t,E=a===9&&e;if(a===1&&t.nodeName.toLowerCase()!=="object"){l=vt(e),(p=t.getAttribute("id"))?m=p.replace(tt,"\\$&"):t.setAttribute("id",m),m="[id='"+m+"'] ",f=l.length;while(f--)l[f]=m+mt(l[f]);g=V.test(e)&&t.parentNode||t,E=l.join(",")}if(E)try{return P.apply(n,g.querySelectorAll(E)),n}catch(S){}finally{p||t.removeAttribute("id")}}}return Tt(e.replace(z,"$1"),t,n,i)}function ot(){function t(n,r){return e.push(n+=" ")>s.cacheLength&&delete t[e.shift()],t[n]=r}var e=[];return t}function ut(e){return e[b]=!0,e}function at(e){var t=h.createElement("div");try{return!!e(t)}catch(n){return!1}finally{t.parentNode&&t.parentNode.removeChild(t),t=null}}function ft(e,t){var n=e.split("|"),r=e.length;while(r--)s.attrHandle[n[r]]=t}function lt(e,t){var n=t&&e,r=n&&e.nodeType===1&&t.nodeType===1&&(~t.sourceIndex||A)-(~e.sourceIndex||A);if(r)return r;if(n)while(n=n.nextSibling)if(n===t)return-1;return e?1:-1}function ct(e){return function(t){var n=t.nodeName.toLowerCase();return n==="input"&&t.type===e}}function ht(e){return function(t){var n=t.nodeName.toLowerCase();return(n==="input"||n==="button")&&t.type===e}}function pt(e){return ut(function(t){return t=+t,ut(function(n,r){var i,s=e([],n.length,t),o=s.length;while(o--)n[i=s[o]]&&(n[i]=!(r[i]=n[i]))})})}function dt(){}function vt(e,t){var n,r,i,o,u,a,f,l=T[e+" "];if(l)return t?0:l.slice(0);u=e,a=[],f=s.preFilter;while(u){if(!n||(r=W.exec(u)))r&&(u=u.slice(r[0].length)||u),a.push(i=[]);n=!1;if(r=X.exec(u))n=r.shift(),i.push({value:n,type:r[0].replace(z," ")}),u=u.slice(n.length);for(o in s.filter)(r=Q[o].exec(u))&&(!f[o]||(r=f[o](r)))&&(n=r.shift(),i.push({value:n,type:o,matches:r}),u=u.slice(n.length));if(!n)break}return t?u.length:u?st.error(e):T(e,a).slice(0)}function mt(e){var t=0,n=e.length,r="";for(;t<n;t++)r+=e[t].value;return r}function gt(e,t,n){var r=t.dir,s=n&&r==="parentNode",o=S++;return t.first?function(t,n,i){while(t=t[r])if(t.nodeType===1||s)return e(t,n,i)}:function(t,n,u){var a,f,l,c=E+" "+o;if(u){while(t=t[r])if(t.nodeType===1||s)if(e(t,n,u))return!0}else while(t=t[r])if(t.nodeType===1||s){l=t[b]||(t[b]={});if((f=l[r])&&f[0]===c){if((a=f[1])===!0||a===i)return a===!0}else{f=l[r]=[c],f[1]=e(t,n,u)||i;if(f[1]===!0)return!0}}}}function yt(e){return e.length>1?function(t,n,r){var i=e.length;while(i--)if(!e[i](t,n,r))return!1;return!0}:e[0]}function bt(e,t,n,r,i){var s,o=[],u=0,a=e.length,f=t!=null;for(;u<a;u++)if(s=e[u])if(!n||n(s,r,i))o.push(s),f&&t.push(u);return o}function wt(e,t,n,r,i,s){return r&&!r[b]&&(r=wt(r)),i&&!i[b]&&(i=wt(i,s)),ut(function(s,o,u,a){var f,l,c,h=[],p=[],d=o.length,v=s||xt(t||"*",u.nodeType?[u]:u,[]),m=e&&(s||!t)?bt(v,h,e,u,a):v,g=n?i||(s?e:d||r)?[]:o:m;n&&n(m,g,u,a);if(r){f=bt(g,p),r(f,[],u,a),l=f.length;while(l--)if(c=f[l])g[p[l]]=!(m[p[l]]=c)}if(s){if(i||e){if(i){f=[],l=g.length;while(l--)(c=g[l])&&f.push(m[l]=c);i(null,g=[],f,a)}l=g.length;while(l--)(c=g[l])&&(f=i?B.call(s,c):h[l])>-1&&(s[f]=!(o[f]=c))}}else g=bt(g===o?g.splice(d,g.length):g),i?i(null,o,g,a):P.apply(o,g)})}function Et(e){var t,n,r,i=e.length,o=s.relative[e[0].type],u=o||s.relative[" "],a=o?1:0,l=gt(function(e){return e===t},u,!0),c=gt(function(e){return B.call(t,e)>-1},u,!0),h=[function(e,n,r){return!o&&(r||n!==f)||((t=n).nodeType?l(e,n,r):c(e,n,r))}];for(;a<i;a++)if(n=s.relative[e[a].type])h=[gt(yt(h),n)];else{n=s.filter[e[a].type].apply(null,e[a].matches);if(n[b]){r=++a;for(;r<i;r++)if(s.relative[e[r].type])break;return wt(a>1&&yt(h),a>1&&mt(e.slice(0,a-1).concat({value:e[a-2].type===" "?"*":""})).replace(z,"$1"),n,a<r&&Et(e.slice(a,r)),r<i&&Et(e=e.slice(r)),r<i&&mt(e))}h.push(n)}return yt(h)}function St(e,t){var n=0,r=t.length>0,o=e.length>0,u=function(u,a,l,c,p){var d,v,m,g=[],y=0,b="0",w=u&&[],S=p!=null,x=f,T=u||o&&s.find.TAG("*",p&&a.parentNode||a),N=E+=x==null?1:Math.random()||.1;S&&(f=a!==h&&a,i=n);for(;(d=T[b])!=null;b++){if(o&&d){v=0;while(m=e[v++])if(m(d,a,l)){c.push(d);break}S&&(E=N,i=++n)}r&&((d=!m&&d)&&y--,u&&w.push(d))}y+=b;if(r&&b!==y){v=0;while(m=t[v++])m(w,g,a,l);if(u){if(y>0)while(b--)!w[b]&&!g[b]&&(g[b]=_.call(c));g=bt(g)}P.apply(c,g),S&&!u&&g.length>0&&y+t.length>1&&st.uniqueSort(c)}return S&&(E=N,f=x),w};return r?ut(u):u}function xt(e,t,n){var r=0,i=t.length;for(;r<i;r++)st(e,t[r],n);return n}function Tt(e,t,n,i){var o,u,f,l,c,h=vt(e);if(!i&&h.length===1){u=h[0]=h[0].slice(0);if(u.length>2&&(f=u[0]).type==="ID"&&r.getById&&t.nodeType===9&&d&&s.relative[u[1].type]){t=(s.find.ID(f.matches[0].replace(nt,rt),t)||[])[0];if(!t)return n;e=e.slice(u.shift().value.length)}o=Q.needsContext.test(e)?0:u.length;while(o--){f=u[o];if(s.relative[l=f.type])break;if(c=s.find[l])if(i=c(f.matches[0].replace(nt,rt),V.test(u[0].type)&&t.parentNode||t)){u.splice(o,1),e=i.length&&mt(u);if(!e)return P.apply(n,i),n;break}}}return a(e,h)(i,t,!d,n,V.test(e)),n}var n,r,i,s,o,u,a,f,l,c,h,p,d,v,m,g,y,b="sizzle"+ -(new Date),w=e.document,E=0,S=0,x=ot(),T=ot(),N=ot(),C=!1,k=function(e,t){return e===t?(C=!0,0):0},L=typeof t,A=1<<31,O={}.hasOwnProperty,M=[],_=M.pop,D=M.push,P=M.push,H=M.slice,B=M.indexOf||function(e){var t=0,n=this.length;for(;t<n;t++)if(this[t]===e)return t;return-1},j="checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped",F="[\\x20\\t\\r\\n\\f]",I="(?:\\\\.|[\\w-]|[^\\x00-\\xa0])+",q=I.replace("w","w#"),R="\\["+F+"*("+I+")"+F+"*(?:([*^$|!~]?=)"+F+"*(?:(['\"])((?:\\\\.|[^\\\\])*?)\\3|("+q+")|)|)"+F+"*\\]",U=":("+I+")(?:\\(((['\"])((?:\\\\.|[^\\\\])*?)\\3|((?:\\\\.|[^\\\\()[\\]]|"+R.replace(3,8)+")*)|.*)\\)|)",z=new RegExp("^"+F+"+|((?:^|[^\\\\])(?:\\\\.)*)"+F+"+$","g"),W=new RegExp("^"+F+"*,"+F+"*"),X=new RegExp("^"+F+"*([>+~]|"+F+")"+F+"*"),V=new RegExp(F+"*[+~]"),$=new RegExp("="+F+"*([^\\]'\"]*)"+F+"*\\]","g"),J=new RegExp(U),K=new RegExp("^"+q+"$"),Q={ID:new RegExp("^#("+I+")"),CLASS:new RegExp("^\\.("+I+")"),TAG:new RegExp("^("+I.replace("w","w*")+")"),ATTR:new RegExp("^"+R),PSEUDO:new RegExp("^"+U),CHILD:new RegExp("^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\("+F+"*(even|odd|(([+-]|)(\\d*)n|)"+F+"*(?:([+-]|)"+F+"*(\\d+)|))"+F+"*\\)|)","i"),bool:new RegExp("^(?:"+j+")$","i"),needsContext:new RegExp("^"+F+"*[>+~]|:(even|odd|eq|gt|lt|nth|first|last)(?:\\("+F+"*((?:-\\d)?\\d*)"+F+"*\\)|)(?=[^-]|$)","i")},G=/^[^{]+\{\s*\[native \w/,Y=/^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/,Z=/^(?:input|select|textarea|button)$/i,et=/^h\d$/i,tt=/'|\\/g,nt=new RegExp("\\\\([\\da-f]{1,6}"+F+"?|("+F+")|.)","ig"),rt=function(e,t,n){var r="0x"+t-65536;return r!==r||n?t:r<0?String.fromCharCode(r+65536):String.fromCharCode(r>>10|55296,r&1023|56320)};try{P.apply(M=H.call(w.childNodes),w.childNodes),M[w.childNodes.length].nodeType}catch(it){P={apply:M.length?function(e,t){D.apply(e,H.call(t))}:function(e,t){var n=e.length,r=0;while(e[n++]=t[r++]);e.length=n-1}}}u=st.isXML=function(e){var t=e&&(e.ownerDocument||e).documentElement;return t?t.nodeName!=="HTML":!1},r=st.support={},c=st.setDocument=function(e){var t=e?e.ownerDocument||e:w,n=t.defaultView;if(t===h||t.nodeType!==9||!t.documentElement)return h;h=t,p=t.documentElement,d=!u(t),n&&n.attachEvent&&n!==n.top&&n.attachEvent("onbeforeunload",function(){c()}),r.attributes=at(function(e){return e.className="i",!e.getAttribute("className")}),r.getElementsByTagName=at(function(e){return e.appendChild(t.createComment("")),!e.getElementsByTagName("*").length}),r.getElementsByClassName=at(function(e){return e.innerHTML="<div class='a'></div><div class='a i'></div>",e.firstChild.className="i",e.getElementsByClassName("i").length===2}),r.getById=at(function(e){return p.appendChild(e).id=b,!t.getElementsByName||!t.getElementsByName(b).length}),r.getById?(s.find.ID=function(e,t){if(typeof t.getElementById!==L&&d){var n=t.getElementById(e);return n&&n.parentNode?[n]:[]}},s.filter.ID=function(e){var t=e.replace(nt,rt);return function(e){return e.getAttribute("id")===t}}):(delete s.find.ID,s.filter.ID=function(e){var t=e.replace(nt,rt);return function(e){var n=typeof e.getAttributeNode!==L&&e.getAttributeNode("id");return n&&n.value===t}}),s.find.TAG=r.getElementsByTagName?function(e,t){if(typeof t.getElementsByTagName!==L)return t.getElementsByTagName(e)}:function(e,t){var n,r=[],i=0,s=t.getElementsByTagName(e);if(e==="*"){while(n=s[i++])n.nodeType===1&&r.push(n);return r}return s},s.find.CLASS=r.getElementsByClassName&&function(e,t){if(typeof t.getElementsByClassName!==L&&d)return t.getElementsByClassName(e)},m=[],v=[];if(r.qsa=G.test(t.querySelectorAll))at(function(e){e.innerHTML="<select><option selected=''></option></select>",e.querySelectorAll("[selected]").length||v.push("\\["+F+"*(?:value|"+j+")"),e.querySelectorAll(":checked").length||v.push(":checked")}),at(function(e){var n=t.createElement("input");n.setAttribute("type","hidden"),e.appendChild(n).setAttribute("t",""),e.querySelectorAll("[t^='']").length&&v.push("[*^$]="+F+"*(?:''|\"\")"),e.querySelectorAll(":enabled").length||v.push(":enabled",":disabled"),e.querySelectorAll("*,:x"),v.push(",.*:")});return(r.matchesSelector=G.test(g=p.webkitMatchesSelector||p.mozMatchesSelector||p.oMatchesSelector||p.msMatchesSelector))&&at(function(e){r.disconnectedMatch=g.call(e,"div"),g.call(e,"[s!='']:x"),m.push("!=",U)}),v=v.length&&new RegExp(v.join("|")),m=m.length&&new RegExp(m.join("|")),y=G.test(p.contains)||p.compareDocumentPosition?function(e,t){var n=e.nodeType===9?e.documentElement:e,r=t&&t.parentNode;return e===r||!!r&&r.nodeType===1&&!!(n.contains?n.contains(r):e.compareDocumentPosition&&e.compareDocumentPosition(r)&16)}:function(e,t){if(t)while(t=t.parentNode)if(t===e)return!0;return!1},k=p.compareDocumentPosition?function(e,n){if(e===n)return C=!0,0;var i=n.compareDocumentPosition&&e.compareDocumentPosition&&e.compareDocumentPosition(n);if(i)return i&1||!r.sortDetached&&n.compareDocumentPosition(e)===i?e===t||y(w,e)?-1:n===t||y(w,n)?1:l?B.call(l,e)-B.call(l,n):0:i&4?-1:1;return e.compareDocumentPosition?-1:1}:function(e,n){var r,i=0,s=e.parentNode,o=n.parentNode,u=[e],a=[n];if(e===n)return C=!0,0;if(!s||!o)return e===t?-1:n===t?1:s?-1:o?1:l?B.call(l,e)-B.call(l,n):0;if(s===o)return lt(e,n);r=e;while(r=r.parentNode)u.unshift(r);r=n;while(r=r.parentNode)a.unshift(r);while(u[i]===a[i])i++;return i?lt(u[i],a[i]):u[i]===w?-1:a[i]===w?1:0},t},st.matches=function(e,t){return st(e,null,null,t)},st.matchesSelector=function(e,t){(e.ownerDocument||e)!==h&&c(e),t=t.replace($,"='$1']");if(r.matchesSelector&&d&&(!m||!m.test(t))&&(!v||!v.test(t)))try{var n=g.call(e,t);if(n||r.disconnectedMatch||e.document&&e.document.nodeType!==11)return n}catch(i){}return st(t,h,null,[e]).length>0},st.contains=function(e,t){return(e.ownerDocument||e)!==h&&c(e),y(e,t)},st.attr=function(e,n){(e.ownerDocument||e)!==h&&c(e);var i=s.attrHandle[n.toLowerCase()],o=i&&O.call(s.attrHandle,n.toLowerCase())?i(e,n,!d):t;return o===t?r.attributes||!d?e.getAttribute(n):(o=e.getAttributeNode(n))&&o.specified?o.value:null:o},st.error=function(e){throw new Error("Syntax error, unrecognized expression: "+e)},st.uniqueSort=function(e){var t,n=[],i=0,s=0;C=!r.detectDuplicates,l=!r.sortStable&&e.slice(0),e.sort(k);if(C){while(t=e[s++])t===e[s]&&(i=n.push(s));while(i--)e.splice(n[i],1)}return e},o=st.getText=function(e){var t,n="",r=0,i=e.nodeType;if(!i)for(;t=e[r];r++)n+=o(t);else if(i===1||i===9||i===11){if(typeof e.textContent=="string")return e.textContent;for(e=e.firstChild;e;e=e.nextSibling)n+=o(e)}else if(i===3||i===4)return e.nodeValue;return n},s=st.selectors={cacheLength:50,createPseudo:ut,match:Q,attrHandle:{},find:{},relative:{">":{dir:"parentNode",first:!0}," ":{dir:"parentNode"},"+":{dir:"previousSibling",first:!0},"~":{dir:"previousSibling"}},preFilter:{ATTR:function(e){return e[1]=e[1].replace(nt,rt),e[3]=(e[4]||e[5]||"").replace(nt,rt),e[2]==="~="&&(e[3]=" "+e[3]+" "),e.slice(0,4)},CHILD:function(e){return e[1]=e[1].toLowerCase(),e[1].slice(0,3)==="nth"?(e[3]||st.error(e[0]),e[4]=+(e[4]?e[5]+(e[6]||1):2*(e[3]==="even"||e[3]==="odd")),e[5]=+(e[7]+e[8]||e[3]==="odd")):e[3]&&st.error(e[0]),e},PSEUDO:function(e){var n,r=!e[5]&&e[2];return Q.CHILD.test(e[0])?null:(e[3]&&e[4]!==t?e[2]=e[4]:r&&J.test(r)&&(n=vt(r,!0))&&(n=r.indexOf(")",r.length-n)-r.length)&&(e[0]=e[0].slice(0,n),e[2]=r.slice(0,n)),e.slice(0,3))}},filter:{TAG:function(e){var t=e.replace(nt,rt).toLowerCase();return e==="*"?function(){return!0}:function(e){return e.nodeName&&e.nodeName.toLowerCase()===t}},CLASS:function(e){var t=x[e+" "];return t||(t=new RegExp("(^|"+F+")"+e+"("+F+"|$)"))&&x(e,function(e){return t.test(typeof e.className=="string"&&e.className||typeof e.getAttribute!==L&&e.getAttribute("class")||"")})},ATTR:function(e,t,n){return function(r){var i=st.attr(r,e);return i==null?t==="!=":t?(i+="",t==="="?i===n:t==="!="?i!==n:t==="^="?n&&i.indexOf(n)===0:t==="*="?n&&i.indexOf(n)>-1:t==="$="?n&&i.slice(-n.length)===n:t==="~="?(" "+i+" ").indexOf(n)>-1:t==="|="?i===n||i.slice(0,n.length+1)===n+"-":!1):!0}},CHILD:function(e,t,n,r,i){var s=e.slice(0,3)!=="nth",o=e.slice(-4)!=="last",u=t==="of-type";return r===1&&i===0?function(e){return!!e.parentNode}:function(t,n,a){var f,l,c,h,p,d,v=s!==o?"nextSibling":"previousSibling",m=t.parentNode,g=u&&t.nodeName.toLowerCase(),y=!a&&!u;if(m){if(s){while(v){c=t;while(c=c[v])if(u?c.nodeName.toLowerCase()===g:c.nodeType===1)return!1;d=v=e==="only"&&!d&&"nextSibling"}return!0}d=[o?m.firstChild:m.lastChild];if(o&&y){l=m[b]||(m[b]={}),f=l[e]||[],p=f[0]===E&&f[1],h=f[0]===E&&f[2],c=p&&m.childNodes[p];while(c=++p&&c&&c[v]||(h=p=0)||d.pop())if(c.nodeType===1&&++h&&c===t){l[e]=[E,p,h];break}}else if(y&&(f=(t[b]||(t[b]={}))[e])&&f[0]===E)h=f[1];else while(c=++p&&c&&c[v]||(h=p=0)||d.pop())if((u?c.nodeName.toLowerCase()===g:c.nodeType===1)&&++h){y&&((c[b]||(c[b]={}))[e]=[E,h]);if(c===t)break}return h-=i,h===r||h%r===0&&h/r>=0}}},PSEUDO:function(e,t){var n,r=s.pseudos[e]||s.setFilters[e.toLowerCase()]||st.error("unsupported pseudo: "+e);return r[b]?r(t):r.length>1?(n=[e,e,"",t],s.setFilters.hasOwnProperty(e.toLowerCase())?ut(function(e,n){var i,s=r(e,t),o=s.length;while(o--)i=B.call(e,s[o]),e[i]=!(n[i]=s[o])}):function(e){return r(e,0,n)}):r}},pseudos:{not:ut(function(e){var t=[],n=[],r=a(e.replace(z,"$1"));return r[b]?ut(function(e,t,n,i){var s,o=r(e,null,i,[]),u=e.length;while(u--)if(s=o[u])e[u]=!(t[u]=s)}):function(e,i,s){return t[0]=e,r(t,null,s,n),!n.pop()}}),has:ut(function(e){return function(t){return st(e,t).length>0}}),contains:ut(function(e){return function(t){return(t.textContent||t.innerText||o(t)).indexOf(e)>-1}}),lang:ut(function(e){return K.test(e||"")||st.error("unsupported lang: "+e),e=e.replace(nt,rt).toLowerCase(),function(t){var n;do if(n=d?t.lang:t.getAttribute("xml:lang")||t.getAttribute("lang"))return n=n.toLowerCase(),n===e||n.indexOf(e+"-")===0;while((t=t.parentNode)&&t.nodeType===1);return!1}}),target:function(t){var n=e.location&&e.location.hash;return n&&n.slice(1)===t.id},root:function(e){return e===p},focus:function(e){return e===h.activeElement&&(!h.hasFocus||h.hasFocus())&&!!(e.type||e.href||~e.tabIndex)},enabled:function(e){return e.disabled===!1},disabled:function(e){return e.disabled===!0},checked:function(e){var t=e.nodeName.toLowerCase();return t==="input"&&!!e.checked||t==="option"&&!!e.selected},selected:function(e){return e.parentNode&&e.parentNode.selectedIndex,e.selected===!0},empty:function(e){for(e=e.firstChild;e;e=e.nextSibling)if(e.nodeName>"@"||e.nodeType===3||e.nodeType===4)return!1;return!0},parent:function(e){return!s.pseudos.empty(e)},header:function(e){return et.test(e.nodeName)},input:function(e){return Z.test(e.nodeName)},button:function(e){var t=e.nodeName.toLowerCase();return t==="input"&&e.type==="button"||t==="button"},text:function(e){var t;return e.nodeName.toLowerCase()==="input"&&e.type==="text"&&((t=e.getAttribute("type"))==null||t.toLowerCase()===e.type)},first:pt(function(){return[0]}),last:pt(function(e,t){return[t-1]}),eq:pt(function(e,t,n){return[n<0?n+t:n]}),even:pt(function(e,t){var n=0;for(;n<t;n+=2)e.push(n);return e}),odd:pt(function(e,t){var n=1;for(;n<t;n+=2)e.push(n);return e}),lt:pt(function(e,t,n){var r=n<0?n+t:n;for(;--r>=0;)e.push(r);return e}),gt:pt(function(e,t,n){var r=n<0?n+t:n;for(;++r<t;)e.push(r);return e})}},s.pseudos.nth=s.pseudos.eq;for(n in{radio:!0,checkbox:!0,file:!0,password:!0,image:!0})s.pseudos[n]=ct(n);for(n in{submit:!0,reset:!0})s.pseudos[n]=ht(n);dt.prototype=s.filters=s.pseudos,s.setFilters=new dt,a=st.compile=function(e,t){var n,r=[],i=[],s=N[e+" "];if(!s){t||(t=vt(e)),n=t.length;while(n--)s=Et(t[n]),s[b]?r.push(s):i.push(s);s=N(e,St(i,r))}return s},r.sortStable=b.split("").sort(k).join("")===b,r.detectDuplicates=C,c(),r.sortDetached=at(function(e){return e.compareDocumentPosition(h.createElement("div"))&1}),at(function(e){return e.innerHTML="<a href='#'></a>",e.firstChild.getAttribute("href")==="#"})||ft("type|href|height|width",function(e,t,n){if(!n)return e.getAttribute(t,t.toLowerCase()==="type"?1:2)}),(!r.attributes||!at(function(e){return e.innerHTML="<input/>",e.firstChild.setAttribute("value",""),e.firstChild.getAttribute("value")===""}))&&ft("value",function(e,t,n){if(!n&&e.nodeName.toLowerCase()==="input")return e.defaultValue}),at(function(e){return e.getAttribute("disabled")==null})||ft(j,function(e,t,n){var r;if(!n)return(r=e.getAttributeNode(t))&&r.specified?r.value:e[t]===!0?t.toLowerCase():null}),jQuery.find=st,jQuery.expr=st.selectors,jQuery.expr[":"]=jQuery.expr.pseudos,jQuery.unique=st.uniqueSort,jQuery.text=st.getText,jQuery.isXMLDoc=st.isXML,jQuery.contains=st.contains}(window);var optionsCache={};jQuery.Callbacks=function(e){e=typeof e=="string"?optionsCache[e]||createOptions(e):jQuery.extend({},e);var t,n,r,i,s,o,u=[],a=!e.once&&[],f=function(c){t=e.memory&&c,n=!0,o=i||0,i=0,s=u.length,r=!0;for(;u&&o<s;o++)if(u[o].apply(c[0],c[1])===!1&&e.stopOnFalse){t=!1;break}r=!1,u&&(a?a.length&&f(a.shift()):t?u=[]:l.disable())},l={add:function(){if(u){var n=u.length;(function o(t){jQuery.each(t,function(t,n){var r=jQuery.type(n);r==="function"?(!e.unique||!l.has(n))&&u.push(n):n&&n.length&&r!=="string"&&o(n)})})(arguments),r?s=u.length:t&&(i=n,f(t))}return this},remove:function(){return u&&jQuery.each(arguments,function(e,t){var n;while((n=jQuery.inArray(t,u,n))>-1)u.splice(n,1),r&&(n<=s&&s--,n<=o&&o--)}),this},has:function(e){return e?jQuery.inArray(e,u)>-1:!!u&&!!u.length},empty:function(){return u=[],s=0,this},disable:function(){return u=a=t=undefined,this},disabled:function(){return!u},lock:function(){return a=undefined,t||l.disable(),this},locked:function(){return!a},fireWith:function(e,t){return u&&(!n||a)&&(t=t||[],t=[e,t.slice?t.slice():t],r?a.push(t):f(t)),this},fire:function(){return l.fireWith(this,arguments),this},fired:function(){return!!n}};return l},jQuery.extend({Deferred:function(e){var t=[["resolve","done",jQuery.Callbacks("once memory"),"resolved"],["reject","fail",jQuery.Callbacks("once memory"),"rejected"],["notify","progress",jQuery.Callbacks("memory")]],n="pending",r={state:function(){return n},always:function(){return i.done(arguments).fail(arguments),this},then:function(){var e=arguments;return jQuery.Deferred(function(n){jQuery.each(t,function(t,s){var o=s[0],u=jQuery.isFunction(e[t])&&e[t];i[s[1]](function(){var e=u&&u.apply(this,arguments);e&&jQuery.isFunction(e.promise)?e.promise().done(n.resolve).fail(n.reject).progress(n.notify):n[o+"With"](this===r?n.promise():this,u?[e]:arguments)})}),e=null}).promise()},promise:function(e){return e!=null?jQuery.extend(e,r):r}},i={};return r.pipe=r.then,jQuery.each(t,function(e,s){var o=s[2],u=s[3];r[s[1]]=o.add,u&&o.add(function(){n=u},t[e^1][2].disable,t[2][2].lock),i[s[0]]=function(){return i[s[0]+"With"](this===i?r:this,arguments),this},i[s[0]+"With"]=o.fireWith}),r.promise(i),e&&e.call(i,i),i},when:function(e){var t=0,n=core_slice.call(arguments),r=n.length,i=r!==1||e&&jQuery.isFunction(e.promise)?r:0,s=i===1?e:jQuery.Deferred(),o=function(e,t,n){return function(r){t[e]=this,n[e]=arguments.length>1?core_slice.call(arguments):r,n===u?s.notifyWith(t,n):--i||s.resolveWith(t,n)}},u,a,f;if(r>1){u=new Array(r),a=new Array(r),f=new Array(r);for(;t<r;t++)n[t]&&jQuery.isFunction(n[t].promise)?n[t].promise().done(o(t,f,n)).fail(s.reject).progress(o(t,a,u)):--i}return i||s.resolveWith(f,n),s.promise()}}),jQuery.support=function(e){var t=document.createElement("input"),n=document.createDocumentFragment(),r=document.createElement("div"),i=document.createElement("select"),s=i.appendChild(document.createElement("option"));return t.type?(t.type="checkbox",e.checkOn=t.value!=="",e.optSelected=s.selected,e.reliableMarginRight=!0,e.boxSizingReliable=!0,e.pixelPosition=!1,t.checked=!0,e.noCloneChecked=t.cloneNode(!0).checked,i.disabled=!0,e.optDisabled=!s.disabled,t=document.createElement("input"),t.value="t",t.type="radio",e.radioValue=t.value==="t",t.setAttribute("checked","t"),t.setAttribute("name","t"),n.appendChild(t),e.checkClone=n.cloneNode(!0).cloneNode(!0).lastChild.checked,e.focusinBubbles="onfocusin"in window,r.style.backgroundClip="content-box",r.cloneNode(!0).style.backgroundClip="",e.clearCloneStyle=r.style.backgroundClip==="content-box",jQuery(function(){var t,n,i="padding:0;margin:0;border:0;display:block;-webkit-box-sizing:content-box;-moz-box-sizing:content-box;box-sizing:content-box",s=document.getElementsByTagName("body")[0];if(!s)return;t=document.createElement("div"),t.style.cssText="border:0;width:0;height:0;position:absolute;top:0;left:-9999px;margin-top:1px",s.appendChild(t).appendChild(r),r.innerHTML="",r.style.cssText="-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;padding:1px;border:1px;display:block;width:4px;margin-top:1%;position:absolute;top:1%",jQuery.swap(s,s.style.zoom!=null?{zoom:1}:{},function(){e.boxSizing=r.offsetWidth===4}),window.getComputedStyle&&(e.pixelPosition=(window.getComputedStyle(r,null)||{}).top!=="1%",e.boxSizingReliable=(window.getComputedStyle(r,null)||{width:"4px"}).width==="4px",n=r.appendChild(document.createElement("div")),n.style.cssText=r.style.cssText=i,n.style.marginRight=n.style.width="0",r.style.width="1px",e.reliableMarginRight=!parseFloat((window.getComputedStyle(n,null)||{}).marginRight)),s.removeChild(t)}),e):e}({});var data_user,data_priv,rbrace=/(?:\{[\s\S]*\}|\[[\s\S]*\])$/,rmultiDash=/([A-Z])/g;Data.uid=1,Data.accepts=function(e){return e.nodeType?e.nodeType===1||e.nodeType===9:!0},Data.prototype={key:function(e){if(!Data.accepts(e))return 0;var t={},n=e[this.expando];if(!n){n=Data.uid++;try{t[this.expando]={value:n},Object.defineProperties(e,t)}catch(r){t[this.expando]=n,jQuery.extend(e,t)}}return this.cache[n]||(this.cache[n]={}),n},set:function(e,t,n){var r,i=this.key(e),s=this.cache[i];if(typeof t=="string")s[t]=n;else if(jQuery.isEmptyObject(s))jQuery.extend(this.cache[i],t);else for(r in t)s[r]=t[r];return s},get:function(e,t){var n=this.cache[this.key(e)];return t===undefined?n:n[t]},access:function(e,t,n){var r;return t===undefined||t&&typeof t=="string"&&n===undefined?(r=this.get(e,t),r!==undefined?r:this.get(e,jQuery.camelCase(t))):(this.set(e,t,n),n!==undefined?n:t)},remove:function(e,t){var n,r,i,s=this.key(e),o=this.cache[s];if(t===undefined)this.cache[s]={};else{jQuery.isArray(t)?r=t.concat(t.map(jQuery.camelCase)):(i=jQuery.camelCase(t),t in o?r=[t,i]:(r=i,r=r in o?[r]:r.match(core_rnotwhite)||[])),n=r.length;while(n--)delete o[r[n]]}},hasData:function(e){return!jQuery.isEmptyObject(this.cache[e[this.expando]]||{})},discard:function(e){e[this.expando]&&delete this.cache[e[this.expando]]}},data_user=new Data,data_priv=new Data,jQuery.extend({acceptData:Data.accepts,hasData:function(e){return data_user.hasData(e)||data_priv.hasData(e)},data:function(e,t,n){return data_user.access(e,t,n)},removeData:function(e,t){data_user.remove(e,t)},_data:function(e,t,n){return data_priv.access(e,t,n)},_removeData:function(e,t){data_priv.remove(e,t)}}),jQuery.fn.extend({data:function(e,t){var n,r,i=this[0],s=0,o=null;if(e===undefined){if(this.length){o=data_user.get(i);if(i.nodeType===1&&!data_priv.get(i,"hasDataAttrs")){n=i.attributes;for(;s<n.length;s++)r=n[s].name,r.indexOf("data-")===0&&(r=jQuery.camelCase(r.slice(5)),dataAttr(i,r,o[r]));data_priv.set(i,"hasDataAttrs",!0)}}return o}return typeof e=="object"?this.each(function(){data_user.set(this,e)}):jQuery.access(this,function(t){var n,r=jQuery.camelCase(e);if(i&&t===undefined){n=data_user.get(i,e);if(n!==undefined)return n;n=data_user.get(i,r);if(n!==undefined)return n;n=dataAttr(i,r,undefined);if(n!==undefined)return n;return}this.each(function(){var n=data_user.get(this,r);data_user.set(this,r,t),e.indexOf("-")!==-1&&n!==undefined&&data_user.set(this,e,t)})},null,t,arguments.length>1,null,!0)},removeData:function(e){return this.each(function(){data_user.remove(this,e)})}}),jQuery.extend({queue:function(e,t,n){var r;if(e)return t=(t||"fx")+"queue",r=data_priv.get(e,t),n&&(!r||jQuery.isArray(n)?r=data_priv.access(e,t,jQuery.makeArray(n)):r.push(n)),r||[]},dequeue:function(e,t){t=t||"fx";var n=jQuery.queue(e,t),r=n.length,i=n.shift(),s=jQuery._queueHooks(e,t),o=function(){jQuery.dequeue(e,t)};i==="inprogress"&&(i=n.shift(),r--),i&&(t==="fx"&&n.unshift("inprogress"),delete s.stop,i.call(e,o,s)),!r&&s&&s.empty.fire()},_queueHooks:function(e,t){var n=t+"queueHooks";return data_priv.get(e,n)||data_priv.access(e,n,{empty:jQuery.Callbacks("once memory").add(function(){data_priv.remove(e,[t+"queue",n])})})}}),jQuery.fn.extend({queue:function(e,t){var n=2;return typeof e!="string"&&(t=e,e="fx",n--),arguments.length<n?jQuery.queue(this[0],e):t===undefined?this:this.each(function(){var n=jQuery.queue(this,e,t);jQuery._queueHooks(this,e),e==="fx"&&n[0]!=="inprogress"&&jQuery.dequeue(this,e)})},dequeue:function(e){return this.each(function(){jQuery.dequeue(this,e)})},delay:function(e,t){return e=jQuery.fx?jQuery.fx.speeds[e]||e:e,t=t||"fx",this.queue(t,function(t,n){var r=setTimeout(t,e);n.stop=function(){clearTimeout(r)}})},clearQueue:function(e){return this.queue(e||"fx",[])},promise:function(e,t){var n,r=1,i=jQuery.Deferred(),s=this,o=this.length,u=function(){--r||i.resolveWith(s,[s])};typeof e!="string"&&(t=e,e=undefined),e=e||"fx";while(o--)n=data_priv.get(s[o],e+"queueHooks"),n&&n.empty&&(r++,n.empty.add(u));return u(),i.promise(t)}});var nodeHook,boolHook,rclass=/[\t\r\n\f]/g,rreturn=/\r/g,rfocusable=/^(?:input|select|textarea|button)$/i;jQuery.fn.extend({attr:function(e,t){return jQuery.access(this,jQuery.attr,e,t,arguments.length>1)},removeAttr:function(e){return this.each(function(){jQuery.removeAttr(this,e)})},prop:function(e,t){return jQuery.access(this,jQuery.prop,e,t,arguments.length>1)},removeProp:function(e){return this.each(function(){delete this[jQuery.propFix[e]||e]})},addClass:function(e){var t,n,r,i,s,o=0,u=this.length,a=typeof e=="string"&&e;if(jQuery.isFunction(e))return this.each(function(t){jQuery(this).addClass(e.call(this,t,this.className))});if(a){t=(e||"").match(core_rnotwhite)||[];for(;o<u;o++){n=this[o],r=n.nodeType===1&&(n.className?(" "+n.className+" ").replace(rclass," "):" ");if(r){s=0;while(i=t[s++])r.indexOf(" "+i+" ")<0&&(r+=i+" ");n.className=jQuery.trim(r)}}}return this},removeClass:function(e){var t,n,r,i,s,o=0,u=this.length,a=arguments.length===0||typeof e=="string"&&e;if(jQuery.isFunction(e))return this.each(function(t){jQuery(this).removeClass(e.call(this,t,this.className))});if(a){t=(e||"").match(core_rnotwhite)||[];for(;o<u;o++){n=this[o],r=n.nodeType===1&&(n.className?(" "+n.className+" ").replace(rclass," "):"");if(r){s=0;while(i=t[s++])while(r.indexOf(" "+i+" ")>=0)r=r.replace(" "+i+" "," ");n.className=e?jQuery.trim(r):""}}}return this},toggleClass:function(e,t){var n=typeof e;return typeof t=="boolean"&&n==="string"?t?this.addClass(e):this.removeClass(e):jQuery.isFunction(e)?this.each(function(n){jQuery(this).toggleClass(e.call(this,n,this.className,t),t)}):this.each(function(){if(n==="string"){var t,r=0,i=jQuery(this),s=e.match(core_rnotwhite)||[];while(t=s[r++])i.hasClass(t)?i.removeClass(t):i.addClass(t)}else if(n===core_strundefined||n==="boolean")this.className&&data_priv.set(this,"__className__",this.className),this.className=this.className||e===!1?"":data_priv.get(this,"__className__")||""})},hasClass:function(e){var t=" "+e+" ",n=0,r=this.length;for(;n<r;n++)if(this[n].nodeType===1&&(" "+this[n].className+" ").replace(rclass," ").indexOf(t)>=0)return!0;return!1},val:function(e){var t,n,r,i=this[0];if(!arguments.length){if(i)return t=jQuery.valHooks[i.type]||jQuery.valHooks[i.nodeName.toLowerCase()],t&&"get"in t&&(n=t.get(i,"value"))!==undefined?n:(n=i.value,typeof n=="string"?n.replace(rreturn,""):n==null?"":n);return}return r=jQuery.isFunction(e),this.each(function(n){var i;if(this.nodeType!==1)return;r?i=e.call(this,n,jQuery(this).val()):i=e,i==null?i="":typeof i=="number"?i+="":jQuery.isArray(i)&&(i=jQuery.map(i,function(e){return e==null?"":e+""})),t=jQuery.valHooks[this.type]||jQuery.valHooks[this.nodeName.toLowerCase()];if(!t||!("set"in t)||t.set(this,i,"value")===undefined)this.value=i})}}),jQuery.extend({valHooks:{option:{get:function(e){var t=e.attributes.value;return!t||t.specified?e.value:e.text}},select:{get:function(e){var t,n,r=e.options,i=e.selectedIndex,s=e.type==="select-one"||i<0,o=s?null:[],u=s?i+1:r.length,a=i<0?u:s?i:0;for(;a<u;a++){n=r[a];if((n.selected||a===i)&&(jQuery.support.optDisabled?!n.disabled:n.getAttribute("disabled")===null)&&(!n.parentNode.disabled||!jQuery.nodeName(n.parentNode,"optgroup"))){t=jQuery(n).val();if(s)return t;o.push(t)}}return o},set:function(e,t){var n,r,i=e.options,s=jQuery.makeArray(t),o=i.length;while(o--){r=i[o];if(r.selected=jQuery.inArray(jQuery(r).val(),s)>=0)n=!0}return n||(e.selectedIndex=-1),s}}},attr:function(e,t,n){var r,i,s=e.nodeType;if(!e||s===3||s===8||s===2)return;if(typeof e.getAttribute===core_strundefined)return jQuery.prop(e,t,n);if(s!==1||!jQuery.isXMLDoc(e))t=t.toLowerCase(),r=jQuery.attrHooks[t]||(jQuery.expr.match.bool.test(t)?boolHook:nodeHook);if(n===undefined)return r&&"get"in r&&(i=r.get(e,t))!==null?i:(i=jQuery.find.attr(e,t),i==null?undefined:i);if(n!==null)return r&&"set"in r&&(i=r.set(e,n,t))!==undefined?i:(e.setAttribute(t,n+""),n);jQuery.removeAttr(e,t)},removeAttr:function(e,t){var n,r,i=0,s=t&&t.match(core_rnotwhite);if(s&&e.nodeType===1)while(n=s[i++])r=jQuery.propFix[n]||n,jQuery.expr.match.bool.test(n)&&(e[r]=!1),e.removeAttribute(n)},attrHooks:{type:{set:function(e,t){if(!jQuery.support.radioValue&&t==="radio"&&jQuery.nodeName(e,"input")){var n=e.value;return e.setAttribute("type",t),n&&(e.value=n),t}}}},propFix:{"for":"htmlFor","class":"className"},prop:function(e,t,n){var r,i,s,o=e.nodeType;if(!e||o===3||o===8||o===2)return;return s=o!==1||!jQuery.isXMLDoc(e),s&&(t=jQuery.propFix[t]||t,i=jQuery.propHooks[t]),n!==undefined?i&&"set"in i&&(r=i.set(e,n,t))!==undefined?r:e[t]=n:i&&"get"in i&&(r=i.get(e,t))!==null?r:e[t]},propHooks:{tabIndex:{get:function(e){return e.hasAttribute("tabindex")||rfocusable.test(e.nodeName)||e.href?e.tabIndex:-1}}}}),boolHook={set:function(e,t,n){return t===!1?jQuery.removeAttr(e,n):e.setAttribute(n,n),n}},jQuery.each(jQuery.expr.match.bool.source.match(/\w+/g),function(e,t){var n=jQuery.expr.attrHandle[t]||jQuery.find.attr;jQuery.expr.attrHandle[t]=function(e,t,r){var i=jQuery.expr.attrHandle[t],s=r?undefined:(jQuery.expr.attrHandle[t]=undefined)!=n(e,t,r)?t.toLowerCase():null;return jQuery.expr.attrHandle[t]=i,s}}),jQuery.support.optSelected||(jQuery.propHooks.selected={get:function(e){var t=e.parentNode;return t&&t.parentNode&&t.parentNode.selectedIndex,null}}),jQuery.each(["tabIndex","readOnly","maxLength","cellSpacing","cellPadding","rowSpan","colSpan","useMap","frameBorder","contentEditable"],function(){jQuery.propFix[this.toLowerCase()]=this}),jQuery.each(["radio","checkbox"],function(){jQuery.valHooks[this]={set:function(e,t){if(jQuery.isArray(t))return e.checked=jQuery.inArray(jQuery(e).val(),t)>=0}},jQuery.support.checkOn||(jQuery.valHooks[this].get=function(e){return e.getAttribute("value")===null?"on":e.value})});var rkeyEvent=/^key/,rmouseEvent=/^(?:mouse|contextmenu)|click/,rfocusMorph=/^(?:focusinfocus|focusoutblur)$/,rtypenamespace=/^([^.]*)(?:\.(.+)|)$/;jQuery.event={global:{},add:function(e,t,n,r,i){var s,o,u,a,f,l,c,h,p,d,v,m=data_priv.get(e);if(!m)return;n.handler&&(s=n,n=s.handler,i=s.selector),n.guid||(n.guid=jQuery.guid++),(a=m.events)||(a=m.events={}),(o=m.handle)||(o=m.handle=function(e){return typeof jQuery===core_strundefined||!!e&&jQuery.event.triggered===e.type?undefined:jQuery.event.dispatch.apply(o.elem,arguments)},o.elem=e),t=(t||"").match(core_rnotwhite)||[""],f=t.length;while(f--){u=rtypenamespace.exec(t[f])||[],p=v=u[1],d=(u[2]||"").split(".").sort();if(!p)continue;c=jQuery.event.special[p]||{},p=(i?c.delegateType:c.bindType)||p,c=jQuery.event.special[p]||{},l=jQuery.extend({type:p,origType:v,data:r,handler:n,guid:n.guid,selector:i,needsContext:i&&jQuery.expr.match.needsContext.test(i),namespace:d.join(".")},s),(h=a[p])||(h=a[p]=[],h.delegateCount=0,(!c.setup||c.setup.call(e,r,d,o)===!1)&&e.addEventListener&&e.addEventListener(p,o,!1)),c.add&&(c.add.call(e,l),l.handler.guid||(l.handler.guid=n.guid)),i?h.splice(h.delegateCount++,0,l):h.push(l),jQuery.event.global[p]=!0}e=null},remove:function(e,t,n,r,i){var s,o,u,a,f,l,c,h,p,d,v,m=data_priv.hasData(e)&&data_priv.get(e);if(!m||!(a=m.events))return;t=(t||"").match(core_rnotwhite)||[""],f=t.length;while(f--){u=rtypenamespace.exec(t[f])||[],p=v=u[1],d=(u[2]||"").split(".").sort();if(!p){for(p in a)jQuery.event.remove(e,p+t[f],n,r,!0);continue}c=jQuery.event.special[p]||{},p=(r?c.delegateType:c.bindType)||p,h=a[p]||[],u=u[2]&&new RegExp("(^|\\.)"+d.join("\\.(?:.*\\.|)")+"(\\.|$)"),o=s=h.length;while(s--)l=h[s],(i||v===l.origType)&&(!n||n.guid===l.guid)&&(!u||u.test(l.namespace))&&(!r||r===l.selector||r==="**"&&l.selector)&&(h.splice(s,1),l.selector&&h.delegateCount--,c.remove&&c.remove.call(e,l));o&&!h.length&&((!c.teardown||c.teardown.call(e,d,m.handle)===!1)&&jQuery.removeEvent(e,p,m.handle),delete a[p])}jQuery.isEmptyObject(a)&&(delete m.handle,data_priv.remove(e,"events"))},trigger:function(e,t,n,r){var i,s,o,u,a,f,l,c=[n||document],h=core_hasOwn.call(e,"type")?e.type:e,p=core_hasOwn.call(e,"namespace")?e.namespace.split("."):[];s=o=n=n||document;if(n.nodeType===3||n.nodeType===8)return;if(rfocusMorph.test(h+jQuery.event.triggered))return;h.indexOf(".")>=0&&(p=h.split("."),h=p.shift(),p.sort()),a=h.indexOf(":")<0&&"on"+h,e=e[jQuery.expando]?e:new jQuery.Event(h,typeof e=="object"&&e),e.isTrigger=r?2:3,e.namespace=p.join("."),e.namespace_re=e.namespace?new RegExp("(^|\\.)"+p.join("\\.(?:.*\\.|)")+"(\\.|$)"):null,e.result=undefined,e.target||(e.target=n),t=t==null?[e]:jQuery.makeArray(t,[e]),l=jQuery.event.special[h]||{};if(!r&&l.trigger&&l.trigger.apply(n,t)===!1)return;if(!r&&!l.noBubble&&!jQuery.isWindow(n)){u=l.delegateType||h,rfocusMorph.test(u+h)||(s=s.parentNode);for(;s;s=s.parentNode)c.push(s),o=s;o===(n.ownerDocument||document)&&c.push(o.defaultView||o.parentWindow||window)}i=0;while((s=c[i++])&&!e.isPropagationStopped())e.type=i>1?u:l.bindType||h,f=(data_priv.get(s,"events")||{})[e.type]&&data_priv.get(s,"handle"),f&&f.apply(s,t),f=a&&s[a],f&&jQuery.acceptData(s)&&f.apply&&f.apply(s,t)===!1&&e.preventDefault();return e.type=h,!r&&!e.isDefaultPrevented()&&(!l._default||l._default.apply(c.pop(),t)===!1)&&jQuery.acceptData(n)&&a&&jQuery.isFunction(n[h])&&!jQuery.isWindow(n)&&(o=n[a],o&&(n[a]=null),jQuery.event.triggered=h,n[h](),jQuery.event.triggered=undefined,o&&(n[a]=o)),e.result},dispatch:function(e){e=jQuery.event.fix(e);var t,n,r,i,s,o=[],u=core_slice.call(arguments),a=(data_priv.get(this,"events")||{})[e.type]||[],f=jQuery.event.special[e.type]||{};u[0]=e,e.delegateTarget=this;if(f.preDispatch&&f.preDispatch.call(this,e)===!1)return;o=jQuery.event.handlers.call(this,e,a),t=0;while((i=o[t++])&&!e.isPropagationStopped()){e.currentTarget=i.elem,n=0;while((s=i.handlers[n++])&&!e.isImmediatePropagationStopped())if(!e.namespace_re||e.namespace_re.test(s.namespace))e.handleObj=s,e.data=s.data,r=((jQuery.event.special[s.origType]||{}).handle||s.handler).apply(i.elem,u),r!==undefined&&(e.result=r)===!1&&(e.preventDefault(),e.stopPropagation())}return f.postDispatch&&f.postDispatch.call(this,e),e.result},handlers:function(e,t){var n,r,i,s,o=[],u=t.delegateCount,a=e.target;if(u&&a.nodeType&&(!e.button||e.type!=="click"))for(;a!==this;a=a.parentNode||this)if(a.disabled!==!0||e.type!=="click"){r=[];for(n=0;n<u;n++)s=t[n],i=s.selector+" ",r[i]===undefined&&(r[i]=s.needsContext?jQuery(i,this).index(a)>=0:jQuery.find(i,this,null,[a]).length),r[i]&&r.push(s);r.length&&o.push({elem:a,handlers:r})}return u<t.length&&o.push({elem:this,handlers:t.slice(u)}),o},props:"altKey bubbles cancelable ctrlKey currentTarget eventPhase metaKey relatedTarget shiftKey target timeStamp view which".split(" "),fixHooks:{},keyHooks:{props:"char charCode key keyCode".split(" "),filter:function(e,t){return e.which==null&&(e.which=t.charCode!=null?t.charCode:t.keyCode),e}},mouseHooks:{props:"button buttons clientX clientY offsetX offsetY pageX pageY screenX screenY toElement".split(" "),filter:function(e,t){var n,r,i,s=t.button;return e.pageX==null&&t.clientX!=null&&(n=e.target.ownerDocument||document,r=n.documentElement,i=n.body,e.pageX=t.clientX+(r&&r.scrollLeft||i&&i.scrollLeft||0)-(r&&r.clientLeft||i&&i.clientLeft||0),e.pageY=t.clientY+(r&&r.scrollTop||i&&i.scrollTop||0)-(r&&r.clientTop||i&&i.clientTop||0)),!e.which&&s!==undefined&&(e.which=s&1?1:s&2?3:s&4?2:0),e}},fix:function(e){if(e[jQuery.expando])return e;var t,n,r,i=e.type,s=e,o=this.fixHooks[i];o||(this.fixHooks[i]=o=rmouseEvent.test(i)?this.mouseHooks:rkeyEvent.test(i)?this.keyHooks:{}),r=o.props?this.props.concat(o.props):this.props,e=new jQuery.Event(s),t=r.length;while(t--)n=r[t],e[n]=s[n];return e.target||(e.target=document),e.target.nodeType===3&&(e.target=e.target.parentNode),o.filter?o.filter(e,s):e},special:{load:{noBubble:!0},focus:{trigger:function(){if(this!==safeActiveElement()&&this.focus)return this.focus(),!1},delegateType:"focusin"},blur:{trigger:function(){if(this===safeActiveElement()&&this.blur)return this.blur(),!1},delegateType:"focusout"},click:{trigger:function(){if(this.type==="checkbox"&&this.click&&jQuery.nodeName(this,"input"))return this.click(),!1},_default:function(e){return jQuery.nodeName(e.target,"a")}},beforeunload:{postDispatch:function(e){e.result!==undefined&&(e.originalEvent.returnValue=e.result)}}},simulate:function(e,t,n,r){var i=jQuery.extend(new jQuery.Event,n,{type:e,isSimulated:!0,originalEvent:{}});r?jQuery.event.trigger(i,null,t):jQuery.event.dispatch.call(t,i),i.isDefaultPrevented()&&n.preventDefault()}},jQuery.removeEvent=function(e,t,n){e.removeEventListener&&e.removeEventListener(t,n,!1)},jQuery.Event=function(e,t){if(!(this instanceof jQuery.Event))return new jQuery.Event(e,t);e&&e.type?(this.originalEvent=e,this.type=e.type,this.isDefaultPrevented=e.defaultPrevented||e.getPreventDefault&&e.getPreventDefault()?returnTrue:returnFalse):this.type=e,t&&jQuery.extend(this,t),this.timeStamp=e&&e.timeStamp||jQuery.now(),this[jQuery.expando]=!0},jQuery.Event.prototype={isDefaultPrevented:returnFalse,isPropagationStopped:returnFalse,isImmediatePropagationStopped:returnFalse,preventDefault:function(){var e=this.originalEvent;this.isDefaultPrevented=returnTrue,e&&e.preventDefault&&e.preventDefault()},stopPropagation:function(){var e=this.originalEvent;this.isPropagationStopped=returnTrue,e&&e.stopPropagation&&e.stopPropagation()},stopImmediatePropagation:function(){this.isImmediatePropagationStopped=returnTrue,this.stopPropagation()}},jQuery.each({mouseenter:"mouseover",mouseleave:"mouseout"},function(e,t){jQuery.event.special[e]={delegateType:t,bindType:t,handle:function(e){var n,r=this,i=e.relatedTarget,s=e.handleObj;if(!i||i!==r&&!jQuery.contains(r,i))e.type=s.origType,n=s.handler.apply(this,arguments),e.type=t;return n}}}),jQuery.support.focusinBubbles||jQuery.each({focus:"focusin",blur:"focusout"},function(e,t){var n=0,r=function(e){jQuery.event.simulate(t,e.target,jQuery.event.fix(e),!0)};jQuery.event.special[t]={setup:function(){n++===0&&document.addEventListener(e,r,!0)},teardown:function(){--n===0&&document.removeEventListener(e,r,!0)}}}),jQuery.fn.extend({on:function(e,t,n,r,i){var s,o;if(typeof e=="object"){typeof t!="string"&&(n=n||t,t=undefined);for(o in e)this.on(o,t,n,e[o],i);return this}n==null&&r==null?(r=t,n=t=undefined):r==null&&(typeof t=="string"?(r=n,n=undefined):(r=n,n=t,t=undefined));if(r===!1)r=returnFalse;else if(!r)return this;return i===1&&(s=r,r=function(e){return jQuery().off(e),s.apply(this,arguments)},r.guid=s.guid||(s.guid=jQuery.guid++)),this.each(function(){jQuery.event.add(this,e,r,n,t)})},one:function(e,t,n,r){return this.on(e,t,n,r,1)},off:function(e,t,n){var r,i;if(e&&e.preventDefault&&e.handleObj)return r=e.handleObj,jQuery(e.delegateTarget).off(r.namespace?r.origType+"."+r.namespace:r.origType,r.selector,r.handler),this;if(typeof e=="object"){for(i in e)this.off(i,t,e[i]);return this}if(t===!1||typeof t=="function")n=t,t=undefined;return n===!1&&(n=returnFalse),this.each(function(){jQuery.event.remove(this,e,n,t)})},trigger:function(e,t){return this.each(function(){jQuery.event.trigger(e,t,this)})},triggerHandler:function(e,t){var n=this[0];if(n)return jQuery.event.trigger(e,t,n,!0)}});var isSimple=/^.[^:#\[\.,]*$/,rparentsprev=/^(?:parents|prev(?:Until|All))/,rneedsContext=jQuery.expr.match.needsContext,guaranteedUnique={children:!0,contents:!0,next:!0,prev:!0};jQuery.fn.extend({find:function(e){var t,n=[],r=this,i=r.length;if(typeof e!="string")return this.pushStack(jQuery(e).filter(function(){for(t=0;t<i;t++)if(jQuery.contains(r[t],this))return!0}));for(t=0;t<i;t++)jQuery.find(e,r[t],n);return n=this.pushStack(i>1?jQuery.unique(n):n),n.selector=this.selector?this.selector+" "+e:e,n},has:function(e){var t=jQuery(e,this),n=t.length;return this.filter(function(){var e=0;for(;e<n;e++)if(jQuery.contains(this,t[e]))return!0})},not:function(e){return this.pushStack(winnow(this,e||[],!0))},filter:function(e){return this.pushStack(winnow(this,e||[],!1))},is:function(e){return!!winnow(this,typeof e=="string"&&rneedsContext.test(e)?jQuery(e):e||[],!1).length},closest:function(e,t){var n,r=0,i=this.length,s=[],o=rneedsContext.test(e)||typeof e!="string"?jQuery(e,t||this.context):0;for(;r<i;r++)for(n=this[r];n&&n!==t;n=n.parentNode)if(n.nodeType<11&&(o?o.index(n)>-1:n.nodeType===1&&jQuery.find.matchesSelector(n,e))){n=s.push(n);break}return this.pushStack(s.length>1?jQuery.unique(s):s)},index:function(e){return e?typeof e=="string"?core_indexOf.call(jQuery(e),this[0]):core_indexOf.call(this,e.jquery?e[0]:e):this[0]&&this[0].parentNode?this.first().prevAll().length:-1},add:function(e,t){var n=typeof e=="string"?jQuery(e,t):jQuery.makeArray(e&&e.nodeType?[e]:e),r=jQuery.merge(this.get(),n);return this.pushStack(jQuery.unique(r))},addBack:function(e){return this.add(e==null?this.prevObject:this.prevObject.filter(e))}}),jQuery.each({parent:function(e){var t=e.parentNode;return t&&t.nodeType!==11?t:null},parents:function(e){return jQuery.dir(e,"parentNode")},parentsUntil:function(e,t,n){return jQuery.dir(e,"parentNode",n)},next:function(e){return sibling(e,"nextSibling")},prev:function(e){return sibling(e,"previousSibling")},nextAll:function(e){return jQuery.dir(e,"nextSibling")},prevAll:function(e){return jQuery.dir(e,"previousSibling")},nextUntil:function(e,t,n){return jQuery.dir(e,"nextSibling",n)},prevUntil:function(e,t,n){return jQuery.dir(e,"previousSibling",n)},siblings:function(e){return jQuery.sibling((e.parentNode||{}).firstChild,e)},children:function(e){return jQuery.sibling(e.firstChild)},contents:function(e){return e.contentDocument||jQuery.merge([],e.childNodes)}},function(e,t){jQuery.fn[e]=function(n,r){var i=jQuery.map(this,t,n);return e.slice(-5)!=="Until"&&(r=n),r&&typeof r=="string"&&(i=jQuery.filter(r,i)),this.length>1&&(guaranteedUnique[e]||jQuery.unique(i),rparentsprev.test(e)&&i.reverse()),this.pushStack(i)}}),jQuery.extend({filter:function(e,t,n){var r=t[0];return n&&(e=":not("+e+")"),t.length===1&&r.nodeType===1?jQuery.find.matchesSelector(r,e)?[r]:[]:jQuery.find.matches(e,jQuery.grep(t,function(e){return e.nodeType===1}))},dir:function(e,t,n){var r=[],i=n!==undefined;while((e=e[t])&&e.nodeType!==9)if(e.nodeType===1){if(i&&jQuery(e).is(n))break;r.push(e)}return r},sibling:function(e,t){var n=[];for(;e;e=e.nextSibling)e.nodeType===1&&e!==t&&n.push(e);return n}});var rxhtmlTag=/<(?!area|br|col|embed|hr|img|input|link|meta|param)(([\w:]+)[^>]*)\/>/gi,rtagName=/<([\w:]+)/,rhtml=/<|&#?\w+;/,rnoInnerhtml=/<(?:script|style|link)/i,manipulation_rcheckableType=/^(?:checkbox|radio)$/i,rchecked=/checked\s*(?:[^=]|=\s*.checked.)/i,rscriptType=/^$|\/(?:java|ecma)script/i,rscriptTypeMasked=/^true\/(.*)/,rcleanScript=/^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g,wrapMap={option:[1,"<select multiple='multiple'>","</select>"],thead:[1,"<table>","</table>"],col:[2,"<table><colgroup>","</colgroup></table>"],tr:[2,"<table><tbody>","</tbody></table>"],td:[3,"<table><tbody><tr>","</tr></tbody></table>"],_default:[0,"",""]};wrapMap.optgroup=wrapMap.option,wrapMap.tbody=wrapMap.tfoot=wrapMap.colgroup=wrapMap.caption=wrapMap.thead,wrapMap.th=wrapMap.td,jQuery.fn.extend({text:function(e){return jQuery.access(this,function(e){return e===undefined?jQuery.text(this):this.empty().append((this[0]&&this[0].ownerDocument||document).createTextNode(e))},null,e,arguments.length)},append:function(){return this.domManip(arguments,function(e){if(this.nodeType===1||this.nodeType===11||this.nodeType===9){var t=manipulationTarget(this,e);t.appendChild(e)}})},prepend:function(){return this.domManip(arguments,function(e){if(this.nodeType===1||this.nodeType===11||this.nodeType===9){var t=manipulationTarget(this,e);t.insertBefore(e,t.firstChild)}})},before:function(){return this.domManip(arguments,function(e){this.parentNode&&this.parentNode.insertBefore(e,this)})},after:function(){return this.domManip(arguments,function(e){this.parentNode&&this.parentNode.insertBefore(e,this.nextSibling)})},remove:function(e,t){var n,r=e?jQuery.filter(e,this):this,i=0;for(;(n=r[i])!=null;i++)!t&&n.nodeType===1&&jQuery.cleanData(getAll(n)),n.parentNode&&(t&&jQuery.contains(n.ownerDocument,n)&&setGlobalEval(getAll(n,"script")),n.parentNode.removeChild(n));return this},empty:function(){var e,t=0;for(;(e=this[t])!=null;t++)e.nodeType===1&&(jQuery.cleanData(getAll(e,!1)),e.textContent="");return this},clone:function(e,t){return e=e==null?!1:e,t=t==null?e:t,this.map(function(){return jQuery.clone(this,e,t)})},html:function(e){return jQuery.access(this,function(e){var t=this[0]||{},n=0,r=this.length;if(e===undefined&&t.nodeType===1)return t.innerHTML;if(typeof e=="string"&&!rnoInnerhtml.test(e)&&!wrapMap[(rtagName.exec(e)||["",""])[1].toLowerCase()]){e=e.replace(rxhtmlTag,"<$1></$2>");try{for(;n<r;n++)t=this[n]||{},t.nodeType===1&&(jQuery.cleanData(getAll(t,!1)),t.innerHTML=e);t=0}catch(i){}}t&&this.empty().append(e)},null,e,arguments.length)},replaceWith:function(){var e=jQuery.map(this,function(e){return[e.nextSibling,e.parentNode]}),t=0;return this.domManip(arguments,function(n){var r=e[t++],s=e[t++];s&&(r&&r.parentNode!==s&&(r=this.nextSibling),jQuery(this).remove(),s.insertBefore(n,r))},!0),t?this:this.remove()},detach:function(e){return this.remove(e,!0)},domManip:function(e,t,n){e=core_concat.apply([],e);var r,i,s,o,u,a,f=0,l=this.length,c=this,h=l-1,p=e[0],d=jQuery.isFunction(p);if(d||!(l<=1||typeof p!="string"||jQuery.support.checkClone||!rchecked.test(p)))return this.each(function(r){var i=c.eq(r);d&&(e[0]=p.call(this,r,i.html())),i.domManip(e,t,n)});if(l){r=jQuery.buildFragment(e,this[0].ownerDocument,!1,!n&&this),i=r.firstChild,r.childNodes.length===1&&(r=i);if(i){s=jQuery.map(getAll(r,"script"),disableScript),o=s.length;for(;f<l;f++)u=r,f!==h&&(u=jQuery.clone(u,!0,!0),o&&jQuery.merge(s,getAll(u,"script"))),t.call(this[f],u,f);if(o){a=s[s.length-1].ownerDocument,jQuery.map(s,restoreScript);for(f=0;f<o;f++)u=s[f],rscriptType.test(u.type||"")&&!data_priv.access(u,"globalEval")&&jQuery.contains(a,u)&&(u.src?jQuery._evalUrl(u.src):jQuery.globalEval(u.textContent.replace(rcleanScript,"")))}}}return this}}),jQuery.each({appendTo:"append",prependTo:"prepend",insertBefore:"before",insertAfter:"after",replaceAll:"replaceWith"},function(e,t){jQuery.fn[e]=function(e){var n,r=[],i=jQuery(e),s=i.length-1,o=0;for(;o<=s;o++)n=o===s?this:this.clone(!0),jQuery(i[o])[t](n),core_push.apply(r,n.get());return this.pushStack(r)}}),jQuery.extend({clone:function(e,t,n){var r,i,s,o,u=e.cloneNode(!0),a=jQuery.contains(e.ownerDocument,e);if(!jQuery.support.noCloneChecked&&(e.nodeType===1||e.nodeType===11)&&!jQuery.isXMLDoc(e)){o=getAll(u),s=getAll(e);for(r=0,i=s.length;r<i;r++)fixInput(s[r],o[r])}if(t)if(n){s=s||getAll(e),o=o||getAll(u);for(r=0,i=s.length;r<i;r++)cloneCopyEvent(s[r],o[r])}else cloneCopyEvent(e,u);return o=getAll(u,"script"),o.length>0&&setGlobalEval(o,!a&&getAll(e,"script")),u},buildFragment:function(e,t,n,r){var i,s,o,u,a,f,l=0,c=e.length,h=t.createDocumentFragment(),p=[];for(;l<c;l++){i=e[l];if(i||i===0)if(jQuery.type(i)==="object")jQuery.merge(p,i.nodeType?[i]:i);else if(!rhtml.test(i))p.push(t.createTextNode(i));else{s=s||h.appendChild(t.createElement("div")),o=(rtagName.exec(i)||["",""])[1].toLowerCase(),u=wrapMap[o]||wrapMap._default,s.innerHTML=u[1]+i.replace(rxhtmlTag,"<$1></$2>")+u[2],f=u[0];while(f--)s=s.lastChild;jQuery.merge(p,s.childNodes),s=h.firstChild,s.textContent=""}}h.textContent="",l=0;while(i=p[l++]){if(r&&jQuery.inArray(i,r)!==-1)continue;a=jQuery.contains(i.ownerDocument,i),s=getAll(h.appendChild(i),"script"),a&&setGlobalEval(s);if(n){f=0;while(i=s[f++])rscriptType.test(i.type||"")&&n.push(i)}}return h},cleanData:function(e){var t,n,r,i,s,o,u=jQuery.event.special,a=0;for(;(n=e[a])!==undefined;a++){if(Data.accepts(n)){s=n[data_priv.expando];if(s&&(t=data_priv.cache[s])){r=Object.keys(t.events||{});if(r.length)for(o=0;(i=r[o])!==undefined;o++)u[i]?jQuery.event.remove(n,i):jQuery.removeEvent(n,i,t.handle);data_priv.cache[s]&&delete data_priv.cache[s]}}delete data_user.cache[n[data_user.expando]]}},_evalUrl:function(e){return jQuery.ajax({url:e,type:"GET",dataType:"script",async:!1,global:!1,"throws":!0})}}),jQuery.fn.extend({wrapAll:function(e){var t;return jQuery.isFunction(e)?this.each(function(t){jQuery(this).wrapAll(e.call(this,t))}):(this[0]&&(t=jQuery(e,this[0].ownerDocument).eq(0).clone(!0),this[0].parentNode&&t.insertBefore(this[0]),t.map(function(){var e=this;while(e.firstElementChild)e=e.firstElementChild;return e}).append(this)),this)},wrapInner:function(e){return jQuery.isFunction(e)?this.each(function(t){jQuery(this).wrapInner(e.call(this,t))}):this.each(function(){var t=jQuery(this),n=t.contents();n.length?n.wrapAll(e):t.append(e)})},wrap:function(e){var t=jQuery.isFunction(e);return this.each(function(n){jQuery(this).wrapAll(t?e.call(this,n):e)})},unwrap:function(){return this.parent().each(function(){jQuery.nodeName(this,"body")||jQuery(this).replaceWith(this.childNodes)}).end()}});var curCSS,iframe,rdisplayswap=/^(none|table(?!-c[ea]).+)/,rmargin=/^margin/,rnumsplit=new RegExp("^("+core_pnum+")(.*)$","i"),rnumnonpx=new RegExp("^("+core_pnum+")(?!px)[a-z%]+$","i"),rrelNum=new RegExp("^([+-])=("+core_pnum+")","i"),elemdisplay={BODY:"block"},cssShow={position:"absolute",visibility:"hidden",display:"block"},cssNormalTransform={letterSpacing:0,fontWeight:400},cssExpand=["Top","Right","Bottom","Left"],cssPrefixes=["Webkit","O","Moz","ms"];jQuery.fn.extend({css:function(e,t){return jQuery.access(this,function(e,t,n){var r,i,s={},o=0;if(jQuery.isArray(t)){r=getStyles(e),i=t.length;for(;o<i;o++)s[t[o]]=jQuery.css(e,t[o],!1,r);return s}return n!==undefined?jQuery.style(e,t,n):jQuery.css(e,t)},e,t,arguments.length>1)},show:function(){return showHide(this,!0)},hide:function(){return showHide(this)},toggle:function(e){return typeof e=="boolean"?e?this.show():this.hide():this.each(function(){isHidden(this)?jQuery(this).show():jQuery(this).hide()})}}),jQuery.extend({cssHooks:{opacity:{get:function(e,t){if(t){var n=curCSS(e,"opacity");return n===""?"1":n}}}},cssNumber:{columnCount:!0,fillOpacity:!0,fontWeight:!0,lineHeight:!0,opacity:!0,order:!0,orphans:!0,widows:!0,zIndex:!0,zoom:!0},cssProps:{"float":"cssFloat"},style:function(e,t,n,r){if(!e||e.nodeType===3||e.nodeType===8||!e.style)return;var i,s,o,u=jQuery.camelCase(t),a=e.style;t=jQuery.cssProps[u]||(jQuery.cssProps[u]=vendorPropName(a,u)),o=jQuery.cssHooks[t]||jQuery.cssHooks[u];if(n===undefined)return o&&"get"in o&&(i=o.get(e,!1,r))!==undefined?i:a[t];s=typeof n,s==="string"&&(i=rrelNum.exec(n))&&(n=(i[1]+1)*i[2]+parseFloat(jQuery.css(e,t)),s="number");if(n==null||s==="number"&&isNaN(n))return;s==="number"&&!jQuery.cssNumber[u]&&(n+="px"),!jQuery.support.clearCloneStyle&&n===""&&t.indexOf("background")===0&&(a[t]="inherit");if(!o||!("set"in o)||(n=o.set(e,n,r))!==undefined)a[t]=n},css:function(e,t,n,r){var i,s,o,u=jQuery.camelCase(t);return t=jQuery.cssProps[u]||(jQuery.cssProps[u]=vendorPropName(e.style,u)),o=jQuery.cssHooks[t]||jQuery.cssHooks[u],o&&"get"in o&&(i=o.get(e,!0,n)),i===undefined&&(i=curCSS(e,t,r)),i==="normal"&&t in cssNormalTransform&&(i=cssNormalTransform[t]),n===""||n?(s=parseFloat(i),n===!0||jQuery.isNumeric(s)?s||0:i):i}}),curCSS=function(e,t,n){var r,i,s,o=n||getStyles(e),u=o?o.getPropertyValue(t)||o[t]:undefined,a=e.style;return o&&(u===""&&!jQuery.contains(e.ownerDocument,e)&&(u=jQuery.style(e,t)),rnumnonpx.test(u)&&rmargin.test(t)&&(r=a.width,i=a.minWidth,s=a.maxWidth,a.minWidth=a.maxWidth=a.width=u,u=o.width,a.width=r,a.minWidth=i,a.maxWidth=s)),u},jQuery.each(["height","width"],function(e,t){jQuery.cssHooks[t]={get:function(e,n,r){if(n)return e.offsetWidth===0&&rdisplayswap.test(jQuery.css(e,"display"))?jQuery.swap(e,cssShow,function(){return getWidthOrHeight(e,t,r)}):getWidthOrHeight(e,t,r)},set:function(e,n,r){var i=r&&getStyles(e);return setPositiveNumber(e,n,r?augmentWidthOrHeight(e,t,r,jQuery.support.boxSizing&&jQuery.css(e,"boxSizing",!1,i)==="border-box",i):0)}}}),jQuery(function(){jQuery.support.reliableMarginRight||(jQuery.cssHooks.marginRight={get:function(e,t){if(t)return jQuery.swap(e,{display:"inline-block"},curCSS,[e,"marginRight"])}}),!jQuery.support.pixelPosition&&jQuery.fn.position&&jQuery.each(["top","left"],function(e,t){jQuery.cssHooks[t]={get:function(e,n){if(n)return n=curCSS(e,t),rnumnonpx.test(n)?jQuery(e).position()[t]+"px":n}}})}),jQuery.expr&&jQuery.expr.filters&&(jQuery.expr.filters.hidden=function(e){return e.offsetWidth<=0&&e.offsetHeight<=0},jQuery.expr.filters.visible=function(e){return!jQuery.expr.filters.hidden(e)}),jQuery.each({margin:"",padding:"",border:"Width"},function(e,t){jQuery.cssHooks[e+t]={expand:function(n){var r=0,i={},s=typeof n=="string"?n.split(" "):[n];for(;r<4;r++)i[e+cssExpand[r]+t]=s[r]||s[r-2]||s[0];return i}},rmargin.test(e)||(jQuery.cssHooks[e+t].set=setPositiveNumber)});var r20=/%20/g,rbracket=/\[\]$/,rCRLF=/\r?\n/g,rsubmitterTypes=/^(?:submit|button|image|reset|file)$/i,rsubmittable=/^(?:input|select|textarea|keygen)/i;jQuery.fn.extend({serialize:function(){return jQuery.param(this.serializeArray())},serializeArray:function(){return this.map(function(){var e=jQuery.prop(this,"elements");return e?jQuery.makeArray(e):this}).filter(function(){var e=this.type;return this.name&&!jQuery(this).is(":disabled")&&rsubmittable.test(this.nodeName)&&!rsubmitterTypes.test(e)&&(this.checked||!manipulation_rcheckableType.test(e))}).map(function(e,t){var n=jQuery(this).val();return n==null?null:jQuery.isArray(n)?jQuery.map(n,function(e){return{name:t.name,value:e.replace(rCRLF,"\r\n")}}):{name:t.name,value:n.replace(rCRLF,"\r\n")}}).get()}}),jQuery.param=function(e,t){var n,r=[],i=function(e,t){t=jQuery.isFunction(t)?t():t==null?"":t,r[r.length]=encodeURIComponent(e)+"="+encodeURIComponent(t)};t===undefined&&(t=jQuery.ajaxSettings&&jQuery.ajaxSettings.traditional);if(jQuery.isArray(e)||e.jquery&&!jQuery.isPlainObject(e))jQuery.each(e,function(){i(this.name,this.value)});else for(n in e)buildParams(n,e[n],t,i);return r.join("&").replace(r20,"+")},jQuery.each("blur focus focusin focusout load resize scroll unload click dblclick mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave change select submit keydown keypress keyup error contextmenu".split(" "),function(e,t){jQuery.fn[t]=function(e,n){return arguments.length>0?this.on(t,null,e,n):this.trigger(t)}}),jQuery.fn.extend({hover:function(e,t){return this.mouseenter(e).mouseleave(t||e)},bind:function(e,t,n){return this.on(e,null,t,n)},unbind:function(e,t){return this.off(e,null,t)},delegate:function(e,t,n,r){return this.on(t,e,n,r)},undelegate:function(e,t,n){return arguments.length===1?this.off(e,"**"):this.off(t,e||"**",n)}});var ajaxLocParts,ajaxLocation,ajax_nonce=jQuery.now(),ajax_rquery=/\?/,rhash=/#.*$/,rts=/([?&])_=[^&]*/,rheaders=/^(.*?):[ \t]*([^\r\n]*)$/mg,rlocalProtocol=/^(?:about|app|app-storage|.+-extension|file|res|widget):$/,rnoContent=/^(?:GET|HEAD)$/,rprotocol=/^\/\//,rurl=/^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/,_load=jQuery.fn.load,prefilters={},transports={},allTypes="*/".concat("*");try{ajaxLocation=location.href}catch(e){ajaxLocation=document.createElement("a"),ajaxLocation.href="",ajaxLocation=ajaxLocation.href}ajaxLocParts=rurl.exec(ajaxLocation.toLowerCase())||[],jQuery.fn.load=function(e,t,n){if(typeof e!="string"&&_load)return _load.apply(this,arguments);var r,i,s,o=this,u=e.indexOf(" ");return u>=0&&(r=e.slice(u),e=e.slice(0,u)),jQuery.isFunction(t)?(n=t,t=undefined):t&&typeof t=="object"&&(i="POST"),o.length>0&&jQuery.ajax({url:e,type:i,dataType:"html",data:t}).done(function(e){s=arguments,o.html(r?jQuery("<div>").append(jQuery.parseHTML(e)).find(r):e)}).complete(n&&function(e,t){o.each(n,s||[e.responseText,t,e])}),this},jQuery.each(["ajaxStart","ajaxStop","ajaxComplete","ajaxError","ajaxSuccess","ajaxSend"],function(e,t){jQuery.fn[t]=function(e){return this.on(t,e)}}),jQuery.extend({active:0,lastModified:{},etag:{},ajaxSettings:{url:ajaxLocation,type:"GET",isLocal:rlocalProtocol.test(ajaxLocParts[1]),global:!0,processData:!0,async:!0,contentType:"application/x-www-form-urlencoded; charset=UTF-8",accepts:{"*":allTypes,text:"text/plain",html:"text/html",xml:"application/xml, text/xml",json:"application/json, text/javascript"},contents:{xml:/xml/,html:/html/,json:/json/},responseFields:{xml:"responseXML",text:"responseText",json:"responseJSON"},converters:{"* text":String,"text html":!0,"text json":jQuery.parseJSON,"text xml":jQuery.parseXML},flatOptions:{url:!0,context:!0}},ajaxSetup:function(e,t){return t?ajaxExtend(ajaxExtend(e,jQuery.ajaxSettings),t):ajaxExtend(jQuery.ajaxSettings,e)},ajaxPrefilter:addToPrefiltersOrTransports(prefilters),ajaxTransport:addToPrefiltersOrTransports(transports),ajax:function(e,t){function S(e,t,s,u){var f,m,g,b,E,S=t;if(y===2)return;y=2,o&&clearTimeout(o),n=undefined,i=u||"",w.readyState=e>0?4:0,f=e>=200&&e<300||e===304,s&&(b=ajaxHandleResponses(l,w,s)),b=ajaxConvert(l,b,w,f);if(f)l.ifModified&&(E=w.getResponseHeader("Last-Modified"),E&&(jQuery.lastModified[r]=E),E=w.getResponseHeader("etag"),E&&(jQuery.etag[r]=E)),e===204||l.type==="HEAD"?S="nocontent":e===304?S="notmodified":(S=b.state,m=b.data,g=b.error,f=!g);else{g=S;if(e||!S)S="error",e<0&&(e=0)}w.status=e,w.statusText=(t||S)+"",f?p.resolveWith(c,[m,S,w]):p.rejectWith(c,[w,S,g]),w.statusCode(v),v=undefined,a&&h.trigger(f?"ajaxSuccess":"ajaxError",[w,l,f?m:g]),d.fireWith(c,[w,S]),a&&(h.trigger("ajaxComplete",[w,l]),--jQuery.active||jQuery.event.trigger("ajaxStop"))}typeof e=="object"&&(t=e,e=undefined),t=t||{};var n,r,i,s,o,u,a,f,l=jQuery.ajaxSetup({},t),c=l.context||l,h=l.context&&(c.nodeType||c.jquery)?jQuery(c):jQuery.event,p=jQuery.Deferred(),d=jQuery.Callbacks("once memory"),v=l.statusCode||{},m={},g={},y=0,b="canceled",w={readyState:0,getResponseHeader:function(e){var t;if(y===2){if(!s){s={};while(t=rheaders.exec(i))s[t[1].toLowerCase()]=t[2]}t=s[e.toLowerCase()]}return t==null?null:t},getAllResponseHeaders:function(){return y===2?i:null},setRequestHeader:function(e,t){var n=e.toLowerCase();return y||(e=g[n]=g[n]||e,m[e]=t),this},overrideMimeType:function(e){return y||(l.mimeType=e),this},statusCode:function(e){var t;if(e)if(y<2)for(t in e)v[t]=[v[t],e[t]];else w.always(e[w.status]);return this},abort:function(e){var t=e||b;return n&&n.abort(t),S(0,t),this}};p.promise(w).complete=d.add,w.success=w.done,w.error=w.fail,l.url=((e||l.url||ajaxLocation)+"").replace(rhash,"").replace(rprotocol,ajaxLocParts[1]+"//"),l.type=t.method||t.type||l.method||l.type,l.dataTypes=jQuery.trim(l.dataType||"*").toLowerCase().match(core_rnotwhite)||[""],l.crossDomain==null&&(u=rurl.exec(l.url.toLowerCase()),l.crossDomain=!(!u||u[1]===ajaxLocParts[1]&&u[2]===ajaxLocParts[2]&&(u[3]||(u[1]==="http:"?"80":"443"))===(ajaxLocParts[3]||(ajaxLocParts[1]==="http:"?"80":"443")))),l.data&&l.processData&&typeof l.data!="string"&&(l.data=jQuery.param(l.data,l.traditional)),inspectPrefiltersOrTransports(prefilters,l,t,w);if(y===2)return w;a=l.global,a&&jQuery.active++===0&&jQuery.event.trigger("ajaxStart"),l.type=l.type.toUpperCase(),l.hasContent=!rnoContent.test(l.type),r=l.url,l.hasContent||(l.data&&(r=l.url+=(ajax_rquery.test(r)?"&":"?")+l.data,delete l.data),l.cache===!1&&(l.url=rts.test(r)?r.replace(rts,"$1_="+ajax_nonce++):r+(ajax_rquery.test(r)?"&":"?")+"_="+ajax_nonce++)),l.ifModified&&(jQuery.lastModified[r]&&w.setRequestHeader("If-Modified-Since",jQuery.lastModified[r]),jQuery.etag[r]&&w.setRequestHeader("If-None-Match",jQuery.etag[r])),(l.data&&l.hasContent&&l.contentType!==!1||t.contentType)&&w.setRequestHeader("Content-Type",l.contentType),w.setRequestHeader("Accept",l.dataTypes[0]&&l.accepts[l.dataTypes[0]]?l.accepts[l.dataTypes[0]]+(l.dataTypes[0]!=="*"?", "+allTypes+"; q=0.01":""):l.accepts["*"]);for(f in l.headers)w.setRequestHeader(f,l.headers[f]);if(!l.beforeSend||l.beforeSend.call(c,w,l)!==!1&&y!==2){b="abort";for(f in{success:1,error:1,complete:1})w[f](l[f]);n=inspectPrefiltersOrTransports(transports,l,t,w);if(!n)S(-1,"No Transport");else{w.readyState=1,a&&h.trigger("ajaxSend",[w,l]),l.async&&l.timeout>0&&(o=setTimeout(function(){w.abort("timeout")},l.timeout));try{y=1,n.send(m,S)}catch(E){if(!(y<2))throw E;S(-1,E)}}return w}return w.abort()},getJSON:function(e,t,n){return jQuery.get(e,t,n,"json")},getScript:function(e,t){return jQuery.get(e,undefined,t,"script")}}),jQuery.each(["get","post"],function(e,t){jQuery[t]=function(e,n,r,i){return jQuery.isFunction(n)&&(i=i||r,r=n,n=undefined),jQuery.ajax({url:e,type:t,dataType:i,data:n,success:r})}}),jQuery.ajaxSetup({accepts:{script:"text/javascript, application/javascript, application/ecmascript, application/x-ecmascript"},contents:{script:/(?:java|ecma)script/},converters:{"text script":function(e){return jQuery.globalEval(e),e}}}),jQuery.ajaxPrefilter("script",function(e){e.cache===undefined&&(e.cache=!1),e.crossDomain&&(e.type="GET")}),jQuery.ajaxTransport("script",function(e){if(e.crossDomain){var t,n;return{send:function(r,i){t=jQuery("<script>").prop({async:!0,charset:e.scriptCharset,src:e.url}).on("load error",n=function(e){t.remove(),n=null,e&&i(e.type==="error"?404:200,e.type)}),document.head.appendChild(t[0])},abort:function(){n&&n()}}}});var oldCallbacks=[],rjsonp=/(=)\?(?=&|$)|\?\?/;jQuery.ajaxSetup({jsonp:"callback",jsonpCallback:function(){var e=oldCallbacks.pop()||jQuery.expando+"_"+ajax_nonce++;return this[e]=!0,e}}),jQuery.ajaxPrefilter("json jsonp",function(e,t,n){var r,i,s,o=e.jsonp!==!1&&(rjsonp.test(e.url)?"url":typeof e.data=="string"&&!(e.contentType||"").indexOf("application/x-www-form-urlencoded")&&rjsonp.test(e.data)&&"data");if(o||e.dataTypes[0]==="jsonp")return r=e.jsonpCallback=jQuery.isFunction(e.jsonpCallback)?e.jsonpCallback():e.jsonpCallback,o?e[o]=e[o].replace(rjsonp,"$1"+r):e.jsonp!==!1&&(e.url+=(ajax_rquery.test(e.url)?"&":"?")+e.jsonp+"="+r),e.converters["script json"]=function(){return s||jQuery.error(r+" was not called"),s[0]},e.dataTypes[0]="json",i=window[r],window[r]=function(){s=arguments},n.always(function(){window[r]=i,e[r]&&(e.jsonpCallback=t.jsonpCallback,oldCallbacks.push(r)),s&&jQuery.isFunction(i)&&i(s[0]),s=i=undefined}),"script"}),jQuery.ajaxSettings.xhr=function(){try{return new XMLHttpRequest}catch(e){}};var xhrSupported=jQuery.ajaxSettings.xhr(),xhrSuccessStatus={0:200,1223:204},xhrId=0,xhrCallbacks={};window.ActiveXObject&&jQuery(window).on("unload",function(){for(var e in xhrCallbacks)xhrCallbacks[e]();xhrCallbacks=undefined}),jQuery.support.cors=!!xhrSupported&&"withCredentials"in xhrSupported,jQuery.support.ajax=xhrSupported=!!xhrSupported,jQuery.ajaxTransport(function(e){var t;if(jQuery.support.cors||xhrSupported&&!e.crossDomain)return{send:function(n,r){var i,s,o=e.xhr();o.open(e.type,e.url,e.async,e.username,e.password);if(e.xhrFields)for(i in e.xhrFields)o[i]=e.xhrFields[i];e.mimeType&&o.overrideMimeType&&o.overrideMimeType(e.mimeType),!e.crossDomain&&!n["X-Requested-With"]&&(n["X-Requested-With"]="XMLHttpRequest");for(i in n)o.setRequestHeader(i,n[i]);t=function(e){return function(){t&&(delete xhrCallbacks[s],t=o.onload=o.onerror=null,e==="abort"?o.abort():e==="error"?r(o.status||404,o.statusText):r(xhrSuccessStatus[o.status]||o.status,o.statusText,typeof o.responseText=="string"?{text:o.responseText}:undefined,o.getAllResponseHeaders()))}},o.onload=t(),o.onerror=t("error"),t=xhrCallbacks[s=xhrId++]=t("abort"),o.send(e.hasContent&&e.data||null)},abort:function(){t&&t()}}});var fxNow,timerId,rfxtypes=/^(?:toggle|show|hide)$/,rfxnum=new RegExp("^(?:([+-])=|)("+core_pnum+")([a-z%]*)$","i"),rrun=/queueHooks$/,animationPrefilters=[defaultPrefilter],tweeners={"*":[function(e,t){var n=this.createTween(e,t),r=n.cur(),i=rfxnum.exec(t),s=i&&i[3]||(jQuery.cssNumber[e]?"":"px"),o=(jQuery.cssNumber[e]||s!=="px"&&+r)&&rfxnum.exec(jQuery.css(n.elem,e)),u=1,a=20;if(o&&o[3]!==s){s=s||o[3],i=i||[],o=+r||1;do u=u||".5",o/=u,jQuery.style(n.elem,e,o+s);while(u!==(u=n.cur()/r)&&u!==1&&--a)}return i&&(o=n.start=+o||+r||0,n.unit=s,n.end=i[1]?o+(i[1]+1)*i[2]:+i[2]),n}]};jQuery.Animation=jQuery.extend(Animation,{tweener:function(e,t){jQuery.isFunction(e)?(t=e,e=["*"]):e=e.split(" ");var n,r=0,i=e.length;for(;r<i;r++)n=e[r],tweeners[n]=tweeners[n]||[],tweeners[n].unshift(t)},prefilter:function(e,t){t?animationPrefilters.unshift(e):animationPrefilters.push(e)}}),jQuery.Tween=Tween,Tween.prototype={constructor:Tween,init:function(e,t,n,r,i,s){this.elem=e,this.prop=n,this.easing=i||"swing",this.options=t,this.start=this.now=this.cur(),this.end=r,this.unit=s||(jQuery.cssNumber[n]?"":"px")},cur:function(){var e=Tween.propHooks[this.prop];return e&&e.get?e.get(this):Tween.propHooks._default.get(this)},run:function(e){var t,n=Tween.propHooks[this.prop];return this.options.duration?this.pos=t=jQuery.easing[this.easing](e,this.options.duration*e,0,1,this.options.duration):this.pos=t=e,this.now=(this.end-this.start)*t+this.start,this.options.step&&this.options.step.call(this.elem,this.now,this),n&&n.set?n.set(this):Tween.propHooks._default.set(this),this}},Tween.prototype.init.prototype=Tween.prototype,Tween.propHooks={_default:{get:function(e){var t;return e.elem[e.prop]==null||!!e.elem.style&&e.elem.style[e.prop]!=null?(t=jQuery.css(e.elem,e.prop,""),!t||t==="auto"?0:t):e.elem[e.prop]},set:function(e){jQuery.fx.step[e.prop]?jQuery.fx.step[e.prop](e):e.elem.style&&(e.elem.style[jQuery.cssProps[e.prop]]!=null||jQuery.cssHooks[e.prop])?jQuery.style(e.elem,e.prop,e.now+e.unit):e.elem[e.prop]=e.now}}},Tween.propHooks.scrollTop=Tween.propHooks.scrollLeft={set:function(e){e.elem.nodeType&&e.elem.parentNode&&(e.elem[e.prop]=e.now)}},jQuery.each(["toggle","show","hide"],function(e,t){var n=jQuery.fn[t];jQuery.fn[t]=function(e,r,i){return e==null||typeof e=="boolean"?n.apply(this,arguments):this.animate(genFx(t,!0),e,r,i)}}),jQuery.fn.extend({fadeTo:function(e,t,n,r){return this.filter(isHidden).css("opacity",0).show().end().animate({opacity:t},e,n,r)},animate:function(e,t,n,r){var i=jQuery.isEmptyObject(e),s=jQuery.speed(t,n,r),o=function(){var t=Animation(this,jQuery.extend({},e),s);(i||data_priv.get(this,"finish"))&&t.stop(!0)};return o.finish=o,i||s.queue===!1?this.each(o):this.queue(s.queue,o)},stop:function(e,t,n){var r=function(e){var t=e.stop;delete e.stop,t(n)};return typeof e!="string"&&(n=t,t=e,e=undefined),t&&e!==!1&&this.queue(e||"fx",[]),this.each(function(){var t=!0,i=e!=null&&e+"queueHooks",s=jQuery.timers,o=data_priv.get(this);if(i)o[i]&&o[i].stop&&r(o[i]);else for(i in o)o[i]&&o[i].stop&&rrun.test(i)&&r(o[i]);for(i=s.length;i--;)s[i].elem===this&&(e==null||s[i].queue===e)&&(s[i].anim.stop(n),t=!1,s.splice(i,1));(t||!n)&&jQuery.dequeue(this,e)})},finish:function(e){return e!==!1&&(e=e||"fx"),this.each(function(){var t,n=data_priv.get(this),r=n[e+"queue"],i=n[e+"queueHooks"],s=jQuery.timers,o=r?r.length:0;n.finish=!0,jQuery.queue(this,e,[]),i&&i.stop&&i.stop.call(this,!0);for(t=s.length;t--;)s[t].elem===this&&s[t].queue===e&&(s[t].anim.stop(!0),s.splice(t,1));for(t=0;t<o;t++)r[t]&&r[t].finish&&r[t].finish.call(this);delete n.finish})}}),jQuery.each({slideDown:genFx("show"),slideUp:genFx("hide"),slideToggle:genFx("toggle"),fadeIn:{opacity:"show"},fadeOut:{opacity:"hide"},fadeToggle:{opacity:"toggle"}},function(e,t){jQuery.fn[e]=function(e,n,r){return this.animate(t,e,n,r)}}),jQuery.speed=function(e,t,n){var r=e&&typeof e=="object"?jQuery.extend({},e):{complete:n||!n&&t||jQuery.isFunction(e)&&e,duration:e,easing:n&&t||t&&!jQuery.isFunction(t)&&t};r.duration=jQuery.fx.off?0:typeof r.duration=="number"?r.duration:r.duration in jQuery.fx.speeds?jQuery.fx.speeds[r.duration]:jQuery.fx.speeds._default;if(r.queue==null||r.queue===!0)r.queue="fx";return r.old=r.complete,r.complete=function(){jQuery.isFunction(r.old)&&r.old.call(this),r.queue&&jQuery.dequeue(this,r.queue)},r},jQuery.easing={linear:function(e){return e},swing:function(e){return.5-Math.cos(e*Math.PI)/2}},jQuery.timers=[],jQuery.fx=Tween.prototype.init,jQuery.fx.tick=function(){var e,t=jQuery.timers,n=0;fxNow=jQuery.now();for(;n<t.length;n++)e=t[n],!e()&&t[n]===e&&t.splice(n--,1);t.length||jQuery.fx.stop(),fxNow=undefined},jQuery.fx.timer=function(e){e()&&jQuery.timers.push(e)&&jQuery.fx.start()},jQuery.fx.interval=13,jQuery.fx.start=function(){timerId||(timerId=setInterval(jQuery.fx.tick,jQuery.fx.interval))},jQuery.fx.stop=function(){clearInterval(timerId),timerId=null},jQuery.fx.speeds={slow:600,fast:200,_default:400},jQuery.fx.step={},jQuery.expr&&jQuery.expr.filters&&(jQuery.expr.filters.animated=function(e){return jQuery.grep(jQuery.timers,function(t){return e===t.elem}).length}),jQuery.fn.offset=function(e){if(arguments.length)return e===undefined?this:this.each(function(t){jQuery.offset.setOffset(this,e,t)});var t,n,r=this[0],i={top:0,left:0},s=r&&r.ownerDocument;if(!s)return;return t=s.documentElement,jQuery.contains(t,r)?(typeof r.getBoundingClientRect!==core_strundefined&&(i=r.getBoundingClientRect()),n=getWindow(s),{top:i.top+n.pageYOffset-t.clientTop,left:i.left+n.pageXOffset-t.clientLeft}):i},jQuery.offset={setOffset:function(e,t,n){var r,i,s,o,u,a,f,l=jQuery.css(e,"position"),c=jQuery(e),h={};l==="static"&&(e.style.position="relative"),u=c.offset(),s=jQuery.css(e,"top"),a=jQuery.css(e,"left"),f=(l==="absolute"||l==="fixed")&&(s+a).indexOf("auto")>-1,f?(r=c.position(),o=r.top,i=r.left):(o=parseFloat(s)||0,i=parseFloat(a)||0),jQuery.isFunction(t)&&(t=t.call(e,n,u)),t.top!=null&&(h.top=t.top-u.top+o),t.left!=null&&(h.left=t.left-u.left+i),"using"in t?t.using.call(e,h):c.css(h)}},jQuery.fn.extend({position:function(){if(!this[0])return;var e,t,n=this[0],r={top:0,left:0};return jQuery.css(n,"position")==="fixed"?t=n.getBoundingClientRect():(e=this.offsetParent(),t=this.offset(),jQuery.nodeName(e[0],"html")||(r=e.offset()),r.top+=jQuery.css(e[0],"borderTopWidth",!0),r.left+=jQuery.css(e[0],"borderLeftWidth",!0)),{top:t.top-r.top-jQuery.css(n,"marginTop",!0),left:t.left-r.left-jQuery.css(n,"marginLeft",!0)}},offsetParent:function(){return this.map(function(){var e=this.offsetParent||docElem;while(e&&!jQuery.nodeName(e,"html")&&jQuery.css(e,"position")==="static")e=e.offsetParent;return e||docElem})}}),jQuery.each({scrollLeft:"pageXOffset",scrollTop:"pageYOffset"},function(e,t){var n="pageYOffset"===t;jQuery.fn[e]=function(r){return jQuery.access(this,function(e,r,i){var s=getWindow(e);if(i===undefined)return s?s[t]:e[r];s?s.scrollTo(n?window.pageXOffset:i,n?i:window.pageYOffset):e[r]=i},e,r,arguments.length,null)}}),jQuery.each({Height:"height",Width:"width"},function(e,t){jQuery.each({padding:"inner"+e,content:t,"":"outer"+e},function(n,r){jQuery.fn[r]=function(r,i){var s=arguments.length&&(n||typeof r!="boolean"),o=n||(r===!0||i===!0?"margin":"border");return jQuery.access(this,function(t,n,r){var i;return jQuery.isWindow(t)?t.document.documentElement["client"+e]:t.nodeType===9?(i=t.documentElement,Math.max(t.body["scroll"+e],i["scroll"+e],t.body["offset"+e],i["offset"+e],i["client"+e])):r===undefined?jQuery.css(t,n,o):jQuery.style(t,n,r,o)},t,s?r:undefined,s,null)}})}),jQuery.fn.size=function(){return this.length},jQuery.fn.andSelf=jQuery.fn.addBack,typeof module=="object"&&module&&typeof module.exports=="object"?module.exports=jQuery:typeof define=="function"&&define.amd&&define("jquery",[],function(){return jQuery}),typeof window=="object"&&typeof window.document=="object"&&(window.jQuery=window.$=jQuery)}(window);var IN_GLOBAL_SCOPE=!0,window,prettyPrintOne,prettyPrint;(function(){function O(e){function a(e){var t=e.charCodeAt(0);if(t!==92)return t;var n=e.charAt(1);return t=u[n],t?t:"0"<=n&&n<="7"?parseInt(e.substring(1),8):n==="u"||n==="x"?parseInt(e.substring(2),16):e.charCodeAt(1)}function f(e){if(e<32)return(e<16?"\\x0":"\\x")+e.toString(16);var t=String.fromCharCode(e);return t==="\\"||t==="-"||t==="]"||t==="^"?"\\"+t:t}function l(e){var t=e.substring(1,e.length-1).match(new RegExp("\\\\u[0-9A-Fa-f]{4}|\\\\x[0-9A-Fa-f]{2}|\\\\[0-3][0-7]{0,2}|\\\\[0-7]{1,2}|\\\\[\\s\\S]|-|[^-\\\\]","g")),n=[],r=t[0]==="^",i=["["];r&&i.push("^");for(var s=r?1:0,o=t.length;s<o;++s){var u=t[s];if(/\\[bdsw]/i.test(u))i.push(u);else{var l=a(u),c;s+2<o&&"-"===t[s+1]?(c=a(t[s+2]),s+=2):c=l,n.push([l,c]),c<65||l>122||(c<65||l>90||n.push([Math.max(65,l)|32,Math.min(c,90)|32]),c<97||l>122||n.push([Math.max(97,l)&-33,Math.min(c,122)&-33]))}}n.sort(function(e,t){return e[0]-t[0]||t[1]-e[1]});var h=[],p=[];for(var s=0;s<n.length;++s){var d=n[s];d[0]<=p[1]+1?p[1]=Math.max(p[1],d[1]):h.push(p=d)}for(var s=0;s<h.length;++s){var d=h[s];i.push(f(d[0])),d[1]>d[0]&&(d[1]+1>d[0]&&i.push("-"),i.push(f(d[1])))}return i.push("]"),i.join("")}function c(e){var r=e.source.match(new RegExp("(?:\\[(?:[^\\x5C\\x5D]|\\\\[\\s\\S])*\\]|\\\\u[A-Fa-f0-9]{4}|\\\\x[A-Fa-f0-9]{2}|\\\\[0-9]+|\\\\[^ux0-9]|\\(\\?[:!=]|[\\(\\)\\^]|[^\\x5B\\x5C\\(\\)\\^]+)","g")),i=r.length,s=[];for(var o=0,u=0;o<i;++o){var a=r[o];if(a==="(")++u;else if("\\"===a.charAt(0)){var c=+a.substring(1);c&&(c<=u?s[c]=-1:r[o]=f(c))}}for(var o=1;o<s.length;++o)-1===s[o]&&(s[o]=++t);for(var o=0,u=0;o<i;++o){var a=r[o];if(a==="(")++u,s[u]||(r[o]="(?:");else if("\\"===a.charAt(0)){var c=+a.substring(1);c&&c<=u&&(r[o]="\\"+s[c])}}for(var o=0;o<i;++o)"^"===r[o]&&"^"!==r[o+1]&&(r[o]="");if(e.ignoreCase&&n)for(var o=0;o<i;++o){var a=r[o],h=a.charAt(0);a.length>=2&&h==="["?r[o]=l(a):h!=="\\"&&(r[o]=a.replace(/[a-zA-Z]/g,function(e){var t=e.charCodeAt(0);return"["+String.fromCharCode(t&-33,t|32)+"]"}))}return r.join("")}var t=0,n=!1,r=!1;for(var i=0,s=e.length;i<s;++i){var o=e[i];if(o.ignoreCase)r=!0;else if(/[a-z]/i.test(o.source.replace(/\\u[0-9a-f]{4}|\\x[0-9a-f]{2}|\\[^ux]/gi,""))){n=!0,r=!1;break}}var u={b:8,t:9,n:10,v:11,f:12,r:13},h=[];for(var i=0,s=e.length;i<s;++i){var o=e[i];if(o.global||o.multiline)throw new Error(""+o);h.push("(?:"+c(o)+")")}return new RegExp(h.join("|"),r?"gi":"g")}function M(e,t){function u(e){var a=e.nodeType;if(a==1){if(n.test(e.className))return;for(var f=e.firstChild;f;f=f.nextSibling)u(f);var l=e.nodeName.toLowerCase();if("br"===l||"li"===l)r[o]="\n",s[o<<1]=i++,s[o++<<1|1]=e}else if(a==3||a==4){var c=e.nodeValue;c.length&&(t?c=c.replace(/\r\n?/g,"\n"):c=c.replace(/[ \t\r\n]+/g," "),r[o]=c,s[o<<1]=i,i+=c.length,s[o++<<1|1]=e)}}var n=/(?:^|\s)nocode(?:\s|$)/,r=[],i=0,s=[],o=0;return u(e),{sourceCode:r.join("").replace(/\n$/,""),spans:s}}function _(e,t,n,r){if(!t)return;var i={sourceCode:t,basePos:e};n(i),r.push.apply(r,i.decorations)}function P(e){var t=undefined;for(var n=e.firstChild;n;n=n.nextSibling){var r=n.nodeType;t=r===1?t?e:n:r===3?D.test(n.nodeValue)?e:t:t}return t===e?undefined:t}function H(e,t){var n={},r;(function(){var i=e.concat(t),s=[],o={};for(var u=0,a=i.length;u<a;++u){var f=i[u],l=f[3];if(l)for(var c=l.length;--c>=0;)n[l.charAt(c)]=f;var h=f[1],p=""+h;o.hasOwnProperty(p)||(s.push(h),o[p]=null)}s.push(/[\0-\uffff]/),r=O(s)})();var i=t.length,s=function(e){var o=e.sourceCode,u=e.basePos,a=[u,S],f=0,l=o.match(r)||[],c={};for(var h=0,p=l.length;h<p;++h){var d=l[h],v=c[d],m=void 0,g;if(typeof v=="string")g=!1;else{var y=n[d.charAt(0)];if(y)m=d.match(y[1]),v=y[0];else{for(var b=0;b<i;++b){y=t[b],m=d.match(y[1]);if(m){v=y[0];break}}m||(v=S)}g=v.length>=5&&"lang-"===v.substring(0,5),g&&(!m||typeof m[1]!="string")&&(g=!1,v=N),g||(c[d]=v)}var w=f;f+=d.length;if(!g)a.push(u+w,v);else{var E=m[1],x=d.indexOf(E),T=x+E.length;m[2]&&(T=d.length-m[2].length,x=T-E.length);var C=v.substring(5);_(u+w,d.substring(0,x),s,a),_(u+w+x,E,U(C,E),a),_(u+w+T,d.substring(T),s,a)}}e.decorations=a};return s}function B(e){var t=[],n=[];e.tripleQuotedStrings?t.push([m,/^(?:\'\'\'(?:[^\'\\]|\\[\s\S]|\'{1,2}(?=[^\']))*(?:\'\'\'|$)|\"\"\"(?:[^\"\\]|\\[\s\S]|\"{1,2}(?=[^\"]))*(?:\"\"\"|$)|\'(?:[^\\\']|\\[\s\S])*(?:\'|$)|\"(?:[^\\\"]|\\[\s\S])*(?:\"|$))/,null,"'\""]):e.multiLineStrings?t.push([m,/^(?:\'(?:[^\\\']|\\[\s\S])*(?:\'|$)|\"(?:[^\\\"]|\\[\s\S])*(?:\"|$)|\`(?:[^\\\`]|\\[\s\S])*(?:\`|$))/,null,"'\"`"]):t.push([m,/^(?:\'(?:[^\\\'\r\n]|\\.)*(?:\'|$)|\"(?:[^\\\"\r\n]|\\.)*(?:\"|$))/,null,"\"'"]),e.verbatimStrings&&n.push([m,/^@\"(?:[^\"]|\"\")*(?:\"|$)/,null]);var r=e.hashComments;r&&(e.cStyleComments?(r>1?t.push([y,/^#(?:##(?:[^#]|#(?!##))*(?:###|$)|.*)/,null,"#"]):t.push([y,/^#(?:(?:define|e(?:l|nd)if|else|error|ifn?def|include|line|pragma|undef|warning)\b|[^\r\n]*)/,null,"#"]),n.push([m,/^<(?:(?:(?:\.\.\/)*|\/?)(?:[\w-]+(?:\/[\w-]+)+)?[\w-]+\.h(?:h|pp|\+\+)?|[a-z]\w*)>/,null])):t.push([y,/^#[^\r\n]*/,null,"#"])),e.cStyleComments&&(n.push([y,/^\/\/[^\r\n]*/,null]),n.push([y,/^\/\*[\s\S]*?(?:\*\/|$)/,null]));var i=e.regexLiterals;if(i){var s=i>1?"":"\n\r",o=s?".":"[\\S\\s]",u="/(?=[^/*"+s+"])"+"(?:[^/\\x5B\\x5C"+s+"]"+"|\\x5C"+o+"|\\x5B(?:[^\\x5C\\x5D"+s+"]"+"|\\x5C"+o+")*(?:\\x5D|$))+"+"/";n.push(["lang-regex",RegExp("^"+A+"("+u+")")])}var a=e.types;a&&n.push([b,a]);var f=(""+e.keywords).replace(/^ | $/g,"");f.length&&n.push([g,new RegExp("^(?:"+f.replace(/[\s,]+/g,"|")+")\\b"),null]),t.push([S,/^\s+/,null," \r\n	 "]);var l="^.[^\\s\\w.$@'\"`/\\\\]*";return e.regexLiterals&&(l+="(?!s*/)"),n.push([w,/^@[a-z_$][a-z_$@0-9]*/i,null],[b,/^(?:[@_]?[A-Z]+[a-z][A-Za-z_$@0-9]*|\w+_t\b)/,null],[S,/^[a-z_$][a-z_$@0-9]*/i,null],[w,new RegExp("^(?:0x[a-f0-9]+|(?:\\d(?:_\\d+)*\\d*(?:\\.\\d*)?|\\.\\d\\+)(?:e[+\\-]?\\d+)?)[a-z]*","i"),null,"0123456789"],[S,/^\\[\s\S]?/,null],[E,new RegExp(l),null]),H(t,n)}function F(e,t,n){function a(e){var t=e.nodeType;if(t==1&&!r.test(e.className))if("br"===e.nodeName)f(e),e.parentNode&&e.parentNode.removeChild(e);else for(var o=e.firstChild;o;o=o.nextSibling)a(o);else if((t==3||t==4)&&n){var u=e.nodeValue,l=u.match(i);if(l){var c=u.substring(0,l.index);e.nodeValue=c;var h=u.substring(l.index+l[0].length);if(h){var p=e.parentNode;p.insertBefore(s.createTextNode(h),e.nextSibling)}f(e),c||e.parentNode.removeChild(e)}}}function f(e){function t(e,n){var r=n?e.cloneNode(!1):e,i=e.parentNode;if(i){var s=t(i,1),o=e.nextSibling;s.appendChild(r);for(var u=o;u;u=o)o=u.nextSibling,s.appendChild(u)}return r}while(!e.nextSibling){e=e.parentNode;if(!e)return}var n=t(e.nextSibling,0);for(var r;(r=n.parentNode)&&r.nodeType===1;)n=r;u.push(n)}var r=/(?:^|\s)nocode(?:\s|$)/,i=/\r\n?|\n/,s=e.ownerDocument,o=s.createElement("li");while(e.firstChild)o.appendChild(e.firstChild);var u=[o];for(var l=0;l<u.length;++l)a(u[l]);t===(t|0)&&u[0].setAttribute("value",t);var c=s.createElement("ol");c.className="linenums";var h=Math.max(0,t-1|0)||0;for(var l=0,p=u.length;l<p;++l)o=u[l],o.className="L"+(l+h)%10,o.firstChild||o.appendChild(s.createTextNode(" ")),c.appendChild(o);e.appendChild(c)}function I(e){var t=/\bMSIE\s(\d+)/.exec(navigator.userAgent);t=t&&+t[1]<=8;var n=/\n/g,r=e.sourceCode,i=r.length,s=0,o=e.spans,u=o.length,a=0,f=e.decorations,l=f.length,c=0;f[l]=i;var h,p;for(p=h=0;p<l;)f[p]!==f[p+2]?(f[h++]=f[p++],f[h++]=f[p++]):p+=2;l=h;for(p=h=0;p<l;){var d=f[p],v=f[p+1],m=p+2;while(m+2<=l&&f[m+1]===v)m+=2;f[h++]=d,f[h++]=v,p=m}l=f.length=h;var g=e.sourceNode,y;g&&(y=g.style.display,g.style.display="none");try{var b=null;while(a<u){var w=o[a],E=o[a+2]||i,S=f[c+2]||i,m=Math.min(E,S),x=o[a+1],T;if(x.nodeType!==1&&(T=r.substring(s,m))){t&&(T=T.replace(n,"\r")),x.nodeValue=T;var N=x.ownerDocument,C=N.createElement("span");C.className=f[c+1];var k=x.parentNode;k.replaceChild(C,x),C.appendChild(x),s<E&&(o[a+1]=x=N.createTextNode(r.substring(m,E)),k.insertBefore(x,C.nextSibling))}s=m,s>=E&&(a+=2),s>=S&&(c+=2)}}finally{g&&(g.style.display=y)}}function R(t,n){for(var r=n.length;--r>=0;){var i=n[r];q.hasOwnProperty(i)?e.console&&console.warn("cannot override language handler %s",i):q[i]=t}}function U(e,t){if(!e||!q.hasOwnProperty(e))e=/^\s*</.test(t)?"default-markup":"default-code";return q[e]}function z(t){var n=t.langExtension;try{var r=M(t.sourceNode,t.pre),i=r.sourceCode;t.sourceCode=i,t.spans=r.spans,t.basePos=0,U(n,i)(t),I(t)}catch(s){e.console&&console.log(s&&s.stack||s)}}function W(e,t,n){var r=document.createElement("div");r.innerHTML="<pre>"+e+"</pre>",r=r.firstChild,n&&F(r,n,!0);var i={langExtension:t,numberLines:n,sourceNode:r,pre:1};return z(i),r.innerHTML}function X(t,n){function s(e){return r.getElementsByTagName(e)}function E(){var n=e.PR_SHOULD_USE_CONTINUATION?c.now()+250:Infinity;for(;h<u.length&&c.now()<n;h++){var r=u[h],s=w;for(var o=r;o=o.previousSibling;){var a=o.nodeType,f=(a===7||a===8)&&o.nodeValue;if(f?!/^\??prettify\b/.test(f):a!==3||/\S/.test(o.nodeValue))break;if(f){s={},f.replace(/\b(\w+)=([\w:.%+-]+)/g,function(e,t,n){s[t]=n});break}}var l=r.className;if((s!==w||v.test(l))&&!m.test(l)){var S=!1;for(var x=r.parentNode;x;x=x.parentNode){var T=x.tagName;if(b.test(T)&&x.className&&v.test(x.className)){S=!0;break}}if(!S){r.className+=" prettyprinted";var N=s.lang;if(!N){N=l.match(d);var C;!N&&(C=P(r))&&y.test(C.tagName)&&(N=C.className.match(d)),N&&(N=N[1])}var k;if(g.test(r.tagName))k=1;else{var L=r.currentStyle,A=i.defaultView,O=L?L.whiteSpace:A&&A.getComputedStyle?A.getComputedStyle(r,null).getPropertyValue("white-space"):0;k=O&&"pre"===O.substring(0,3)}var M=s.linenums;(M=M==="true"||+M)||(M=l.match(/\blinenums\b(?::(\d+))?/),M=M?M[1]&&M[1].length?+M[1]:!0:!1),M&&F(r,M,k),p={langExtension:N,sourceNode:r,numberLines:M,pre:k},z(p)}}}h<u.length?setTimeout(E,250):"function"==typeof t&&t()}var r=n||document.body,i=r.ownerDocument||document,o=[s("pre"),s("code"),s("xmp")],u=[];for(var a=0;a<o.length;++a)for(var f=0,l=o[a].length;f<l;++f)u.push(o[a][f]);o=null;var c=Date;c.now||(c={now:function(){return+(new Date)}});var h=0,p,d=/\blang(?:uage)?-([\w.]+)(?!\S)/,v=/\bprettyprint\b/,m=/\bprettyprinted\b/,g=/pre|xmp/i,y=/^code$/i,b=/^(?:pre|code|xmp)$/i,w={};E()}var e=this,t=["break,continue,do,else,for,if,return,while"],n=[t,"auto,case,char,const,default,double,enum,extern,float,goto,inline,int,long,register,short,signed,sizeof,static,struct,switch,typedef,union,unsigned,void,volatile"],r=[n,"catch,class,delete,false,import,new,operator,private,protected,public,this,throw,true,try,typeof"],i=[r,"alignof,align_union,asm,axiom,bool,concept,concept_map,const_cast,constexpr,decltype,delegate,dynamic_cast,explicit,export,friend,generic,late_check,mutable,namespace,nullptr,property,reinterpret_cast,static_assert,static_cast,template,typeid,typename,using,virtual,where"],s=[r,"abstract,assert,boolean,byte,extends,final,finally,implements,import,instanceof,interface,null,native,package,strictfp,super,synchronized,throws,transient"],o=[s,"as,base,by,checked,decimal,delegate,descending,dynamic,event,fixed,foreach,from,group,implicit,in,internal,into,is,let,lock,object,out,override,orderby,params,partial,readonly,ref,sbyte,sealed,stackalloc,string,select,uint,ulong,unchecked,unsafe,ushort,var,virtual,where"],u="all,and,by,catch,class,else,extends,false,finally,for,if,in,is,isnt,loop,new,no,not,null,of,off,on,or,return,super,then,throw,true,try,unless,until,when,while,yes",a=[r,"debugger,eval,export,function,get,null,set,undefined,var,with,Infinity,NaN"],f="caller,delete,die,do,dump,elsif,eval,exit,foreach,for,goto,if,import,last,local,my,next,no,our,print,package,redo,require,sub,undef,unless,until,use,wantarray,while,BEGIN,END",l=[t,"and,as,assert,class,def,del,elif,except,exec,finally,from,global,import,in,is,lambda,nonlocal,not,or,pass,print,raise,try,with,yield,False,True,None"],c=[t,"alias,and,begin,case,class,def,defined,elsif,end,ensure,false,in,module,next,nil,not,or,redo,rescue,retry,self,super,then,true,undef,unless,until,when,yield,BEGIN,END"],h=[t,"as,assert,const,copy,drop,enum,extern,fail,false,fn,impl,let,log,loop,match,mod,move,mut,priv,pub,pure,ref,self,static,struct,true,trait,type,unsafe,use"],p=[t,"case,done,elif,esac,eval,fi,function,in,local,set,then,until"],d=[i,o,a,f,l,c,p],v=/^(DIR|FILE|vector|(de|priority_)?queue|list|stack|(const_)?iterator|(multi)?(set|map)|bitset|u?(int|float)\d*)\b/,m="str",g="kwd",y="com",b="typ",w="lit",E="pun",S="pln",x="tag",T="dec",N="src",C="atn",k="atv",L="nocode",A="(?:^^\\.?|[+-]|[!=]=?=?|\\#|%=?|&&?=?|\\(|\\*=?|[+\\-]=|->|\\/=?|::?|<<?=?|>>?>?=?|,|;|\\?|@|\\[|~|{|\\^\\^?=?|\\|\\|?=?|break|case|continue|delete|do|else|finally|instanceof|return|throw|try|typeof)\\s*",D=/\S/,j=B({keywords:d,hashComments:!0,cStyleComments:!0,multiLineStrings:!0,regexLiterals:!0}),q={};R(j,["default-code"]),R(H([],[[S,/^[^<?]+/],[T,/^<!\w[^>]*(?:>|$)/],[y,/^<\!--[\s\S]*?(?:-\->|$)/],["lang-",/^<\?([\s\S]+?)(?:\?>|$)/],["lang-",/^<%([\s\S]+?)(?:%>|$)/],[E,/^(?:<[%?]|[%?]>)/],["lang-",/^<xmp\b[^>]*>([\s\S]+?)<\/xmp\b[^>]*>/i],["lang-js",/^<script\b[^>]*>([\s\S]*?)(<\/script\b[^>]*>)/i],["lang-css",/^<style\b[^>]*>([\s\S]*?)(<\/style\b[^>]*>)/i],["lang-in.tag",/^(<\/?[a-z][^<>]*>)/i]]),["default-markup","htm","html","mxml","xhtml","xml","xsl"]),R(H([[S,/^[\s]+/,null," 	\r\n"],[k,/^(?:\"[^\"]*\"?|\'[^\']*\'?)/,null,"\"'"]],[[x,/^^<\/?[a-z](?:[\w.:-]*\w)?|\/?>$/i],[C,/^(?!style[\s=]|on)[a-z](?:[\w:-]*\w)?/i],["lang-uq.val",/^=\s*([^>\'\"\s]*(?:[^>\'\"\s\/]|\/(?=\s)))/],[E,/^[=<>\/]+/],["lang-js",/^on\w+\s*=\s*\"([^\"]+)\"/i],["lang-js",/^on\w+\s*=\s*\'([^\']+)\'/i],["lang-js",/^on\w+\s*=\s*([^\"\'>\s]+)/i],["lang-css",/^style\s*=\s*\"([^\"]+)\"/i],["lang-css",/^style\s*=\s*\'([^\']+)\'/i],["lang-css",/^style\s*=\s*([^\"\'>\s]+)/i]]),["in.tag"]),R(H([],[[k,/^[\s\S]+/]]),["uq.val"]),R(B({keywords:i,hashComments:!0,cStyleComments:!0,types:v}),["c","cc","cpp","cxx","cyc","m"]),R(B({keywords:"null,true,false"}),["json"]),R(B({keywords:o,hashComments:!0,cStyleComments:!0,verbatimStrings:!0,types:v}),["cs"]),R(B({keywords:s,cStyleComments:!0}),["java"]),R(B({keywords:p,hashComments:!0,multiLineStrings:!0}),["bash","bsh","csh","sh"]),R(B({keywords:l,hashComments:!0,multiLineStrings:!0,tripleQuotedStrings:!0}),["cv","py","python"]),R(B({keywords:f,hashComments:!0,multiLineStrings:!0,regexLiterals:2}),["perl","pl","pm"]),R(B({keywords:c,hashComments:!0,multiLineStrings:!0,regexLiterals:!0}),["rb","ruby"]),R(B({keywords:a,cStyleComments:!0,regexLiterals:!0}),["javascript","js"]),R(B({keywords:u,hashComments:3,cStyleComments:!0,multilineStrings:!0,tripleQuotedStrings:!0,regexLiterals:!0}),["coffee"]),R(B({keywords:h,cStyleComments:!0,multilineStrings:!0}),["rc","rs","rust"]),R(H([],[[m,/^[\s\S]+/]]),["regex"]);var V=e.PR={createSimpleLexer:H,registerLangHandler:R,sourceDecorator:B,PR_ATTRIB_NAME:C,PR_ATTRIB_VALUE:k,PR_COMMENT:y,PR_DECLARATION:T,PR_KEYWORD:g,PR_LITERAL:w,PR_NOCODE:L,PR_PLAIN:S,PR_PUNCTUATION:E,PR_SOURCE:N,PR_STRING:m,PR_TAG:x,PR_TYPE:b,prettyPrintOne:IN_GLOBAL_SCOPE?e.prettyPrintOne=W:prettyPrintOne=W,prettyPrint:prettyPrint=IN_GLOBAL_SCOPE?e.prettyPrint=X:prettyPrint=X};typeof define=="function"&&define.amd&&define("google-code-prettify",[],function(){return V})}).call(this),define("prettify",function(){});var fixto=function(e,t,n){function u(t,n,r){this.child=t,this._$child=e(t),this.parent=n,this._replacer=new i.MimicNode(t),this._ghostNode=this._replacer.replacer,this.options=e.extend({className:"fixto-fixed"},r),this.options.mind&&(this._$mind=e(this.options.mind)),this.options.zIndex&&(this.child.style.zIndex=this.options.zIndex),this._saveStyles(),this._saveViewportHeight(),this._proxied_onscroll=this._bind(this._onscroll,this),this._proxied_onresize=this._bind(this._onresize,this),this.start()}var r=function(){var e={getAll:function(e){return n.defaultView.getComputedStyle(e)},get:function(e,t){return this.getAll(e)[t]},toFloat:function(e){return parseFloat(e,10)||0},getFloat:function(e,t){return this.toFloat(this.get(e,t))},_getAllCurrentStyle:function(e){return e.currentStyle}};return n.documentElement.currentStyle&&(e.getAll=e._getAllCurrentStyle),e}(),i=function(){function t(e){this.element=e,this.replacer=n.createElement("div"),this.replacer.style.visibility="hidden",this.hide(),e.parentNode.insertBefore(this.replacer,e)}t.prototype={replace:function(){var e=this.replacer.style,t=r.getAll(this.element);e.width=this._width(),e.height=this._height(),e.marginTop=t.marginTop,e.marginBottom=t.marginBottom,e.marginLeft=t.marginLeft,e.marginRight=t.marginRight,e.cssFloat=t.cssFloat,e.styleFloat=t.styleFloat,e.position=t.position,e.top=t.top,e.right=t.right,e.bottom=t.bottom,e.left=t.left,e.display=t.display},hide:function(){this.replacer.style.display="none"},_width:function(){return this.element.getBoundingClientRect().width+"px"},_widthOffset:function(){return this.element.offsetWidth+"px"},_height:function(){return this.element.getBoundingClientRect().height+"px"},_heightOffset:function(){return this.element.offsetHeight+"px"},destroy:function(){e(this.replacer).remove();for(var t in this)this.hasOwnProperty(t)&&(this[t]=null)}};var i=n.documentElement.getBoundingClientRect();return i.width||(t.prototype._width=t.prototype._widthOffset,t.prototype._height=t.prototype._heightOffset),{MimicNode:t,computedStyle:r}}(),s=navigator.appName==="Microsoft Internet Explorer",o;s&&(o=parseFloat(navigator.appVersion.split("MSIE")[1])),u.prototype={_bind:function(e,t){return function(){return e.call(t)}},_toresize:o===8?n.documentElement:t,_mindtop:function(){var t=0;return this._$mind&&e(this._$mind).each(function(){t+=e(this).outerHeight(!0)}),t},_onscroll:function(){this._scrollTop=n.documentElement.scrollTop||n.body.scrollTop,this._parentBottom=this.parent.offsetHeight+this._fullOffset("offsetTop",this.parent)-r.getFloat(this.parent,"paddingBottom");if(!this.fixed)this._scrollTop<this._parentBottom&&this._scrollTop>this._fullOffset("offsetTop",this.child)-r.getFloat(this.child,"marginTop")-this._mindtop()&&this._viewportHeight>this.child.offsetHeight+r.getFloat(this.child,"marginTop")+r.getFloat(this.child,"marginBottom")&&(this._fix(),this._adjust());else{if(this._scrollTop>this._parentBottom||this._scrollTop<this._fullOffset("offsetTop",this._ghostNode)-r.getFloat(this._ghostNode,"marginTop")-this._mindtop()){this._unfix();return}this._adjust()}},_adjust:function(){var t=this._parentBottom-this._scrollTop-(this.child.offsetHeight+r.getFloat(this.child,"marginTop")+r.getFloat(this.child,"marginBottom")+this._mindtop()),n=this._mindtop();t<0?this.child.style.top=t+n+"px":this.child.style.top=0+n+"px"},_fullOffset:function(t,n){var r=n[t];while(n.offsetParent!==null)n=n.offsetParent,r+=n[t];return r},_fix:function(){var t=this.child,i=t.style;this._saveStyles();if(n.documentElement.currentStyle){var s=r.getAll(t);i.left=this._fullOffset("offsetLeft",t)-r.getFloat(t,"marginLeft")+"px",i.width=t.offsetWidth-(r.toFloat(s.paddingLeft)+r.toFloat(s.paddingRight)+r.toFloat(s.borderLeftWidth)+r.toFloat(s.borderRightWidth))+"px"}else i.width=r.get(t,"width"),i.left=t.getBoundingClientRect().left-r.getFloat(t,"marginLeft")+"px";this._replacer.replace(),i.position="fixed",i.top=this._mindtop()+"px",this._$child.addClass(this.options.className),this.fixed=!0},_unfix:function(){var t=this.child.style;this._replacer.hide(),t.position=this._childOriginalPosition,t.top=this._childOriginalTop,t.width=this._childOriginalWidth,t.left=this._childOriginalLeft,this._$child.removeClass(this.options.className),this.fixed=!1},_saveStyles:function(){var e=this.child.style;this._childOriginalPosition=e.position,this._childOriginalTop=e.top,this._childOriginalWidth=e.width,this._childOriginalLeft=e.left},_onresize:function(){this._saveViewportHeight(),this._unfix(),this._onscroll()},_saveViewportHeight:function(){this._viewportHeight=t.innerHeight||n.documentElement.clientHeight},stop:function(){this._unfix(),e(t).unbind("scroll",this._proxied_onscroll),e(this._toresize).unbind("resize",this._proxied_onresize),this._running=!1},start:function(){this._running||(this._onscroll(),e(t).bind("scroll",this._proxied_onscroll),e(this._toresize).bind("resize",this._proxied_onresize),this._running=!0)},destroy:function(){this.stop(),this._$child.removeData("fixto-instance"),this._replacer.destroy();for(var e in this)this.hasOwnProperty(e)&&(this[e]=null)}};var a=function(t,n,r){return new u(t,n,r)},f="ontouchstart"in t;if(f||o<8)a=function(){return"not supported"};return e.fn.fixTo=function(t,n){var r=e(t),i=0;return this.each(function(){var s=e(this).data("fixto-instance");if(!s)e(this).data("fixto-instance",a(this,r[i],n));else{var o=t;s[o].call(s)}i++})},{FixToContainer:u,fixTo:a,computedStyle:r,mimicNode:i}}(window.jQuery,window,document);define("jquery.fixto",["jquery"],function(){}),+function(e){function t(n,r){var i,s=e.proxy(this.process,this);this.$element=e(n).is("body")?e(window):e(n),this.$body=e("body"),this.$scrollElement=this.$element.on("scroll.bs.scroll-spy.data-api",s),this.options=e.extend({},t.DEFAULTS,r),this.selector=(this.options.target||(i=e(n).attr("href"))&&i.replace(/.*(?=#[^\s]+$)/,"")||"")+" .nav li > a",this.offsets=e([]),this.targets=e([]),this.activeTarget=null,this.refresh(),this.process()}t.DEFAULTS={offset:10},t.prototype.refresh=function(){var t=this.$element[0]==window?"offset":"position";this.offsets=e([]),this.targets=e([]);var n=this,r=this.$body.find(this.selector).map(function(){var r=e(this),i=r.data("target")||r.attr("href"),s=/^#\w/.test(i)&&e(i);return s&&s.length&&[[s[t]().top+(!e.isWindow(n.$scrollElement.get(0))&&n.$scrollElement.scrollTop()),i]]||null}).sort(function(e,t){return e[0]-t[0]}).each(function(){n.offsets.push(this[0]),n.targets.push(this[1])})},t.prototype.process=function(){var e=this.$scrollElement.scrollTop()+this.options.offset,t=this.$scrollElement[0].scrollHeight||this.$body[0].scrollHeight,n=t-this.$scrollElement.height(),r=this.offsets,i=this.targets,s=this.activeTarget,o;if(e>=n)return s!=(o=i.last()[0])&&this.activate(o);for(o=r.length;o--;)s!=i[o]&&e>=r[o]&&(!r[o+1]||e<=r[o+1])&&this.activate(i[o])},t.prototype.activate=function(t){this.activeTarget=t,e(this.selector).parents(".active").removeClass("active");var n=this.selector+'[data-target="'+t+'"],'+this.selector+'[href="'+t+'"]',r=e(n).parents("li").addClass("active");r.parent(".dropdown-menu").length&&(r=r.closest("li.dropdown").addClass("active")),r.trigger("activate")};var n=e.fn.scrollspy;e.fn.scrollspy=function(n){return this.each(function(){var r=e(this),i=r.data("bs.scrollspy"),s=typeof n=="object"&&n;i||r.data("bs.scrollspy",i=new t(this,s)),typeof n=="string"&&i[n]()})},e.fn.scrollspy.Constructor=t,e.fn.scrollspy.noConflict=function(){return e.fn.scrollspy=n,this},e(window).on("load",function(){e('[data-spy="scroll"]').each(function(){var t=e(this);t.scrollspy(t.data())})})}(window.jQuery),define("bootstrap.scrollspy",["jquery"],function(){}),function(){define("modules/scrollspy",["bootstrap.scrollspy"],function(e){var t;return t=function(){function e(){}return e.prototype.init=function(){return $("body").scrollspy({target:"#doc-navigation",offest:0}),$("#doc-navigation").on("activate.bs.scrollspy",function(e){var t,n,r,i,s,o;return n=$(e.currentTarget),t=n.find(".active"),i=$(".nav li"),i.removeClass("open-subnav"),t.addClass("open-subnav"),t.parents("active")&&t.parents("li").removeClass("active").addClass("open-subnav"),s=t.find("> a").attr("href"),o=s.replace("#",""),r=$(s),r.attr("id",""),history.pushState?history.replaceState("",s,s):location.replace(s),r.attr("id",o)})},e}(),t})}.call(this),function(){define("modules/process-documentation",["jquery","prettify","jquery.fixto","modules/scrollspy"],function(e,t,n,r){var i;return i=function(){function t(e){this.options=e,this.elements=e.elements}return t.prototype.isMobile=/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),t.prototype.initPrettyPrint=function(){return e("pre").addClass("prettyprint"),prettyPrint()},t.prototype.initFixTo=function(){var t;return t=this.elements,e(t.header).fixTo("body"),e(t.nav).fixTo("body",{mind:t.header}),e(t.humans).fixTo(".document",{mind:t.header}),e(t.machines).each(function(n,r){var i;return i=e(r).parents(".document"),e(r).fixTo(i,{mind:t.header})})},t.prototype.destroyFixTo=function(){var t;return t=this.elements,e(t.header).fixTo("destroy"),e(t.nav).fixTo("destroy")},t.prototype.initScrollSpy=function(){var t,n,i,s;return s=new r,n=window.location.hash,t=e(this.elements.doc).find("img"),i=t.length},t.prototype.initScrollSpy=function(){var t,n,i,s,o,u=this;return o=new r,n=window.location.hash,t=e(this.elements.doc).find("img"),i=t.length,s=0,i===0?(o.init(),this.scrollToHash(n,50)):t.on("load",function(){s++;if(s===i)return o.init(),u.scrollToHash(n)})},t.prototype.addTableWrapper=function(){return e(this.elements.doc).find("table").wrap('<div class="definitions" />')},t.prototype.centerImages=function(){return e(this.elements.doc).find("img").parent().addClass("center")},t.prototype.scrollToHash=function(t,n){if(t)return e("html, body").animate({scrollTop:e(t).offset().top},n)},t.prototype.bindHeaderNavEvents=function(){var t=this;return e(this.elements.header).find("a").on("click",function(n){var r,i,s,o;if(history.pushState&&t.isMobile!==!0)return n.preventDefault(),r=e(n.currentTarget),i=e(t.elements.header).find(".active a").attr("href"),o=r.attr("href"),s=r.text,e(t.elements.header).find("li").removeClass("active"),r.parent().addClass("active"),e("body").removeClass("api-page"),history.pushState({url:i},s,o),e(t.elements.nav).empty(),e(t.elements.doc).empty(),window.scrollTo(0,0),t.destroyFixTo(),t.init(),e("body").scrollspy("refresh")})},t.prototype.bindPopstate=function(){var t,n,r,i=this;return t=e(this.elements.header).find('a[href="'+r+'"]'),n=t.text(),r=t.attr("href"),history.pushState({url:r},n,r),e(window).on("popstate",function(t){return e(i.elements.header).find("li").removeClass("active"),e("body").removeClass("api-page"),e(i.elements.nav).empty(),e(i.elements.doc).empty(),i.destroyFixTo(),i.init(),e("body").scrollspy("refresh")})},t.prototype.bindDocNavEvents=function(){var t=this;return e(this.elements.nav).find("a").on("click",function(n){var r;return n.preventDefault(),r=e(n.currentTarget).attr("href"),t.scrollToHash(r,0)})},t.prototype.activateTopNav=function(){return this.doc===void 0?e("#lcp-nav").find("li:first").addClass("active"):e('a[href="index.html?doc='+this.doc).parent().addClass("active")},t.prototype.responsiveTables=function(){return e("table").each(function(t,n){var r,i,s,o,u,a,f;return r=e(n),i=r.find("thead").find("th"),s=r.find("tbody").find("tr"),a=[],o=[],u={},i.each(function(t,n){return a[t]=e(n).text()}),s.each(function(t,n){return e(n).find("td").each(function(t,n){var r;return r=e(n).html(),u['"'+a[t]+'"']=r}),o.push(u),u={}}),f='<ul id="table-list-id-'+t+'" class="list-from-table" />',r.after(f),e.each(o,function(n,r){var i;return i='<li><dl id="entry-id-'+n+'"></dl></li>',e("#table-list-id-"+t).append(i),e.each(a,function(i,s){var o,u;return u="<dt>"+s+"</dt>",o="<dd>"+r['"'+s+'"']+"</dd>",e("#table-list-id-"+t).find("#entry-id-"+n).append(u+o)})})})},t.prototype.initProcess=function(){return this.addTableWrapper(),this.centerImages(),this.responsiveTables(),this.initPrettyPrint(),this.initFixTo(),this.activateTopNav(),this.bindDocNavEvents()},t}()})}.call(this),define("text",{}),define("json",{load:function(e){throw new Error("Dynamic load not allowed: "+e)}}),define("json!api-documents.json",function(){return{articles:[{title:"Documentation Overview",id:"documentation-overview",exampleId:"",parent:""},{title:"Accounts",id:"accounts",exampleId:"accounts-example",parent:""},{title:"Create an Account",id:"create-an-account",exampleId:"create-an-account-example",parent:"accounts"},{title:"Get an Account",id:"get-an-account",exampleId:"get-an-account-example",parent:"accounts"},{title:"Account Credentials",id:"account-credentials",exampleId:"account-credentials-example",parent:""},{title:"Create Account Credentials",id:"create-account-credentials",exampleId:"create-account-credentials-example",parent:"account-credentials"},{title:"Get Account Credentials",id:"get-account-credentials",exampleId:"get-account-credentials-example",parent:"account-credentials"},{title:"Delete Account Credentials",id:"delete-account-credentials",exampleId:"delete-account-credentials-example",parent:"account-credentials"},{title:"Apps",id:"apps",exampleId:"apps-example",parent:""},{title:"Create an App",id:"create-an-app",exampleId:"create-an-app-example",parent:"apps"},{title:"Get an App",id:"get-an-app",exampleId:"get-an-app-example",parent:"apps"},{title:"Get an App by MAC Key Identifier",id:"get-an-app-by-mac",exampleId:"get-an-app-by-mac-example",parent:"apps"},{title:"Credits",id:"credits",exampleId:"credits-example",parent:""},{title:"Create a Credit",id:"create-a-credit",exampleId:"create-a-credit-example",parent:"credits"},{title:"Get a Credit",id:"get-a-credit",exampleId:"get-a-credit-example",parent:"credits"},{title:"Debits",id:"debits",exampleId:"debits-example",parent:""},{title:"Create a Debit",id:"create-a-debit",exampleId:"create-a-debit-example",parent:"debits"},{title:"Get a Debit",id:"get-a-debit",exampleId:"get-a-debit-example",parent:"debits"},{title:"Live Credentials",id:"live-credentials",exampleId:"live-credentials-example",parent:""},{title:"Get Live Credentials",id:"get-live-credentials",exampleId:"get-live-credentials-example",parent:"live-credentials"},{title:"Loyalty Programs (LPs)",id:"loyalty-programs",exampleId:"",parent:""},{title:"Member Validations (MVs)",id:"member-validations",exampleId:"member-validations-example",parent:""},{title:"Create a MV",id:"create-a-mv",exampleId:"create-a-mv-example",parent:"member-validations"},{title:"Get a MV",id:"get-a-mv",exampleId:"get-a-mv-example",parent:"member-validations"},{title:"Sandbox Credentials",id:"sandbox-credentials",exampleId:"sandbox-credentials-example",parent:""},{title:"Get Sandbox Credentials",id:"get-sandbox-credentials",exampleId:"get-sandbox-credentials-example",parent:"sandbox-credentials"}]}});var Handlebars={};(function(e,t){e.VERSION="1.0.0",e.COMPILER_REVISION=4,e.REVISION_CHANGES={1:"<= 1.0.rc.2",2:"== 1.0.0-rc.3",3:"== 1.0.0-rc.4",4:">= 1.0.0"},e.helpers={},e.partials={};var n=Object.prototype.toString,r="[object Function]",i="[object Object]";e.registerHelper=function(t,r,s){if(n.call(t)===i){if(s||r)throw new e.Exception("Arg not supported with multiple helpers");e.Utils.extend(this.helpers,t)}else s&&(r.not=s),this.helpers[t]=r},e.registerPartial=function(t,r){n.call(t)===i?e.Utils.extend(this.partials,t):this.partials[t]=r},e.registerHelper("helperMissing",function(e){if(arguments.length===2)return t;throw new Error("Missing helper: '"+e+"'")}),e.registerHelper("blockHelperMissing",function(t,i){var s=i.inverse||function(){},o=i.fn,u=n.call(t);return u===r&&(t=t.call(this)),t===!0?o(this):t===!1||t==null?s(this):u==="[object Array]"?t.length>0?e.helpers.each(t,i):s(this):o(t)}),e.K=function(){},e.createFrame=Object.create||function(t){e.K.prototype=t;var n=new e.K;return e.K.prototype=null,n},e.logger={DEBUG:0,INFO:1,WARN:2,ERROR:3,level:3,methodMap:{0:"debug",1:"info",2:"warn",3:"error"},log:function(t,n){if(e.logger.level<=t){var r=e.logger.methodMap[t];typeof console!="undefined"&&console[r]&&console[r].call(console,n)}}},e.log=function(t,n){e.logger.log(t,n)},e.registerHelper("each",function(t,i){var s=i.fn,o=i.inverse,u=0,a="",f,l=n.call(t);l===r&&(t=t.call(this)),i.data&&(f=e.createFrame(i.data));if(t&&typeof t=="object")if(t instanceof Array)for(var c=t.length;u<c;u++)f&&(f.index=u),a+=s(t[u],{data:f});else for(var h in t)t.hasOwnProperty(h)&&(f&&(f.key=h),a+=s(t[h],{data:f}),u++);return u===0&&(a=o(this)),a}),e.registerHelper("if",function(t,i){var s=n.call(t);return s===r&&(t=t.call(this)),!t||e.Utils.isEmpty(t)?i.inverse(this):i.fn(this)}),e.registerHelper("unless",function(t,n){return e.helpers["if"].call(this,t,{fn:n.inverse,inverse:n.fn})}),e.registerHelper("with",function(t,i){var s=n.call(t);s===r&&(t=t.call(this));if(!e.Utils.isEmpty(t))return i.fn(t)}),e.registerHelper("log",function(t,n){var r=n.data&&n.data.level!=null?parseInt(n.data.level,10):1;e.log(r,t)});var s=function(){function n(){this.yy={}}var e={trace:function(){},yy:{},symbols_:{error:2,root:3,program:4,EOF:5,simpleInverse:6,statements:7,statement:8,openInverse:9,closeBlock:10,openBlock:11,mustache:12,partial:13,CONTENT:14,COMMENT:15,OPEN_BLOCK:16,inMustache:17,CLOSE:18,OPEN_INVERSE:19,OPEN_ENDBLOCK:20,path:21,OPEN:22,OPEN_UNESCAPED:23,CLOSE_UNESCAPED:24,OPEN_PARTIAL:25,partialName:26,params:27,hash:28,dataName:29,param:30,STRING:31,INTEGER:32,BOOLEAN:33,hashSegments:34,hashSegment:35,ID:36,EQUALS:37,DATA:38,pathSegments:39,SEP:40,$accept:0,$end:1},terminals_:{2:"error",5:"EOF",14:"CONTENT",15:"COMMENT",16:"OPEN_BLOCK",18:"CLOSE",19:"OPEN_INVERSE",20:"OPEN_ENDBLOCK",22:"OPEN",23:"OPEN_UNESCAPED",24:"CLOSE_UNESCAPED",25:"OPEN_PARTIAL",31:"STRING",32:"INTEGER",33:"BOOLEAN",36:"ID",37:"EQUALS",38:"DATA",40:"SEP"},productions_:[0,[3,2],[4,2],[4,3],[4,2],[4,1],[4,1],[4,0],[7,1],[7,2],[8,3],[8,3],[8,1],[8,1],[8,1],[8,1],[11,3],[9,3],[10,3],[12,3],[12,3],[13,3],[13,4],[6,2],[17,3],[17,2],[17,2],[17,1],[17,1],[27,2],[27,1],[30,1],[30,1],[30,1],[30,1],[30,1],[28,1],[34,2],[34,1],[35,3],[35,3],[35,3],[35,3],[35,3],[26,1],[26,1],[26,1],[29,2],[21,1],[39,3],[39,1]],performAction:function(t,n,r,i,s,o,u){var a=o.length-1;switch(s){case 1:return o[a-1];case 2:this.$=new i.ProgramNode([],o[a]);break;case 3:this.$=new i.ProgramNode(o[a-2],o[a]);break;case 4:this.$=new i.ProgramNode(o[a-1],[]);break;case 5:this.$=new i.ProgramNode(o[a]);break;case 6:this.$=new i.ProgramNode([],[]);break;case 7:this.$=new i.ProgramNode([]);break;case 8:this.$=[o[a]];break;case 9:o[a-1].push(o[a]),this.$=o[a-1];break;case 10:this.$=new i.BlockNode(o[a-2],o[a-1].inverse,o[a-1],o[a]);break;case 11:this.$=new i.BlockNode(o[a-2],o[a-1],o[a-1].inverse,o[a]);break;case 12:this.$=o[a];break;case 13:this.$=o[a];break;case 14:this.$=new i.ContentNode(o[a]);break;case 15:this.$=new i.CommentNode(o[a]);break;case 16:this.$=new i.MustacheNode(o[a-1][0],o[a-1][1]);break;case 17:this.$=new i.MustacheNode(o[a-1][0],o[a-1][1]);break;case 18:this.$=o[a-1];break;case 19:this.$=new i.MustacheNode(o[a-1][0],o[a-1][1],o[a-2][2]==="&");break;case 20:this.$=new i.MustacheNode(o[a-1][0],o[a-1][1],!0);break;case 21:this.$=new i.PartialNode(o[a-1]);break;case 22:this.$=new i.PartialNode(o[a-2],o[a-1]);break;case 23:break;case 24:this.$=[[o[a-2]].concat(o[a-1]),o[a]];break;case 25:this.$=[[o[a-1]].concat(o[a]),null];break;case 26:this.$=[[o[a-1]],o[a]];break;case 27:this.$=[[o[a]],null];break;case 28:this.$=[[o[a]],null];break;case 29:o[a-1].push(o[a]),this.$=o[a-1];break;case 30:this.$=[o[a]];break;case 31:this.$=o[a];break;case 32:this.$=new i.StringNode(o[a]);break;case 33:this.$=new i.IntegerNode(o[a]);break;case 34:this.$=new i.BooleanNode(o[a]);break;case 35:this.$=o[a];break;case 36:this.$=new i.HashNode(o[a]);break;case 37:o[a-1].push(o[a]),this.$=o[a-1];break;case 38:this.$=[o[a]];break;case 39:this.$=[o[a-2],o[a]];break;case 40:this.$=[o[a-2],new i.StringNode(o[a])];break;case 41:this.$=[o[a-2],new i.IntegerNode(o[a])];break;case 42:this.$=[o[a-2],new i.BooleanNode(o[a])];break;case 43:this.$=[o[a-2],o[a]];break;case 44:this.$=new i.PartialNameNode(o[a]);break;case 45:this.$=new i.PartialNameNode(new i.StringNode(o[a]));break;case 46:this.$=new i.PartialNameNode(new i.IntegerNode(o[a]));break;case 47:this.$=new i.DataNode(o[a]);break;case 48:this.$=new i.IdNode(o[a]);break;case 49:o[a-2].push({part:o[a],separator:o[a-1]}),this.$=o[a-2];break;case 50:this.$=[{part:o[a]}]}},table:[{3:1,4:2,5:[2,7],6:3,7:4,8:6,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,5],22:[1,14],23:[1,15],25:[1,16]},{1:[3]},{5:[1,17]},{5:[2,6],7:18,8:6,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,19],20:[2,6],22:[1,14],23:[1,15],25:[1,16]},{5:[2,5],6:20,8:21,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,5],20:[2,5],22:[1,14],23:[1,15],25:[1,16]},{17:23,18:[1,22],21:24,29:25,36:[1,28],38:[1,27],39:26},{5:[2,8],14:[2,8],15:[2,8],16:[2,8],19:[2,8],20:[2,8],22:[2,8],23:[2,8],25:[2,8]},{4:29,6:3,7:4,8:6,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,5],20:[2,7],22:[1,14],23:[1,15],25:[1,16]},{4:30,6:3,7:4,8:6,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,5],20:[2,7],22:[1,14],23:[1,15],25:[1,16]},{5:[2,12],14:[2,12],15:[2,12],16:[2,12],19:[2,12],20:[2,12],22:[2,12],23:[2,12],25:[2,12]},{5:[2,13],14:[2,13],15:[2,13],16:[2,13],19:[2,13],20:[2,13],22:[2,13],23:[2,13],25:[2,13]},{5:[2,14],14:[2,14],15:[2,14],16:[2,14],19:[2,14],20:[2,14],22:[2,14],23:[2,14],25:[2,14]},{5:[2,15],14:[2,15],15:[2,15],16:[2,15],19:[2,15],20:[2,15],22:[2,15],23:[2,15],25:[2,15]},{17:31,21:24,29:25,36:[1,28],38:[1,27],39:26},{17:32,21:24,29:25,36:[1,28],38:[1,27],39:26},{17:33,21:24,29:25,36:[1,28],38:[1,27],39:26},{21:35,26:34,31:[1,36],32:[1,37],36:[1,28],39:26},{1:[2,1]},{5:[2,2],8:21,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,19],20:[2,2],22:[1,14],23:[1,15],25:[1,16]},{17:23,21:24,29:25,36:[1,28],38:[1,27],39:26},{5:[2,4],7:38,8:6,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,19],20:[2,4],22:[1,14],23:[1,15],25:[1,16]},{5:[2,9],14:[2,9],15:[2,9],16:[2,9],19:[2,9],20:[2,9],22:[2,9],23:[2,9],25:[2,9]},{5:[2,23],14:[2,23],15:[2,23],16:[2,23],19:[2,23],20:[2,23],22:[2,23],23:[2,23],25:[2,23]},{18:[1,39]},{18:[2,27],21:44,24:[2,27],27:40,28:41,29:48,30:42,31:[1,45],32:[1,46],33:[1,47],34:43,35:49,36:[1,50],38:[1,27],39:26},{18:[2,28],24:[2,28]},{18:[2,48],24:[2,48],31:[2,48],32:[2,48],33:[2,48],36:[2,48],38:[2,48],40:[1,51]},{21:52,36:[1,28],39:26},{18:[2,50],24:[2,50],31:[2,50],32:[2,50],33:[2,50],36:[2,50],38:[2,50],40:[2,50]},{10:53,20:[1,54]},{10:55,20:[1,54]},{18:[1,56]},{18:[1,57]},{24:[1,58]},{18:[1,59],21:60,36:[1,28],39:26},{18:[2,44],36:[2,44]},{18:[2,45],36:[2,45]},{18:[2,46],36:[2,46]},{5:[2,3],8:21,9:7,11:8,12:9,13:10,14:[1,11],15:[1,12],16:[1,13],19:[1,19],20:[2,3],22:[1,14],23:[1,15],25:[1,16]},{14:[2,17],15:[2,17],16:[2,17],19:[2,17],20:[2,17],22:[2,17],23:[2,17],25:[2,17]},{18:[2,25],21:44,24:[2,25],28:61,29:48,30:62,31:[1,45],32:[1,46],33:[1,47],34:43,35:49,36:[1,50],38:[1,27],39:26},{18:[2,26],24:[2,26]},{18:[2,30],24:[2,30],31:[2,30],32:[2,30],33:[2,30],36:[2,30],38:[2,30]},{18:[2,36],24:[2,36],35:63,36:[1,64]},{18:[2,31],24:[2,31],31:[2,31],32:[2,31],33:[2,31],36:[2,31],38:[2,31]},{18:[2,32],24:[2,32],31:[2,32],32:[2,32],33:[2,32],36:[2,32],38:[2,32]},{18:[2,33],24:[2,33],31:[2,33],32:[2,33],33:[2,33],36:[2,33],38:[2,33]},{18:[2,34],24:[2,34],31:[2,34],32:[2,34],33:[2,34],36:[2,34],38:[2,34]},{18:[2,35],24:[2,35],31:[2,35],32:[2,35],33:[2,35],36:[2,35],38:[2,35]},{18:[2,38],24:[2,38],36:[2,38]},{18:[2,50],24:[2,50],31:[2,50],32:[2,50],33:[2,50],36:[2,50],37:[1,65],38:[2,50],40:[2,50]},{36:[1,66]},{18:[2,47],24:[2,47],31:[2,47],32:[2,47],33:[2,47],36:[2,47],38:[2,47]},{5:[2,10],14:[2,10],15:[2,10],16:[2,10],19:[2,10],20:[2,10],22:[2,10],23:[2,10],25:[2,10]},{21:67,36:[1,28],39:26},{5:[2,11],14:[2,11],15:[2,11],16:[2,11],19:[2,11],20:[2,11],22:[2,11],23:[2,11],25:[2,11]},{14:[2,16],15:[2,16],16:[2,16],19:[2,16],20:[2,16],22:[2,16],23:[2,16],25:[2,16]},{5:[2,19],14:[2,19],15:[2,19],16:[2,19],19:[2,19],20:[2,19],22:[2,19],23:[2,19],25:[2,19]},{5:[2,20],14:[2,20],15:[2,20],16:[2,20],19:[2,20],20:[2,20],22:[2,20],23:[2,20],25:[2,20]},{5:[2,21],14:[2,21],15:[2,21],16:[2,21],19:[2,21],20:[2,21],22:[2,21],23:[2,21],25:[2,21]},{18:[1,68]},{18:[2,24],24:[2,24]},{18:[2,29],24:[2,29],31:[2,29],32:[2,29],33:[2,29],36:[2,29],38:[2,29]},{18:[2,37],24:[2,37],36:[2,37]},{37:[1,65]},{21:69,29:73,31:[1,70],32:[1,71],33:[1,72],36:[1,28],38:[1,27],39:26},{18:[2,49],24:[2,49],31:[2,49],32:[2,49],33:[2,49],36:[2,49],38:[2,49],40:[2,49]},{18:[1,74]},{5:[2,22],14:[2,22],15:[2,22],16:[2,22],19:[2,22],20:[2,22],22:[2,22],23:[2,22],25:[2,22]},{18:[2,39],24:[2,39],36:[2,39]},{18:[2,40],24:[2,40],36:[2,40]},{18:[2,41],24:[2,41],36:[2,41]},{18:[2,42],24:[2,42],36:[2,42]},{18:[2,43],24:[2,43],36:[2,43]},{5:[2,18],14:[2,18],15:[2,18],16:[2,18],19:[2,18],20:[2,18],22:[2,18],23:[2,18],25:[2,18]}],defaultActions:{17:[2,1]},parseError:function(t,n){throw new Error(t)},parse:function(t){function v(e){r.length=r.length-2*e,i.length=i.length-e,s.length=s.length-e}function m(){var e;return e=n.lexer.lex()||1,typeof e!="number"&&(e=n.symbols_[e]||e),e}var n=this,r=[0],i=[null],s=[],o=this.table,u="",a=0,f=0,l=0,c=2,h=1;this.lexer.setInput(t),this.lexer.yy=this.yy,this.yy.lexer=this.lexer,this.yy.parser=this,typeof this.lexer.yylloc=="undefined"&&(this.lexer.yylloc={});var p=this.lexer.yylloc;s.push(p);var d=this.lexer.options&&this.lexer.options.ranges;typeof this.yy.parseError=="function"&&(this.parseError=this.yy.parseError);var g,y,b,w,E,S,x={},T,N,C,k;for(;;){b=r[r.length-1];if(this.defaultActions[b])w=this.defaultActions[b];else{if(g===null||typeof g=="undefined")g=m();w=o[b]&&o[b][g]}if(typeof w=="undefined"||!w.length||!w[0]){var L="";if(!l){k=[];for(T in o[b])this.terminals_[T]&&T>2&&k.push("'"+this.terminals_[T]+"'");this.lexer.showPosition?L="Parse error on line "+(a+1)+":\n"+this.lexer.showPosition()+"\nExpecting "+k.join(", ")+", got '"+(this.terminals_[g]||g)+"'":L="Parse error on line "+(a+1)+": Unexpected "+(g==1?"end of input":"'"+(this.terminals_[g]||g)+"'"),this.parseError(L,{text:this.lexer.match,token:this.terminals_[g]||g,line:this.lexer.yylineno,loc:p,expected:k})}}if(w[0]instanceof Array&&w.length>1)throw new Error("Parse Error: multiple actions possible at state: "+b+", token: "+g);switch(w[0]){case 1:r.push(g),i.push(this.lexer.yytext),s.push(this.lexer.yylloc),r.push(w[1]),g=null,y?(g=y,y=null):(f=this.lexer.yyleng,u=this.lexer.yytext,a=this.lexer.yylineno,p=this.lexer.yylloc,l>0&&l--);break;case 2:N=this.productions_[w[1]][1],x.$=i[i.length-N],x._$={first_line:s[s.length-(N||1)].first_line,last_line:s[s.length-1].last_line,first_column:s[s.length-(N||1)].first_column,last_column:s[s.length-1].last_column},d&&(x._$.range=[s[s.length-(N||1)].range[0],s[s.length-1].range[1]]),S=this.performAction.call(x,u,f,a,this.yy,w[1],i,s);if(typeof S!="undefined")return S;N&&(r=r.slice(0,-1*N*2),i=i.slice(0,-1*N),s=s.slice(0,-1*N)),r.push(this.productions_[w[1]][0]),i.push(x.$),s.push(x._$),C=o[r[r.length-2]][r[r.length-1]],r.push(C);break;case 3:return!0}}return!0}},t=function(){var e={EOF:1,parseError:function(t,n){if(!this.yy.parser)throw new Error(t);this.yy.parser.parseError(t,n)},setInput:function(e){return this._input=e,this._more=this._less=this.done=!1,this.yylineno=this.yyleng=0,this.yytext=this.matched=this.match="",this.conditionStack=["INITIAL"],this.yylloc={first_line:1,first_column:0,last_line:1,last_column:0},this.options.ranges&&(this.yylloc.range=[0,0]),this.offset=0,this},input:function(){var e=this._input[0];this.yytext+=e,this.yyleng++,this.offset++,this.match+=e,this.matched+=e;var t=e.match(/(?:\r\n?|\n).*/g);return t?(this.yylineno++,this.yylloc.last_line++):this.yylloc.last_column++,this.options.ranges&&this.yylloc.range[1]++,this._input=this._input.slice(1),e},unput:function(e){var t=e.length,n=e.split(/(?:\r\n?|\n)/g);this._input=e+this._input,this.yytext=this.yytext.substr(0,this.yytext.length-t-1),this.offset-=t;var r=this.match.split(/(?:\r\n?|\n)/g);this.match=this.match.substr(0,this.match.length-1),this.matched=this.matched.substr(0,this.matched.length-1),n.length-1&&(this.yylineno-=n.length-1);var i=this.yylloc.range;return this.yylloc={first_line:this.yylloc.first_line,last_line:this.yylineno+1,first_column:this.yylloc.first_column,last_column:n?(n.length===r.length?this.yylloc.first_column:0)+r[r.length-n.length].length-n[0].length:this.yylloc.first_column-t},this.options.ranges&&(this.yylloc.range=[i[0],i[0]+this.yyleng-t]),this},more:function(){return this._more=!0,this},less:function(e){this.unput(this.match.slice(e))},pastInput:function(){var e=this.matched.substr(0,this.matched.length-this.match.length);return(e.length>20?"...":"")+e.substr(-20).replace(/\n/g,"")},upcomingInput:function(){var e=this.match;return e.length<20&&(e+=this._input.substr(0,20-e.length)),(e.substr(0,20)+(e.length>20?"...":"")).replace(/\n/g,"")},showPosition:function(){var e=this.pastInput(),t=(new Array(e.length+1)).join("-");return e+this.upcomingInput()+"\n"+t+"^"},next:function(){if(this.done)return this.EOF;this._input||(this.done=!0);var e,t,n,r,i,s;this._more||(this.yytext="",this.match="");var o=this._currentRules();for(var u=0;u<o.length;u++){n=this._input.match(this.rules[o[u]]);if(n&&(!t||n[0].length>t[0].length)){t=n,r=u;if(!this.options.flex)break}}if(t){s=t[0].match(/(?:\r\n?|\n).*/g),s&&(this.yylineno+=s.length),this.yylloc={first_line:this.yylloc.last_line,last_line:this.yylineno+1,first_column:this.yylloc.last_column,last_column:s?s[s.length-1].length-s[s.length-1].match(/\r?\n?/)[0].length:this.yylloc.last_column+t[0].length},this.yytext+=t[0],this.match+=t[0],this.matches=t,this.yyleng=this.yytext.length,this.options.ranges&&(this.yylloc.range=[this.offset,this.offset+=this.yyleng]),this._more=!1,this._input=this._input.slice(t[0].length),this.matched+=t[0],e=this.performAction.call(this,this.yy,this,o[r],this.conditionStack[this.conditionStack.length-1]),this.done&&this._input&&(this.done=!1);if(e)return e;return}return this._input===""?this.EOF:this.parseError("Lexical error on line "+(this.yylineno+1)+". Unrecognized text.\n"+this.showPosition(),{text:"",token:null,line:this.yylineno})},lex:function(){var t=this.next();return typeof t!="undefined"?t:this.lex()},begin:function(t){this.conditionStack.push(t)},popState:function(){return this.conditionStack.pop()},_currentRules:function(){return this.conditions[this.conditionStack[this.conditionStack.length-1]].rules},topState:function(){return this.conditionStack[this.conditionStack.length-2]},pushState:function(t){this.begin(t)}};return e.options={},e.performAction=function(t,n,r,i){var s=i;switch(r){case 0:return n.yytext="\\",14;case 1:n.yytext.slice(-1)!=="\\"&&this.begin("mu"),n.yytext.slice(-1)==="\\"&&(n.yytext=n.yytext.substr(0,n.yyleng-1),this.begin("emu"));if(n.yytext)return 14;break;case 2:return 14;case 3:return n.yytext.slice(-1)!=="\\"&&this.popState(),n.yytext.slice(-1)==="\\"&&(n.yytext=n.yytext.substr(0,n.yyleng-1)),14;case 4:return n.yytext=n.yytext.substr(0,n.yyleng-4),this.popState(),15;case 5:return 25;case 6:return 16;case 7:return 20;case 8:return 19;case 9:return 19;case 10:return 23;case 11:return 22;case 12:this.popState(),this.begin("com");break;case 13:return n.yytext=n.yytext.substr(3,n.yyleng-5),this.popState(),15;case 14:return 22;case 15:return 37;case 16:return 36;case 17:return 36;case 18:return 40;case 19:break;case 20:return this.popState(),24;case 21:return this.popState(),18;case 22:return n.yytext=n.yytext.substr(1,n.yyleng-2).replace(/\\"/g,'"'),31;case 23:return n.yytext=n.yytext.substr(1,n.yyleng-2).replace(/\\'/g,"'"),31;case 24:return 38;case 25:return 33;case 26:return 33;case 27:return 32;case 28:return 36;case 29:return n.yytext=n.yytext.substr(1,n.yyleng-2),36;case 30:return"INVALID";case 31:return 5}},e.rules=[/^(?:\\\\(?=(\{\{)))/,/^(?:[^\x00]*?(?=(\{\{)))/,/^(?:[^\x00]+)/,/^(?:[^\x00]{2,}?(?=(\{\{|$)))/,/^(?:[\s\S]*?--\}\})/,/^(?:\{\{>)/,/^(?:\{\{#)/,/^(?:\{\{\/)/,/^(?:\{\{\^)/,/^(?:\{\{\s*else\b)/,/^(?:\{\{\{)/,/^(?:\{\{&)/,/^(?:\{\{!--)/,/^(?:\{\{![\s\S]*?\}\})/,/^(?:\{\{)/,/^(?:=)/,/^(?:\.(?=[}\/ ]))/,/^(?:\.\.)/,/^(?:[\/.])/,/^(?:\s+)/,/^(?:\}\}\})/,/^(?:\}\})/,/^(?:"(\\["]|[^"])*")/,/^(?:'(\\[']|[^'])*')/,/^(?:@)/,/^(?:true(?=[}\s]))/,/^(?:false(?=[}\s]))/,/^(?:-?[0-9]+(?=[}\s]))/,/^(?:[^\s!"#%-,\.\/;->@\[-\^`\{-~]+(?=[=}\s\/.]))/,/^(?:\[[^\]]*\])/,/^(?:.)/,/^(?:$)/],e.conditions={mu:{rules:[5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],inclusive:!1},emu:{rules:[3],inclusive:!1},com:{rules:[4],inclusive:!1},INITIAL:{rules:[0,1,2,31],inclusive:!0}},e}();return e.lexer=t,n.prototype=e,e.Parser=n,new n}();e.Parser=s,e.parse=function(t){return t.constructor===e.AST.ProgramNode?t:(e.Parser.yy=e.AST,e.Parser.parse(t))},e.AST={},e.AST.ProgramNode=function(t,n){this.type="program",this.statements=t,n&&(this.inverse=new e.AST.ProgramNode(n))},e.AST.MustacheNode=function(e,t,n){this.type="mustache",this.escaped=!n,this.hash=t;var r=this.id=e[0],i=this.params=e.slice(1),s=this.eligibleHelper=r.isSimple;this.isHelper=s&&(i.length||t)},e.AST.PartialNode=function(e,t){this.type="partial",this.partialName=e,this.context=t},e.AST.BlockNode=function(t,n,r,i){var s=function(t,n){if(t.original!==n.original)throw new e.Exception(t.original+" doesn't match "+n.original)};s(t.id,i),this.type="block",this.mustache=t,this.program=n,this.inverse=r,this.inverse&&!this.program&&(this.isInverse=!0)},e.AST.ContentNode=function(e){this.type="content",this.string=e},e.AST.HashNode=function(e){this.type="hash",this.pairs=e},e.AST.IdNode=function(t){this.type="ID";var n="",r=[],i=0;for(var s=0,o=t.length;s<o;s++){var u=t[s].part;n+=(t[s].separator||"")+u;if(u===".."||u==="."||u==="this"){if(r.length>0)throw new e.Exception("Invalid path: "+n);u===".."?i++:this.isScoped=!0}else r.push(u)}this.original=n,this.parts=r,this.string=r.join("."),this.depth=i,this.isSimple=t.length===1&&!this.isScoped&&i===0,this.stringModeValue=this.string},e.AST.PartialNameNode=function(e){this.type="PARTIAL_NAME",this.name=e.original},e.AST.DataNode=function(e){this.type="DATA",this.id=e},e.AST.StringNode=function(e){this.type="STRING",this.original=this.string=this.stringModeValue=e},e.AST.IntegerNode=function(e){this.type="INTEGER",this.original=this.integer=e,this.stringModeValue=Number(e)},e.AST.BooleanNode=function(e){this.type="BOOLEAN",this.bool=e,this.stringModeValue=e==="true"},e.AST.CommentNode=function(e){this.type="comment",this.comment=e};var o=["description","fileName","lineNumber","message","name","number","stack"];e.Exception=function(e){var t=Error.prototype.constructor.apply(this,arguments);for(var n=0;n<o.length;n++)this[o[n]]=t[o[n]]},e.Exception.prototype=new Error,e.SafeString=function(e){this.string=e},e.SafeString.prototype.toString=function(){return this.string.toString()};var u={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#x27;","`":"&#x60;"},a=/[&<>"'`]/g,f=/[&<>"'`]/,l=function(e){return u[e]||"&amp;"};e.Utils={extend:function(e,t){for(var n in t)t.hasOwnProperty(n)&&(e[n]=t[n])},escapeExpression:function(t){return t instanceof e.SafeString?t.toString():t==null||t===!1?"":(t=t.toString(),f.test(t)?t.replace(a,l):t)},isEmpty:function(e){return!e&&e!==0?!0:n.call(e)==="[object Array]"&&e.length===0?!0:!1}};var c=e.Compiler=function(){},h=e.JavaScriptCompiler=function(){};c.prototype={compiler:c,disassemble:function(){var e=this.opcodes,t,n=[],r,i;for(var s=0,o=e.length;s<o;s++){t=e[s];if(t.opcode==="DECLARE")n.push("DECLARE "+t.name+"="+t.value);else{r=[];for(var u=0;u<t.args.length;u++)i=t.args[u],typeof i=="string"&&(i='"'+i.replace("\n","\\n")+'"'),r.push(i);n.push(t.opcode+" "+r.join(" "))}}return n.join("\n")},equals:function(e){var t=this.opcodes.length;if(e.opcodes.length!==t)return!1;for(var n=0;n<t;n++){var r=this.opcodes[n],i=e.opcodes[n];if(r.opcode!==i.opcode||r.args.length!==i.args.length)return!1;for(var s=0;s<r.args.length;s++)if(r.args[s]!==i.args[s])return!1}t=this.children.length;if(e.children.length!==t)return!1;for(n=0;n<t;n++)if(!this.children[n].equals(e.children[n]))return!1;return!0},guid:0,compile:function(e,t){this.children=[],this.depths={list:[]},this.options=t;var n=this.options.knownHelpers;this.options.knownHelpers={helperMissing:!0,blockHelperMissing:!0,each:!0,"if":!0,unless:!0,"with":!0,log:!0};if(n)for(var r in n)this.options.knownHelpers[r]=n[r];return this.program(e)},accept:function(e){return this[e.type](e)},program:function(e){var t=e.statements,n;this.opcodes=[];for(var r=0,i=t.length;r<i;r++)n=t[r],this[n.type](n);return this.isSimple=i===1,this.depths.list=this.depths.list.sort(function(e,t){return e-t}),this},compileProgram:function(e){var t=(new this.compiler).compile(e,this.options),n=this.guid++,r;this.usePartial=this.usePartial||t.usePartial,this.children[n]=t;for(var i=0,s=t.depths.list.length;i<s;i++){r=t.depths.list[i];if(r<2)continue;this.addDepth(r-1)}return n},block:function(e){var t=e.mustache,n=e.program,r=e.inverse;n&&(n=this.compileProgram(n)),r&&(r=this.compileProgram(r));var i=this.classifyMustache(t);i==="helper"?this.helperMustache(t,n,r):i==="simple"?(this.simpleMustache(t),this.opcode("pushProgram",n),this.opcode("pushProgram",r),this.opcode("emptyHash"),this.opcode("blockValue")):(this.ambiguousMustache(t,n,r),this.opcode("pushProgram",n),this.opcode("pushProgram",r),this.opcode("emptyHash"),this.opcode("ambiguousBlockValue")),this.opcode("append")},hash:function(e){var t=e.pairs,n,r;this.opcode("pushHash");for(var i=0,s=t.length;i<s;i++)n=t[i],r=n[1],this.options.stringParams?(r.depth&&this.addDepth(r.depth),this.opcode("getContext",r.depth||0),this.opcode("pushStringParam",r.stringModeValue,r.type)):this.accept(r),this.opcode("assignToHash",n[0]);this.opcode("popHash")},partial:function(e){var t=e.partialName;this.usePartial=!0,e.context?this.ID(e.context):this.opcode("push","depth0"),this.opcode("invokePartial",t.name),this.opcode("append")},content:function(e){this.opcode("appendContent",e.string)},mustache:function(e){var t=this.options,n=this.classifyMustache(e);n==="simple"?this.simpleMustache(e):n==="helper"?this.helperMustache(e):this.ambiguousMustache(e),e.escaped&&!t.noEscape?this.opcode("appendEscaped"):this.opcode("append")},ambiguousMustache:function(e,t,n){var r=e.id,i=r.parts[0],s=t!=null||n!=null;this.opcode("getContext",r.depth),this.opcode("pushProgram",t),this.opcode("pushProgram",n),this.opcode("invokeAmbiguous",i,s)},simpleMustache:function(e){var t=e.id;t.type==="DATA"?this.DATA(t):t.parts.length?this.ID(t):(this.addDepth(t.depth),this.opcode("getContext",t.depth),this.opcode("pushContext")),this.opcode("resolvePossibleLambda")},helperMustache:function(e,t,n){var r=this.setupFullMustacheParams(e,t,n),i=e.id.parts[0];if(this.options.knownHelpers[i])this.opcode("invokeKnownHelper",r.length,i);else{if(this.options.knownHelpersOnly)throw new Error("You specified knownHelpersOnly, but used the unknown helper "+i);this.opcode("invokeHelper",r.length,i)}},ID:function(e){this.addDepth(e.depth),this.opcode("getContext",e.depth);var t=e.parts[0];t?this.opcode("lookupOnContext",e.parts[0]):this.opcode("pushContext");for(var n=1,r=e.parts.length;n<r;n++)this.opcode("lookup",e.parts[n])},DATA:function(t){this.options.data=!0;if(t.id.isScoped||t.id.depth)throw new e.Exception("Scoped data references are not supported: "+t.original);this.opcode("lookupData");var n=t.id.parts;for(var r=0,i=n.length;r<i;r++)this.opcode("lookup",n[r])},STRING:function(e){this.opcode("pushString",e.string)},INTEGER:function(e){this.opcode("pushLiteral",e.integer)},BOOLEAN:function(e){this.opcode("pushLiteral",e.bool)},comment:function(){},opcode:function(e){this.opcodes.push({opcode:e,args:[].slice.call(arguments,1)})},declare:function(e,t){this.opcodes.push({opcode:"DECLARE",name:e,value:t})},addDepth:function(e){if(isNaN(e))throw new Error("EWOT");if(e===0)return;this.depths[e]||(this.depths[e]=!0,this.depths.list.push(e))},classifyMustache:function(e){var t=e.isHelper,n=e.eligibleHelper,r=this.options;if(n&&!t){var i=e.id.parts[0];r.knownHelpers[i]?t=!0:r.knownHelpersOnly&&(n=!1)}return t?"helper":n?"ambiguous":"simple"},pushParams:function(e){var t=e.length,n;while(t--)n=e[t],this.options.stringParams?(n.depth&&this.addDepth(n.depth),this.opcode("getContext",n.depth||0),this.opcode("pushStringParam",n.stringModeValue,n.type)):this[n.type](n)},setupMustacheParams:function(e){var t=e.params;return this.pushParams(t),e.hash?this.hash(e.hash):this.opcode("emptyHash"),t},setupFullMustacheParams:function(e,t,n){var r=e.params;return this.pushParams(r),this.opcode("pushProgram",t),this.opcode("pushProgram",n),e.hash?this.hash(e.hash):this.opcode("emptyHash"),r}};var p=function(e){this.value=e};h.prototype={nameLookup:function(e,t){return/^[0-9]+$/.test(t)?e+"["+t+"]":h.isValidJavaScriptVariableName(t)?e+"."+t:e+"['"+t+"']"},appendToBuffer:function(e){return this.environment.isSimple?"return "+e+";":{appendToBuffer:!0,content:e,toString:function(){return"buffer += "+e+";"}}},initializeBuffer:function(){return this.quotedString("")},namespace:"Handlebars",compile:function(t,n,r,i){this.environment=t,this.options=n||{},e.log(e.logger.DEBUG,this.environment.disassemble()+"\n\n"),this.name=this.environment.name,this.isChild=!!r,this.context=r||{programs:[],environments:[],aliases:{}},this.preamble(),this.stackSlot=0,this.stackVars=[],this.registers={list:[]},this.compileStack=[],this.inlineStack=[],this.compileChildren(t,n);var s=t.opcodes,o;this.i=0;for(g=s.length;this.i<g;this.i++)o=s[this.i],o.opcode==="DECLARE"?this[o.name]=o.value:this[o.opcode].apply(this,o.args);return this.createFunctionContext(i)},nextOpcode:function(){var e=this.environment.opcodes;return e[this.i+1]},eat:function(){this.i=this.i+1},preamble:function(){var e=[];if(!this.isChild){var t=this.namespace,n="helpers = this.merge(helpers, "+t+".helpers);";this.environment.usePartial&&(n=n+" partials = this.merge(partials, "+t+".partials);"),this.options.data&&(n+=" data = data || {};"),e.push(n)}else e.push("");this.environment.isSimple?e.push(""):e.push(", buffer = "+this.initializeBuffer()),this.lastContext=0,this.source=e},createFunctionContext:function(t){var n=this.stackVars.concat(this.registers.list);n.length>0&&(this.source[1]=this.source[1]+", "+n.join(", "));if(!this.isChild)for(var r in this.context.aliases)this.context.aliases.hasOwnProperty(r)&&(this.source[1]=this.source[1]+", "+r+"="+this.context.aliases[r]);this.source[1]&&(this.source[1]="var "+this.source[1].substring(2)+";"),this.isChild||(this.source[1]+="\n"+this.context.programs.join("\n")+"\n"),this.environment.isSimple||this.source.push("return buffer;");var i=this.isChild?["depth0","data"]:["Handlebars","depth0","helpers","partials","data"];for(var s=0,o=this.environment.depths.list.length;s<o;s++)i.push("depth"+this.environment.depths.list[s]);var u=this.mergeSource();if(!this.isChild){var a=e.COMPILER_REVISION,f=e.REVISION_CHANGES[a];u="this.compilerInfo = ["+a+",'"+f+"'];\n"+u}if(t)return i.push(u),Function.apply(this,i);var l="function "+(this.name||"")+"("+i.join(",")+") {\n  "+u+"}";return e.log(e.logger.DEBUG,l+"\n\n"),l},mergeSource:function(){var e="",n;for(var r=0,i=this.source.length;r<i;r++){var s=this.source[r];s.appendToBuffer?n?n=n+"\n    + "+s.content:n=s.content:(n&&(e+="buffer += "+n+";\n  ",n=t),e+=s+"\n  ")}return e},blockValue:function(){this.context.aliases.blockHelperMissing="helpers.blockHelperMissing";var e=["depth0"];this.setupParams(0,e),this.replaceStack(function(t){return e.splice(1,0,t),"blockHelperMissing.call("+e.join(", ")+")"})},ambiguousBlockValue:function(){this.context.aliases.blockHelperMissing="helpers.blockHelperMissing";var e=["depth0"];this.setupParams(0,e);var t=this.topStack();e.splice(1,0,t),e[e.length-1]="options",this.source.push("if (!"+this.lastHelper+") { "+t+" = blockHelperMissing.call("+e.join(", ")+"); }")},appendContent:function(e){this.source.push(this.appendToBuffer(this.quotedString(e)))},append:function(){this.flushInline();var e=this.popStack();this.source.push("if("+e+" || "+e+" === 0) { "+this.appendToBuffer(e)+" }"),this.environment.isSimple&&this.source.push("else { "+this.appendToBuffer("''")+" }")},appendEscaped:function(){this.context.aliases.escapeExpression="this.escapeExpression",this.source.push(this.appendToBuffer("escapeExpression("+this.popStack()+")"))},getContext:function(e){this.lastContext!==e&&(this.lastContext=e)},lookupOnContext:function(e){this.push(this.nameLookup("depth"+this.lastContext,e,"context"))},pushContext:function(){this.pushStackLiteral("depth"+this.lastContext)},resolvePossibleLambda:function(){this.context.aliases.functionType='"function"',this.replaceStack(function(e){return"typeof "+e+" === functionType ? "+e+".apply(depth0) : "+e})},lookup:function(e){this.replaceStack(function(t){return t+" == null || "+t+" === false ? "+t+" : "+this.nameLookup(t,e,"context")})},lookupData:function(e){this.push("data")},pushStringParam:function(e,t){this.pushStackLiteral("depth"+this.lastContext),this.pushString(t),typeof e=="string"?this.pushString(e):this.pushStackLiteral(e)},emptyHash:function(){this.pushStackLiteral("{}"),this.options.stringParams&&(this.register("hashTypes","{}"),this.register("hashContexts","{}"))},pushHash:function(){this.hash={values:[],types:[],contexts:[]}},popHash:function(){var e=this.hash;this.hash=t,this.options.stringParams&&(this.register("hashContexts","{"+e.contexts.join(",")+"}"),this.register("hashTypes","{"+e.types.join(",")+"}")),this.push("{\n    "+e.values.join(",\n    ")+"\n  }")},pushString:function(e){this.pushStackLiteral(this.quotedString(e))},push:function(e){return this.inlineStack.push(e),e},pushLiteral:function(e){this.pushStackLiteral(e)},pushProgram:function(e){e!=null?this.pushStackLiteral(this.programExpression(e)):this.pushStackLiteral(null)},invokeHelper:function(e,t){this.context.aliases.helperMissing="helpers.helperMissing";var n=this.lastHelper=this.setupHelper(e,t,!0),r=this.nameLookup("depth"+this.lastContext,t,"context");this.push(n.name+" || "+r),this.replaceStack(function(e){return e+" ? "+e+".call("+n.callParams+") "+": helperMissing.call("+n.helperMissingParams+")"})},invokeKnownHelper:function(e,t){var n=this.setupHelper(e,t);this.push(n.name+".call("+n.callParams+")")},invokeAmbiguous:function(e,t){this.context.aliases.functionType='"function"',this.pushStackLiteral("{}");var n=this.setupHelper(0,e,t),r=this.lastHelper=this.nameLookup("helpers",e,"helper"),i=this.nameLookup("depth"+this.lastContext,e,"context"),s=this.nextStack();this.source.push("if ("+s+" = "+r+") { "+s+" = "+s+".call("+n.callParams+"); }"),this.source.push("else { "+s+" = "+i+"; "+s+" = typeof "+s+" === functionType ? "+s+".apply(depth0) : "+s+"; }")},invokePartial:function(e){var t=[this.nameLookup("partials",e,"partial"),"'"+e+"'",this.popStack(),"helpers","partials"];this.options.data&&t.push("data"),this.context.aliases.self="this",this.push("self.invokePartial("+t.join(", ")+")")},assignToHash:function(e){var t=this.popStack(),n,r;this.options.stringParams&&(r=this.popStack(),n=this.popStack());var i=this.hash;n&&i.contexts.push("'"+e+"': "+n),r&&i.types.push("'"+e+"': "+r),i.values.push("'"+e+"': ("+t+")")},compiler:h,compileChildren:function(e,t){var n=e.children,r,i;for(var s=0,o=n.length;s<o;s++){r=n[s],i=new this.compiler;var u=this.matchExistingProgram(r);u==null?(this.context.programs.push(""),u=this.context.programs.length,r.index=u,r.name="program"+u,this.context.programs[u]=i.compile(r,t,this.context),this.context.environments[u]=r):(r.index=u,r.name="program"+u)}},matchExistingProgram:function(e){for(var t=0,n=this.context.environments.length;t<n;t++){var r=this.context.environments[t];if(r&&r.equals(e))return t}},programExpression:function(e){this.context.aliases.self="this";if(e==null)return"self.noop";var t=this.environment.children[e],n=t.depths.list,r,i=[t.index,t.name,"data"];for(var s=0,o=n.length;s<o;s++)r=n[s],r===1?i.push("depth0"):i.push("depth"+(r-1));return(n.length===0?"self.program(":"self.programWithDepth(")+i.join(", ")+")"},register:function(e,t){this.useRegister(e),this.source.push(e+" = "+t+";")},useRegister:function(e){this.registers[e]||(this.registers[e]=!0,this.registers.list.push(e))},pushStackLiteral:function(e){return this.push(new p(e))},pushStack:function(e){this.flushInline();var t=this.incrStack();return e&&this.source.push(t+" = "+e+";"),this.compileStack.push(t),t},replaceStack:function(e){var t="",n=this.isInline(),r;if(n){var i=this.popStack(!0);if(i instanceof p)r=i.value;else{var s=this.stackSlot?this.topStackName():this.incrStack();t="("+this.push(s)+" = "+i+"),",r=this.topStack()}}else r=this.topStack();var o=e.call(this,r);return n?((this.inlineStack.length||this.compileStack.length)&&this.popStack(),this.push("("+t+o+")")):(/^stack/.test(r)||(r=this.nextStack()),this.source.push(r+" = ("+t+o+");")),r},nextStack:function(){return this.pushStack()},incrStack:function(){return this.stackSlot++,this.stackSlot>this.stackVars.length&&this.stackVars.push("stack"+this.stackSlot),this.topStackName()},topStackName:function(){return"stack"+this.stackSlot},flushInline:function(){var e=this.inlineStack;if(e.length){this.inlineStack=[];for(var t=0,n=e.length;t<n;t++){var r=e[t];r instanceof p?this.compileStack.push(r):this.pushStack(r)}}},isInline:function(){return this.inlineStack.length},popStack:function(e){var t=this.isInline(),n=(t?this.inlineStack:this.compileStack).pop();return!e&&n instanceof p?n.value:(t||this.stackSlot--,n)},topStack:function(e){var t=this.isInline()?this.inlineStack:this.compileStack,n=t[t.length-1];return!e&&n instanceof p?n.value:n},quotedString:function(e){return'"'+e.replace(/\\/g,"\\\\").replace(/"/g,'\\"').replace(/\n/g,"\\n").replace(/\r/g,"\\r").replace(/\u2028/g,"\\u2028").replace(/\u2029/g,"\\u2029")+'"'},setupHelper:function(e,t,n){var r=[];this.setupParams(e,r,n);var i=this.nameLookup("helpers",t,"helper");return{params:r,name:i,callParams:["depth0"].concat(r).join(", "),helperMissingParams:n&&["depth0",this.quotedString(t)].concat(r).join(", ")}},setupParams:function(e,t,n){var r=[],i=[],s=[],o,u,a;r.push("hash:"+this.popStack()),u=this.popStack(),a=this.popStack();if(a||u)a||(this.context.aliases.self="this",a="self.noop"),u||(this.context.aliases.self="this",u="self.noop"),r.push("inverse:"+u),r.push("fn:"+a);for(var f=0;f<e;f++)o=this.popStack(),t.push(o),this.options.stringParams&&(s.push(this.popStack()),i.push(this.popStack()));return this.options.stringParams&&(r.push("contexts:["+i.join(",")+"]"),r.push("types:["+s.join(",")+"]"),r.push("hashContexts:hashContexts"),r.push("hashTypes:hashTypes")),this.options.data&&r.push("data:data"),r="{"+r.join(",")+"}",n?(this.register("options",r),t.push("options")):t.push(r),t.join(", ")}};var d="break else new var case finally return void catch for switch while continue function this with default if throw delete in try do instanceof typeof abstract enum int short boolean export interface static byte extends long super char final native synchronized class float package throws const goto private transient debugger implements protected volatile double import public let yield".split(" "),v=h.RESERVED_WORDS={};for(var m=0,g=d.length;m<g;m++)v[d[m]]=!0;h.isValidJavaScriptVariableName=function(e){return!h.RESERVED_WORDS[e]&&/^[a-zA-Z_$][0-9a-zA-Z_$]+$/.test(e)?!0:!1},e.precompile=function(t,n){if(t==null||typeof t!="string"&&t.constructor!==e.AST.ProgramNode)throw new e.Exception("You must pass a string or Handlebars AST to Handlebars.precompile. You passed "+t);n=n||{},"data"in n||(n.data=!0);var r=e.parse(t),i=(new c).compile(r,n);return(new h).compile(i,n)},e.compile=function(n,r){function s(){var i=e.parse(n),s=(new c).compile(i,r),o=(new h).compile(s,r,t,!0);return e.template(o)}if(n==null||typeof n!="string"&&n.constructor!==e.AST.ProgramNode)throw new e.Exception("You must pass a string or Handlebars AST to Handlebars.compile. You passed "+n);r=r||{},"data"in r||(r.data=!0);var i;return function(e,t){return i||(i=s()),i.call(this,e,t)}},e.VM={template:function(t){var n={escapeExpression:e.Utils.escapeExpression,invokePartial:e.VM.invokePartial,programs:[],program:function(t,n,r){var i=this.programs[t];return r?i=e.VM.program(t,n,r):i||(i=this.programs[t]=e.VM.program(t,n)),i},merge:function(t,n){var r=t||n;return t&&n&&(r={},e.Utils.extend(r,n),e.Utils.extend(r,t)),r},programWithDepth:e.VM.programWithDepth,noop:e.VM.noop,compilerInfo:null};return function(r,i){i=i||{};var s=t.call(n,e,r,i.helpers,i.partials,i.data),o=n.compilerInfo||[],u=o[0]||1,a=e.COMPILER_REVISION;if(u!==a){if(u<a){var f=e.REVISION_CHANGES[a],l=e.REVISION_CHANGES[u];throw"Template was precompiled with an older version of Handlebars than the current runtime. Please update your precompiler to a newer version ("+f+") or downgrade your runtime to an older version ("+l+")."}throw"Template was precompiled with a newer version of Handlebars than the current runtime. Please update your runtime to a newer version ("+o[1]+")."}return s}},programWithDepth:function(e,t,n){var r=Array.prototype.slice.call(arguments,3),i=function(e,i){return i=i||{},t.apply(this,[e,i.data||n].concat(r))};return i.program=e,i.depth=r.length,i},program:function(e,t,n){var r=function(e,r){return r=r||{},t(e,r.data||n)};return r.program=e,r.depth=0,r},noop:function(){return""},invokePartial:function(n,r,i,s,o,u){var a={helpers:s,partials:o,data:u};if(n===t)throw new e.Exception("The partial "+r+" could not be found");if(n instanceof Function)return n(i,a);if(!e.compile)throw new e.Exception("The partial "+r+" could not be compiled when running in runtime-only mode");return o[r]=e.compile(n,{data:u!==t}),o[r](i,a)}},e.template=e.VM.template})(Handlebars),define("Handlebars",function(e){return function(){var t,n;return t||e.Handlebars}}(this)),define("hbars",["text","Handlebars"],function(e,t){var n={},r={},i="define('{pluginName}!{moduleName}', ['Handlebars'], function (Handlebars) { return Handlebars.compile('{content}'); });\n";return{version:"0.0.2",load:function(i,s,o,u){if(r[i])o(r[i]);else{var a=u.hbars&&u.hbars.extension||".html",f=u.hbars&&u.hbars.path||"";e.load(f+i+a,s,function(e){u.isBuild?(n[i]=e,o()):(r[i]=t.compile(e),o(r[i]))},u)}},write:function(t,r,s,o){var u=n[r],a=u&&e.jsEscape(u);a&&s.asModule(t+"!"+r,i.replace("{pluginName}",t).replace("{moduleName}",r).replace("{content}",a))}}}),define("hbars!modules/../../templates/navigation",["Handlebars"],function(e){return e.compile('<li><a href="#{{id}}">{{title}}</a></li>\n')}),define("hbars!modules/../../templates/api-section",["Handlebars"],function(e){return e.compile('<section class="api-documents" id="section-{{id}}"></section>\n')}),define("hbars!modules/../../templates/api-article",["Handlebars"],function(e){return e.compile('<article class="document">\n  <div class="for-humans" id={{id}}>\n    {{{content}}}\n  </div>\n  <div class="for-machines">\n    {{{example}}}\n  </div>\n</article>\n')}),define("mdown",[],function(){return{load:function(e,t,n,r){}}}),define("mdown!modules/../../documents/api/account-credentials-example.md",[],function(){return'<h4>Example Object</h4>\n\n<pre><code>{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/&lt;id&gt;"\n    }\n  },\n  "macAlgorithm":"HMAC-SHA1",\n  "macKey":"&lt;macKey&gt;",\n  "macKeyIdentifier":"&lt;macKeyIdentifier&gt;"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/account-credentials.md",[],function(){return"<h2>Account Credentials</h2>\n\n<p>Account credentials authenticate you to perform actions on your developer account. A set of account credentials is created automatically when you create your developer account. Account credentials are the same for both sandbox and live mode. They are available at <code>/accounts/&lt;account-id&gt;/account-credentials</code> and are used to sign requests to <code>/accounts</code> and <code>/apps</code>.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>macAlgorithm</td>\n            <td>The MAC algorithm describes the algorithm used to create the signature.</td>\n        </tr>\n        <tr>\n            <td>macKey</td>\n            <td>The MAC key is the shared secret key. It should never be shared with anyone or transmitted in any request. Keep this key secure as you would any private key.</td>\n        </tr>\n        <tr>\n            <td>macKeyIdentifier</td>\n            <td>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier is sent with each request to tell the server which MAC key was used to sign the request.</td>\n        </td>\n    </tbody>\n</table>"}),define("mdown!modules/../../documents/api/accounts-example.md",[],function(){return'<h4>Example Object</h4>\n\n<pre><code>{\n  "accountCredentials": [\n    {\n      "links": {\n        "self": {\n          "href": "https://lcp.points.com/v1/accounts/&lt;id&gt;/account-credentials/&lt;ac-id&gt;"\n        }\n      },\n      "macAlgorithm":"HMAC-SHA1",\n      "macKey":"&lt;macKey&gt;",\n      "macKeyIdentifier":"&lt;macKeyIdentifier&gt;"\n    }\n  ],\n  "email": "&lt;email&gt;",\n  "links": {\n      "self": {\n        "href": "https://lcp.points.com/v1/accounts/&lt;id&gt;"\n      },\n      "friendly": {\n        "href": "https://lcp.points.com/v1/accounts/&lt;email&gt;"\n      }\n  }\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/accounts.md",[],function(){return'<h2>Accounts</h2>\n\n<p>An account is your own personal developer account on the LCP system. It is tied to your email address and gives you access credentials to the LCP. It also enables you to create one or more applications that interface with the LCP.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>accountCredentials</td>\n            <td>An array of <a href="#account-credentials">account credential</a> objects that can be used to access this account.</td>\n        </tr>\n        <tr>\n            <td>email</td>\n            <td>The email address of the account owner.</td>\n        </tr>\n    </tbody>\n</table>'}),define("mdown!modules/../../documents/api/apps-example.md",[],function(){return'<h4>Example Object</h4>\n\n<pre><code>{\n  "description": "&lt;description&gt;",\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/&lt;id&gt;"\n    }\n  },\n  "liveCredentials": [],\n  "name": "&lt;name&gt;",\n  "sandboxCredentials": [\n"https://lcp.points.com/v1/apps/&lt;id&gt;/sandbox-credentials/&lt;sc-id&gt;"\n  ]\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/apps.md",[],function(){return'<h2>Apps</h2>\n\n<p>Apps allow you to communicate with one or more loyalty programs. Apps are stored under the <code>/apps</code> endpoint. Use your account credentials to create one or more apps and to access your existing apps. Each app has its own set of business rules that determine which loyalty programs it can interact with, what actions it can perform, and how much each action costs.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>description</td>\n            <td>The identifier of the account to add credentials to.</td>\n        </tr>\n        <tr>\n            <td>liveCredentials</td>\n            <td>An array of <a href="#live-credentials">live credential</a> objects that the app can use to access the live environment.</td>\n        </tr>\n        <tr>\n            <td>name</td>\n            <td>The name of the app.</td>\n        </tr>\n        <tr>\n            <td>sandboxCredentials</td>\n            <td>An array of <a href="#sandbox-credentials">sandbox credential</a> objects that the app can use to access the sandbox environment.</td>\n        </tr>\n    </tbody>\n</table>'}),define("mdown!modules/../../documents/api/create-a-credit-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>POST https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n{\n  "amount": 2000,\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;"\n}\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>201 CREATED\nlocation: https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;\n{\n  "amount": 2000,\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;"\n    }\n  },\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;",\n  "status": "success",\n  "transactionId": "&lt;transaction-id&gt;"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/create-a-credit.md",[],function(){return'<h3>Create a Credit</h3>\n\n<p>Create a credit object to attempt to add points to a loyalty program member\'s account. A credit first requires a successful <a href="#member-validations">member validation</a> that has not been used previously with another transaction. To create a new credit, POST a link to the member validation and the amount to add to the member\'s account under the credits endpoint for the loyalty program. Requests must be signed with your app\'s credentials.</p>\n\n<p>In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a credit.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the <a href="#loyalty-programs">loyalty program</a> (LP).</td>\n        </tr>\n        <tr>\n            <td>amount</td>\n            <td><p>The number of points to add to the member\'s account. Must be a positive integer.</p>\n            <p><strong>Sandbox mode</strong>: To simulate a failed credit, set the amount to 99.</p></td>\n        </tr>\n        <tr>\n            <td>memberValidation</td>\n            <td>Link to a member validation that identifies the member\'s account to be credited. The member validation cannot have been used with another transaction.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The credit object if it was created successfully. Returns an <a href="index.html?doc=reference-manual#errors">error</a> if the member validation is not valid.</p>'}),define("mdown!modules/../../documents/api/create-a-debit-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>POST https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n{\n  "amount": 2000,\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;"\n}\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>201 CREATED\nlocation: https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;\n{\n  "amount": 2000,\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;"\n    }\n  },\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;",\n  "status": "success",\n  "transactionId": "&lt;transaction-id&gt;"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/create-a-debit.md",[],function(){return"<h3>Create a Debit</h3>\n\n<p>Create a debit object to attempt to deduct points from a loyalty program member's account. A debit first requires a successful <a href=\"#member-validations\">member validation</a> that has not been used previously with another transaction. To create a new debit, POST a link to the member validation and the amount to deduct from the member's account under the debits endpoint for the loyalty program. Requests must be signed with your app's credentials.</p>\n\n<p>In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a debit.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the <a href=\"#loyalty-programs\">loyalty program</a> (LP).</td>\n        </tr>\n        <tr>\n            <td>amount</td>\n            <td><p>The number of points to deduct from the member's account. Must be a positive integer less than the member's balance obtained from the member validation.</p>\n            <p><strong>Sandbox mode</strong>: To simulate a failed credit, set the amount to 99.</p></td>\n        </tr>\n        <tr>\n            <td>memberValidation</td>\n            <td>Link to a member validation that identifies the member's account to be debited. The member validation cannot have been used with another transaction.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The debit object if it was created successfully. Returns an <a href=\"index.html?doc=reference-manual#errors\">error</a> if the member validation is not valid or if the amount is greater than the balance in the member validation.</p>"}),define("mdown!modules/../../documents/api/create-a-mv-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>POST https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n{\n  "firstName": "John",\n  "lastName": "Doe",\n  "memberId": "1234"\n}\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>201 CREATED\nlocation: https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;\n{\n  "balance": 2000,\n  "firstName": "John",\n  "lastName": "Doe",\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;"\n    }\n  },\n  "memberId": "1234"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/create-a-mv.md",[],function(){return'<h3>Create an MV</h3>\n\n<p>To create a new MV, POST the loyalty program member\'s account details to the loyalty program\'s MV service and sign the request with your app credentials. In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a MV.</p>\n\n<p>Authenticating a member requires a specific set of fields, defined by the specific loyalty program you wish to communicate with. For example, some loyalty programs may require a member ID and password, while others require a member ID, last name, and password. To keep things simple for now, the LCP currently only interacts with loyalty programs that require first name, last name, and member ID or first name, last name, member ID, and password.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the <a href="#loyalty-programs">loyalty program</a> (LP).</td>\n        </tr>\n        <tr>\n            <td>firstName</td>\n            <td>The first name of the loyalty program member.</td>\n        </tr>\n        <tr>\n            <td>lastName</td>\n            <td><p>The last name of the loyalty program member.</p>\n                <p><strong>Sandbox mode</strong>: To simulate a non-zero balance, append a space and a positive integer to the lastName field. For example, to simulate a balance of 2000 for John Doe, set lastName to "Doe 2000".</p></td>\n        </tr>\n        <tr>\n            <td>memberId</td>\n            <td><p>The member ID of the loyalty program member.</p>\n                <p><strong>Sandbox mode</strong>: To simulate a successful MV, set the memberId to one of the following depending on the loyalty program:\n                <ul>\n                    <li>Delta: sNQC</li>\n                    <li>Southwest: OfMq</li>\n                    <li>USAirways: UVmr</li>\n                    <li>Virgin Atlantic: KtuR</li>\n                    <li>Wyndham: YPyM</li>\n                </ul>\n            </td>\n        </tr>\n        <tr>\n            <td>password</td>\n            <td>The password for the member\'s account. Only required for Delta.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The MV object if it was created successfully. Returns an <a href="index.html?doc=reference-manual#errors">error</a> if the firstName, lastName or memberId is not provided or if the member could not be validated for the given loyalty program.</p>'}),define("mdown!modules/../../documents/api/create-account-credentials-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>POST https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Request</h4>\n\n<pre><code>201 CREATED\nlocation: https://lcp.points.com/v1/accounts//account-credentials/\n{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts//account-credentials/"\n    }\n  },\n  "macAlgorithm":"HMAC-SHA1",\n  "macKey":"",\n  "macKeyIdentifier":""\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/create-account-credentials.md",[],function(){return'<h3>Create Account Credentials</h3>\n\n<p>Account credentials are automatically created when you create your account. However, you can create additional credentials if you want another set or if your first set has been compromised. You must use your first set of credentials to sign the request.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>account-id</td>\n            <td>The identifier of the account to add credentials to.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The account credentials object if it was created successfully. Returns an <a href="index.html?doc=reference-manual#errors">error</a> if you are not authorized to create new account credentials on this account.</p>'}),define("mdown!modules/../../documents/api/create-an-account-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>POST https://lcp.points.com/v1/accounts/\n{\n  "email": "youremail@yourcompany.com"\n}\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>201 CREATED\nlocation: https://lcp.points.com/v1/accounts/\n{\n  "accountCredentials": [\n    {\n      "links": {\n        "self": {\n          "href": "https://lcp.points.com/v1/accounts//account-credentials/"\n        }\n      },\n      "macAlgorithm":"HMAC-SHA1",\n      "macKey":"",\n      "macKeyIdentifier":""\n    }\n  ],\n  "email": "youremail@yourcompany.com",\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/"\n    },\n    "friendly": {\n      "href": "https://lcp.points.com/v1/accounts/youremail%40yourcompany.com"\n    }\n  }\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/create-an-account.md",[],function(){return'<h3>Create an Account</h3>\n\n<p>Create a new developer account to get started and obtain your account credentials. This is the only action that does not require authorization. Creating your account will return your account credentials that you can start using immediately to develop against the platform.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>email</td>\n            <td>Your email address. Provide a valid email address so that we can verify you are the owner of the account.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The account object if it was created successfully. Returns an <a href="index.html?doc=reference-manual#errors">error</a> if the email already exists for another account.</p>'}),define("mdown!modules/../../documents/api/create-an-app-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>POST https://lcp.points.com/v1/apps/\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n{\n  "name": "My App",\n  "description": "Description of my app"\n}\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>201 CREATED\nlocation: https://lcp.points.com/v1/apps/&lt;id&gt;\n{\n  "description": "Description of my app",\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/&lt;id&gt;"\n    }\n  },\n  "liveCredentials": [],\n  "name": "My App",\n  "sandboxCredentials": [\n"https://lcp.points.com/v1/apps/&lt;id&gt;/sandbox-credentials/&lt;sc-id&gt;"\n  ]\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/create-an-app.md",[],function(){return'<h3>Create an App</h3>\n\n<p>To create a new application, POST the application name and description to <code>/apps</code> and sign the request with your account credentials. Sandbox credentials are created automatically when you create an app. Your app can use these credentials to access the sandbox environment. Credentials to access the live environment can only be created by Points.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>name</td>\n            <td>The name of your app.</td>\n        </tr>\n        <tr>\n            <td>description</td>\n            <td>A description for your app.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The app object if it was created successfully. Returns an <a href="index.html?doc=reference-manual#errors">error</a> if the name or description is not provided.</p>'}),define("mdown!modules/../../documents/api/credits-example.md",[],function(){return'<h4>Example Object</h4>\n\n<pre><code>{\n  "amount": 2000,\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;"\n    }\n  },\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;",\n  "status": "success",\n  "transactionId": "&lt;transaction-id&gt;"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/credits.md",[],function(){return"<h2>Credits</h2>\n\n<p>A credit is a transaction that adds points to a loyalty program member's account. Creating a credit object triggers the addition of points. A record of the credit is kept that can later be retrieved. A credit requires a member validation that has not been previously used for another transaction. Credits are stored for each loyalty program under <code>/lps/&lt;lp-id&gt;/credits/</code>.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>amount</td>\n            <td>The number of points added to the member's account. Must be a positive integer.</td>\n        </tr>\n        <tr>\n            <td>memberValidation</td>\n            <td>Link to a member validation that identifies the member's account that was credited.</td>\n        </tr>\n        <tr>\n            <td>status</td>\n            <td>The status of the credit. Must be either success or failure.</td>\n        </tr>\n        <tr>\n            <td>transactionId</td>\n            <td>A transaction ID that can be used to reconcile the credit against the loyalty partner's records.</td>\n        </tr>\n    </tbody>\n</table>"}),define("mdown!modules/../../documents/api/debits-example.md",[],function(){return'<h4>Example Object</h4>\n\n<pre><code>{\n  "amount": 2000,\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;"\n    }\n  },\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;",\n  "status": "success",\n  "transactionId": "&lt;transaction-id&gt;"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/debits.md",[],function(){return"<h2>Debits</h2>\n\n<p>A debit is a transaction that takes points out of a loyalty program member’s account. Creating a debit object triggers the removal of points. A record of the debit is kept that can later be retrieved. A debit requires a member validation that has not been previously used for another transaction. Debits are stored for each loyalty program under <code>/lps/&lt;lp-id&gt;/debits/</code>.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>amount</td>\n            <td>The number of points deducted from the member's account. Must be a positive integer.</td>\n        </tr>\n        <tr>\n            <td>memberValidation</td>\n            <td>Link to a member validation that identifies the member's account that was debited.</td>\n        </tr>\n        <tr>\n            <td>status</td>\n            <td>The status of the debit. Must be either success or failure.</td>\n        </tr>\n        <tr>\n            <td>transactionId</td>\n            <td>A transaction ID that can be used to reconcile the debit against the loyalty partner's records.</td>\n        </tr>\n    </tbody>\n</table>"}),define("mdown!modules/../../documents/api/delete-account-credentials-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>DELETE https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>204 NO CONTENT\n</code></pre>'}),define("mdown!modules/../../documents/api/delete-account-credentials.md",[],function(){return'<h3>Delete Account Credentials</h3>\n\n<p>If your account credentials have been compromised or if you no longer wish to use one of them, you can delete them. However, you must have at least one set of account credentials. You cannot delete your only set. If you want to replace your current set of credentials, first <a href="#create-account-credentials">create a new set of credentials</a> before deleting your current set.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>account-id</td>\n            <td>The identifier of the account that has the credentials.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the account credentials to be deleted.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>HTTP status code 204 (No Content) if successful. Otherwise, returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>'}),define("mdown!modules/../../documents/api/documentation-overview.md",[],function(){return'<h1>LCP API Reference</h1>\n\n<p>For Points Loyalty Platform - Version 1.0<br><br></p>\n\n<h2>Document Overview</h2>\n\n<p>This document contains a complete list of all objects and actions supported by the Points Loyalty Commerce Platform (LCP) API. The document is organized as follows. Each object is described with the list its properties and an example instance. For each object, a list of possible actions are provided. Each action contains a description of the action itself as well as descriptions and examples of the request and response parameters to perform the action. This document assumes you are already familiar with the LCP and have read the <a href="index.html">LCP Getting Started Guide for Developers</a> and the <a href="index.html?doc=reference-manual">LCP Reference Manual</a>.</p>'}),define("mdown!modules/../../documents/api/get-a-credit-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>GET https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "amount": 2000,\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;"\n    }\n  },\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;",\n  "status": "success",\n  "transactionId": "&lt;transaction-id&gt;"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/get-a-credit.md",[],function(){return'<h3>Get a Credit</h3>\n\n<p>Retrieves the details of a previous credit. This retrieves a historical record of the credit transaction when it was created, including whether the transaction succeeded or failed. Requests must be signed with your app\'s credentials.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the loyalty program (LP).</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the credit.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The credit object if it exists, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>'}),define("mdown!modules/../../documents/api/get-a-debit-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>GET https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "amount": 2000,\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;"\n    }\n  },\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;",\n  "status": "success",\n  "transactionId": "&lt;transaction-id&gt;"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/get-a-debit.md",[],function(){return'<h3>Get a Debit</h3>\n\n<p>Retrieves the details of a previous debit. This retrieves a historical record of the debit transaction when it was created, including whether the transaction succeeded or failed. Requests must be signed with your app\'s credentials.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the loyalty program (LP).</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the debit.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The debit object if it exists, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>'}),define("mdown!modules/../../documents/api/get-a-mv-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>GET https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "balance": 2000,\n  "firstName": "John",\n  "lastName": "Doe",\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;"\n    }\n  },\n  "memberId": "1234"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/get-a-mv.md",[],function(){return"<h3>Get an MV</h3>\n\n<p>Retrieves the details of a previous MV. This retrieves the MV and member's balance in the state it was when it was when the MV was created. To get an updated member's balance, create a new MV. Requests must be signed with your app's credentials.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the loyalty program (LP).</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the member validation (MV).</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The MV object if it exists, otherwise returns an <a href=\"index.html?doc=reference-manual#errors\">error</a>.</p>"}),define("mdown!modules/../../documents/api/get-account-credentials-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>GET https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/&lt;id&gt;"\n    }\n  },\n  "macAlgorithm": "HMAC-SHA1",\n  "macKey": "&lt;macKey&gt;",\n  "macKeyIdentifier": "&lt;macKeyIdentifier&gt;"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/get-account-credentials.md",[],function(){return'<h3>Get Account Credentials</h3>\n\n<p>Retrieves an existing set of account credentials.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>account-id</td>\n            <td>The identifier of the account that has the credentials.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the account credentials.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The account credentials object if it exists and you’re authorized to access it, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>'}),define("mdown!modules/../../documents/api/get-an-account-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>GET https://lcp.points.com/v1/accounts/\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "email": "",\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/"\n    },\n    "friendly": {\n      "href": "https://lcp.points.com/v1/accounts/"\n    }\n  }\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/get-an-account.md",[],function(){return'<h3>Get an Account</h3>\n\n<p>Retrieves the account details for an existing account. Requires account credentials for the account being accessed.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the account.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The account object if it exists, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>'}),define("mdown!modules/../../documents/api/get-an-app-by-mac-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>GET https://lcp.points.com/v1/apps?macKeyIdentifier=&lt;mac-key-id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "apps": [\n    {\n      "description": "Description of my app",\n      "links": {\n        "self": {\n          "href": "https://lcp.points.com/v1/apps/&lt;id&gt;"\n        }\n      },\n      "name": "My App"\n    }\n  ]\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/get-an-app-by-mac.md",[],function(){return"<h3>Get an App by MAC Key Identifier</h3>\n\n<p>If you don't remember your app's ID, you can also retrieve it by querying the <code>/apps</code> endpoint with your app's MAC key identifier.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>mac-key-id</td>\n            <td>The MAC key identifier for the live or sandbox credentials of an app.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>A list of apps. If an app was found with the given MAC key identifier, the app is included in the list. Otherwise, the list is empty. The returned app object does not include links to live and sandbox credentials. Get the self link to retrieve links to your app's credentials.</p>"}),define("mdown!modules/../../documents/api/get-an-app-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "description": "Description of my app",\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/&lt;id&gt;"\n    }\n  },\n  "liveCredentials": [],\n  "name": "My App",\n  "sandboxCredentials": [\n"https://lcp.points.com/v1/apps/&lt;id&gt;/sandbox-credentials/&lt;sc-id&gt;"\n  ]\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/get-an-app.md",[],function(){return'<h3>Get an App</h3>\n\n<p>Retrieves the details of an existing app.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the app.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The app object if it exists, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>'}),define("mdown!modules/../../documents/api/get-live-credentials-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/live-credentials/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/&lt;app-id&gt;/live-credentials/&lt;id&gt;"\n    }\n  },\n  "macAlgorithm": "HMAC-SHA1",\n  "macKey": "&lt;macKey&gt;",\n  "macKeyIdentifier": "&lt;macKeyIdentifier&gt;"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/get-live-credentials.md",[],function(){return'<h3>Get Live Credentials</h3>\n\n<p>Retrieves an existing set of live credentials.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the app that has the credentials.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the live credentials.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The live credentials object if it exists and you\'re authorized to access it, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>'}),define("mdown!modules/../../documents/api/get-sandbox-credentials-example.md",[],function(){return'<h4>Example Request</h4>\n\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-credentials/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-credentials/&lt;id&gt;"\n    }\n  },\n  "macAlgorithm": "HMAC-SHA1",\n  "macKey": "&lt;macKey&gt;",\n  "macKeyIdentifier": "&lt;macKeyIdentifier&gt;"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/get-sandbox-credentials.md",[],function(){return'<h3>Get Sandbox Credentials</h3>\n\n<p>Retrieves an existing set of sandbox credentials.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the app that has the credentials.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the sandbox credentials.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The sandbox credentials object if it exists and you\'re authorized to access it, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>'}),define("mdown!modules/../../documents/api/live-credentials-example.md",[],function(){return'<h4>Example Object</h4>\n\n<pre><code>{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/&lt;app-id&gt;/live-credentials/&lt;id&gt;"\n    }\n  },\n  "macAlgorithm": "HMAC-SHA1",\n  "macKey": "&lt;macKey&gt;",\n  "macKeyIdentifier": "&lt;macKeyIdentifier&gt;"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/live-credentials.md",[],function(){return"<h2>Live Credentials</h2>\n\n<p>Live credentials authenticate your app to perform actions on the LCP in live mode. App credentials are different for sandbox and live mode. Live credentials are created by Points when your app is promoted to live mode. Live credentials are available at <code>/apps/&lt;app-id&gt;/live-credentials</code> and are used to sign requests to <code>/lps</code> in live mode. You cannot create or delete live credentials.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>macAlgorithm</td>\n            <td>The MAC algorithm describes the algorithm used to create the signature.</td>\n        </tr>\n        <tr>\n            <td>macKey</td>\n            <td>The MAC key is the shared secret key. It should never be shared with anyone or transmitted in any request. Keep this key secure as you would any private key.</td>\n        </tr>\n        <tr>\n            <td>macKeyIdentifier</td>\n            <td>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier is sent with each request to tell the server which MAC key was used to sign the request.</td>\n        </tr>\n    </tbody>\n</table>"}),define("mdown!modules/../../documents/api/loyalty-programs.md",[],function(){return'<h2>Loyalty Programs (LPs)</h2>\n\n<p>A loyalty program (LP) allows you to perform member validations, debits, and credits against the loyalty program\'s member database. Loyalty programs are found under the <code>/lps</code> endpoint.</p>\n\n<p>In this version of the API, the list of LPs is fixed and your app cannot get the list of the loyalty programs that are supported. Instead, here is the list of loyalty programs that are available in this version:</p>\n\n<p>Use the LP IDs above when performing <a href="#member-validations">member validations (MVs)</a>, <a href="#debits">debits</a>, and <a href="#credits">credits</a> on the loyalty programs.</p>'}),define("mdown!modules/../../documents/api/member-validations-example.md",[],function(){return'<h4>Example Object</h4>\n\n<pre><code>{\n  "balance": 2000,\n  "firstName": "John",\n  "lastName": "Doe",\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;"\n    }\n  },\n  "memberId": "1234",\n  "password": "********"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/member-validations.md",[],function(){return"<h2>Member Validations (MVs)</h2>\n\n<p>A member validation (MV) authenticates a member of a loyalty program and retrieves their balance. MVs are required before any other transactions can be performed on a member's account and each transaction requires a separate MV.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>balance</td>\n            <td>The balance in the loyalty program member's account.</td>\n        </tr>\n        <tr>\n            <td>firstName</td>\n            <td>The first name of the loyalty program member.</td>\n        </tr>\n        <tr>\n            <td>lastName</td>\n            <td>The last name of the loyalty program member.</td>\n        </tr>\n        <tr>\n            <td>memberId</td>\n            <td>The member ID of the loyalty program member.</td>\n        </tr>\n        <tr>\n            <td>password</td>\n            <td>The password for the member's account (if required). For security reasons, the password is masked when retrieving MVs.</td>\n        </tr>\n    </tbody>\n</table>"}),define("mdown!modules/../../documents/api/sandbox-credentials-example.md",[],function(){return'<h4>Example Object</h4>\n\n<pre><code>{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-credentials/&lt;id&gt;"\n    }\n  },\n  "macAlgorithm": "HMAC-SHA1",\n  "macKey": "&lt;macKey&gt;",\n  "macKeyIdentifier": "&lt;macKeyIdentifier&gt;"\n}\n</code></pre>'}),define("mdown!modules/../../documents/api/sandbox-credentials.md",[],function(){return"<h2>Sandbox Credentials</h2>\n\n<p>Sandbox credentials authenticate your app to perform actions on the LCP. A set of sandbox credentials is created automatically when you create your app. App credentials are different for sandbox and live mode. Sandbox credentials are available at <code>/apps/&lt;app-id&gt;/sandbox-credentials</code> and are used to sign requests to <code>/lps</code>.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>macAlgorithm</td>\n            <td>The MAC algorithm describes the algorithm used to create the signature.</td>\n        </tr>\n        <tr>\n            <td>macKey</td>\n            <td>The MAC key is the shared secret key. It should never be shared with anyone or transmitted in any request. Keep this key secure as you would any private key.</td>\n        </tr>\n        <tr>\n            <td>macKeyIdentifier</td>\n            <td>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier is sent with each request to tell the server which MAC key was used to sign the request.</td>\n        </tr>\n    </tbody>\n</table>"}),define("mdown!modules/../../documents/getting-started.md",[],function(){return'<h1>LCP Getting Started Guide</h1>\n\n<p>For Points Loyalty Commerce Platform - Version 1.0</p>\n\n<h2>Document Overview</h2>\n\n<p>The purpose of this document is to provide a beginner’s guide to the Points\nLoyalty Commerce Platform (LCP). You will find below an introduction to the LCP,\nthings you need to know before you get started and a step-by-step guide on how\nto use the APIs to check member balances. To accomplish this, this document will\nintroduce you to the <code>/accounts</code>, <code>/apps</code> and <code>/lps</code> resources that are exposed in the\nAPI. The sample code provided uses <a href="http://en.wikipedia.org/wiki/CURL">cURL</a> to\ncommunicate with the LCP. For a more detailed description of the LCP and its\ncapabilities see the <a href="index.html?doc=reference-manual">LCP Reference\nManual</a>\nand the <a href="index.html?doc=api-reference">LCP API\nReference</a>.</p>\n\n<h2>Introducing the Loyalty Commerce Platform API</h2>\n\n<p>The LCP\'s capabilities are exposed to developers through a <a href="https://en.wikipedia.org/wiki/Representational_state_transfer#RESTful_web_APIs">RESTful web\nAPI</a>.\nThe API consists of a set of resources that can be operated on using standard\nHTTP methods. The top-level resources in the LCP are accounts, apps, and lps.</p>\n\n<p><strong>Accounts</strong> - Your developer account information and credentials are stored\nunder <code>/accounts</code>. Once you create your account you can access it at\n<code>/accounts/&lt;account-id&gt;</code></p>\n\n<p><strong>Apps</strong> - Your apps are stored under the <code>/apps</code> endpoint. Each app will be given\na unique ID under <code>/apps</code>.</p>\n\n<p><strong>LPs</strong> - Loyalty programs (LPs) are stored under <code>/lps</code>. Each LP will have it’s\nown ID under <code>/lps</code>.</p>\n\n<p>Some actions can be performed on the collection of resources, while others must\nbe performed on individual resources. Resources can be created, read, updated,\nand deleted using standard HTTP methods.</p>\n\n<p><strong>POST</strong> - Used to create a resource by sending resource data to the collection.\nIf successful, returns a <code>201 (Created)</code> status code with a Location header that\nspecifies the location of the newly created resource. All method parameters must\nbe passed as part of request body using JSON.</p>\n\n<p><strong>GET</strong> - Used to retrieve a resource from the LCP. This operation is\n<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.1.2">idempotent</a> and\nhas no side effects from submitting the same request multiple times. If\nsuccessful, returns a <code>200 (OK)</code> status code with the resource content.</p>\n\n<p><strong>PUT</strong> - Used to update an existing resource. This operation is\n<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.1.2">idempotent</a> and\nhas no side effects from submitting the same request multiple times. If\nsuccessful, returns a <code>200 (OK)</code> status code with the resource content. All method\nparameters must be passed as part of request body using JSON.</p>\n\n<p><strong>DELETE</strong> - Used to delete a resource. This operation is\n<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.7">idempotent</a> and\nhas no side effects from submitting same request multiple times. If successful,\nreturns a <code>204 (No Content)</code> status code with an empty response body.</p>\n\n<p>All request and response payloads are <a href="http://en.wikipedia.org/wiki/UTF8">UTF8</a>\nencoded <a href="http://en.wikipedia.org/wiki/JSON">JSON</a>.\n<a href="http://en.wikipedia.org/wiki/Https">HTTPS</a> is used for all requests to ensure\nsecure communication. When consuming APIs in the LCP, developers must use <a href="http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02">OAuth\n2.0 Message Authentication Code (MAC) Tokens (draft\n02)</a> to authenticate\nthemselves. <a href="https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util">Utilities</a>\nare available to simplify the request signing process.\nSee the <a href="#security">Security</a> section of this document for more\ndetails.</p>\n\n<h2>Things You Should Know About Using the LCP</h2>\n\n<p>The Loyalty Commerce Platform (LCP) allows you to write apps that can access\nmany loyalty programs. The LCP handles the complexity of working with each\nloyalty program, creating one simple interface for working with any number of\nprograms.</p>\n\n<p><img src="static/images/getting-started.png" alt="Getting Started" title="" /></p>\n\n<h3>Sandbox vs. Live Mode</h3>\n\n<p>The LCP supports two different modes of operation: sandbox mode and live mode.\nDuring development, your application will operate in sandbox mode so that it\ndoesn’t make changes to any loyalty program member’s account. In sandbox mode,\nthe LCP never communicates with the loyalty program. All operations are\nsimulated. When you\'re ready to deploy your application, Points will promote\nyour application to live mode.</p>\n\n<p>Sandbox mode is accessed through\n<code>https://sandbox.lcp.points.com</code> while live\nmode through <code>https://lcp.points.com</code>. Each app has two\nsets of credentials to access the LCP: one set for sandbox mode and another set\nfor live mode. When accessing the LCP in sandbox mode, the sandbox credentials\nmust be used. When your app is promoted to live mode, Points will provide you\nwith live mode credentials.</p>\n\n<h3>Security</h3>\n\n<p>This section describes things you will need to know about LCP security to get\nyou started with building applications on the LCP.</p>\n\n<p><strong>All requests to and responses from the LCP are made using HTTPS.</strong> Using HTTPS\nhas a couple of benefits:</p>\n\n<ol>\n<li>HTTPS protects network traffic from eavesdropping by encrypting all traffic\nto and from the LCP so that only the sender and receiver are able to read\nrequests and responses.</li>\n<li>HTTPS permits clients to verify the identity of the server to ensure the\ncorrect server is receiving its requests.</li>\n</ol>\n\n<p><strong>All requests include an HTTP Authorization header</strong> to enable the LCP to\nvalidate the sender’s identity. <a href="http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02">OAuth 2.0 Message Authentication Code (MAC)\nTokens</a>\nare used to sign all requests to the LCP after you’ve created your account.\nOAuth 2.0 MAC is an evolving variant of OAuth 2.0.</p>\n\n<p>MAC tokens provide enhanced security over OAuth 2.0 Bearer tokens because unlike\nBearer tokens, MAC tokens are never sent between the client and the server. A\nbearer token is a shared secret key that is passed from the client to the server\nfor authentication. However, because bearer tokens involves transmitting the\nshared secret key between the client and the server, it can be vulnerable to\nattack if a third party gains access to any HTTP request. MAC tokens avoid this\nsecurity vulnerability by never transmitting the shared secret key. Instead the\nclient sends a signature that is generated using the shared secret key and\ndetails about the request. The server also generates the signature using the\nsame key and request details. If the signatures match then the server knows that\nthe signatures were generated using the same key and that the message was not\nmodified during transmission.</p>\n\n<p>The downside of MAC tokens is that the standard is still evolving and has\nlimited support at this time. This version of the LCP complies with <a href="http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02">draft 02 of\nthe OAuth 2.0 MAC\nstandard</a>. When\nusing this scheme it is highly recommended that you use one of the <a href="https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util">LCP Client\nUtilities</a> to issue\nplatform requests because these utilities will compute MACs for you.</p>\n\n<p>The credentials required for MAC authentication include a MAC key identifier, a\nMAC key and a MAC algorithm. Below is an example of a JSON document representing\nthe credentials for use with MAC authentication.</p>\n\n<pre><code>{\n  "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b",\n  "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",\n  "macAlgorithm": "HMAC-SHA1"\n}\n</code></pre>\n\n<p>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier\nis sent with each request to tell the server which MAC key was used to sign the\nrequest. The MAC key is the shared secret key. It should never be shared with\nanyone or transmitted in any request. Keep this key secure as you would any\nprivate key. Finally, the MAC algorithm describes the algorithm used to create\nthe signature.</p>\n\n<p>The LCP defines 2 different types of credentials:</p>\n\n<ol>\n<li><strong>Account credentials</strong>\n<ul><li>Account credentials authenticate you to perform actions on your developer account.</li>\n<li>A set of account credentials is created automatically when you create your developer account.</li>\n<li>Account credentials are the same for both sandbox and live mode.</li>\n<li>They are available at <code>/accounts/&lt;account-id&gt;</code>.</li>\n<li>They are used to sign requests to <code>/accounts</code> and <code>/apps</code>.</li></ul></li>\n<li><strong>Application credentials</strong>\n<ul><li>Application credentials authenticate your app to perform actions on the LCP.</li>\n<li>Each app has two sets of application credentials: one for sandbox mode and one for live mode.</li>\n<li>A set of sandbox credentials is created automatically when you create an app.</li>\n<li>Live credentials are created by Points when your app is promoted to live mode.</li>\n<li>Application credentials are available at <code>/apps/&lt;app-id&gt;</code>.</li>\n<li>They are used to sign requests to <code>/lps</code>.</li></ul></li>\n</ol>\n\n<p>If your credentials are compromised, you can create additional credentials and\ndelete your existing credentials. See the <a href="index.html?doc=api-reference">LCP API\nReference</a>\nfor details.</p>\n\n<h3>HATEOAS</h3>\n\n<p>HATEOAS or <a href="http://en.wikipedia.org/wiki/HATEOAS">Hypermedia as the Engine of Application\nState</a> is a characteristic of REST APIs.\nIn practical terms, it means each response from the LCP contains URLs to other\nresources that are relevant to the current resource. This helps makes the API\ndiscoverable and means you don’t need to know how to construct URLs to access\nthe LCP platform after the first request. In addition, if resource locations are\nmoved in a later version of the API, your application can automatically follow\nthe new links without modification. All the information necessary to navigate\nthe API is in the resource itself.</p>\n\n<p>JSON response documents that are returned by the LCP contain a "links" property.\nThis property contains URLs that help you consume further resources within the\nLCP REST API. For example:</p>\n\n<pre><code>{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/1234"\n    },\n    "friendly": {\n      "href": "https://lcp.points.com/v1/accounts/email@company.com"\n    }\n  }\n}\n</code></pre>\n\n<p>All links sections provided by the LCP contain a "self" link that represents a\nURL that can be used to obtain the document again if needed.</p>\n\n<p>Some calls also return a URL called "friendly" which contains a more\nuser-friendly and readable URL to consume a particular resource.</p>\n\n<h2>Getting Started</h2>\n\n<p>Now that you’ve read through some of the background information and familiarized\nyourself with some of the key principles, you’re ready to dive in. In this\nsection you’ll find a set of steps needed to start working with the Loyalty\nCommerce Platform (LCP). By following these steps, you’ll have everything you’d\nneed to to build a universal balance checker to retrieve member balances across\nmultiple loyalty programs. The steps needed are:</p>\n\n<ol>\n<li>Create an account</li>\n<li>Sign requests</li>\n<li>Create an app</li>\n<li>Perform a member validation (MV)</li>\n</ol>\n\n<h3>Create an Account</h3>\n\n<p>In order to create a universal balance checker, your first step is to create an\naccount. An account is your own personal developer account on the LCP system. It\nis tied to your email address and gives you access credentials to the LCP. It\nalso enables you to create one or more applications that interface with the LCP.</p>\n\n<p>To create your developer account, <code>POST</code> to the <code>/accounts</code> resource with your email\naddress:</p>\n\n<pre><code>curl -v -X POST -H "Content-Type: application/json" \\\n-d \'{"email": "youremail@yourcompany.com"}\' \\\nhttps://lcp.points.com/v1/accounts/\n</code></pre>\n\n<p>If the above request is successful, the LCP will respond with the following:</p>\n\n<pre><code>HTTP/1.1 201 CREATED\n{\n  "accountCredentials": [\n    {\n      "links": {\n        "self": {\n          "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5/account-credentials/63ac7619-0073-4aa7-a996-0acae9f9bfb9"\n        }\n      },\n      "macAlgorithm": "HMAC-SHA1",\n      "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",\n      "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b"\n    }\n  ],\n  "email": "youremail@yourcompany.com",\n  "links": {\n    "friendly": {\n      "href": "https://lcp.points.com/v1/accounts/youremail%40yourcompany.com"\n    },\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5"\n    }\n  }\n}\n</code></pre>\n\n<p>From this response data, it’s important to record the "accountCredentials"\nresource that is returned. These are your credentials for accessing your account\nand apps on the LCP. The macKey is a shared secret key between you and the\nplatform. Keep it safe as you would for a private cryptographic key. It should\nnever be shared with anyone or sent to the LCP.</p>\n\n<h3>Sign Requests</h3>\n\n<p>Now that you have an account and its credentials, all future requests to the LCP\nneed to be signed with your MAC key. For example, let’s see what happens if we\ntry to get the account created above:</p>\n\n<pre><code>curl -v \\\nhttps://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5\n</code></pre>\n\n<p>The server returns a 401 status code indicating you are not authorized to access\nthis resource:</p>\n\n<pre><code>HTTP/1.1 401 UNAUTHORIZED\n{\n  "errors": [\n    {\n      "code": "UNAUTHORIZED",\n      "description": "The server could not verify that you are authorized to access the URL requested.  You either supplied the wrong credentials (e.g. a bad password), or your browser doesn\'t understand how to supply the credentials required.",\n      "field": null\n    }\n  ]\n}\n</code></pre>\n\n<p>To sign requests, you need to include an authorization header in your request.\nBuilding this header for OAuth 2.0 MAC is described in <a href="#appendix-a-signing-requests">Appendix A: Signing\nRequests</a>. To get started faster, you can use the\n<code>lcp_curl.py</code> Python script provided in the\n<a href="https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util">utilities</a>.</p>\n\n<p><code>lcp_curl.py</code> is a wrapper around curl to add the MAC authorization header. It\nrequires a -u parameter with your macKeyIdentifier and macKey, which it uses to\ngenerate the MAC signature and the authorization header. It passes all other\narguments on to curl. Let’s try to get the account resource again using\n<code>lcp_curl.py</code>:</p>\n\n<pre><code>lcp_curl.py -v -u \\\n97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \\\nhttps://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5\n</code></pre>\n\n<p><code>lcp_curl.py</code> generates the MAC signature, builds the authorization header, and\nincludes it in a call to curl:</p>\n\n<pre><code>curl -v -H \\\n\'Authorization: MAC id="97ee420faaa343d4a04b7378b319b48b", ts="1379541939", nonce="OK3HY80lkQ0=", ext="", mac="EmYShgBbKjp7XB3gbZq9e0zZy+8="\' \\\nhttps://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5\n</code></pre>\n\n<p>Now the account resource is returned in full:</p>\n\n<pre><code>HTTP/1.1 200 OK\n{\n  "accountCredentials": [\n    {\n      "links": {\n        "self": {\n          "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5/account-credentials/63ac7619-0073-4aa7-a996-0acae9f9bfb9"\n        }\n      },\n      "macAlgorithm": "HMAC-SHA1",\n      "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",\n      "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b",\n    }\n  ],\n  "email": "youremail@yourcompany.com",\n  "links": {\n    "friendly": {\n      "href": "https://lcp.points.com/v1/accounts/youremail%40yourcompany.com"\n    },\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5"\n    },\n  }\n}\n</code></pre>\n\n<p>If you still received 401 unauthorized, check that your computer’s time is\naccurate or is synced with an internet time server. <code>lcp_curl.py</code> adds a timestamp\nto each request and the LCP verifies that the timestamp is within 30 seconds of\nthe server’s time to prevent replay attacks.</p>\n\n<h3>Create an App</h3>\n\n<p>Now that we can sign requests, the next step in creating a universal balance\nchecker is to create an application on the LCP. Apps are stored under the <code>/apps</code>\nendpoint. To create the application, <code>POST</code> the application name and description\nto <code>/apps</code> and sign the request with your account credentials.</p>\n\n<pre><code>lcp_curl.py -v -u \\\n97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \\\n-X POST -d \'{"name": "UBC", "description": "Universal balance checker"}\' \\\nhttps://lcp.points.com/v1/apps/\n</code></pre>\n\n<p>This creates the app and returns the following JSON response that contains the\napp name and description you provided.</p>\n\n<pre><code>HTTP/1.1 201 CREATED\n{\n  "description": "Universal balance checker",\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc"\n    }\n  },\n  "liveCredentials": [],\n  "name": "UBC",\n  "sandboxCredentials": [\n"https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"\n  ]\n}\n</code></pre>\n\n<p>The created resource also contains the app’s sandbox credentials and a\nplaceholder for the app’s live credentials. The app credentials are different\nfrom your account credentials. The sandbox credentials are used whenever the app\nmakes requests in the sandbox environment. The live credentials must be used for\nrequests to the live environment. Right now, the app only has sandbox\ncredentials. When you’re ready to deploy the app, you can request live\ncredentials from Points.</p>\n\n<p>We’re going to need the app’s sandbox credentials, so let’s get them now:</p>\n\n<pre><code>lcp_curl.py -v -u \\\n97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \\\n"https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"\n</code></pre>\n\n<p>This returns the sandbox credentials for the app:</p>\n\n<pre><code>HTTP/1.1 200 OK\n{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"\n    }\n  },\n  "macAlgorithm": "HMAC-SHA1",\n  "macKey": "iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA",\n  "macKeyIdentifier": "d8b9ca1904a348e491884a9c44843d25"\n}\n</code></pre>\n\n<h3>Perform a Member Validation (MV)</h3>\n\n<p>The final step in creating a universal balance checker is to retrieve the\nbalance in a loyalty program member’s account. This is done by performing a\nmember validation or MV. An MV authenticates a member of a loyalty program and\nretrieves their balance. Authenticating a member requires a specific set of\nfields, defined by the specific loyalty program you wish to communicate with.\nFor example, some loyalty programs may require a member ID and password, while\nothers require a member ID, last name, and password. To keep things simple for\nnow, the LCP currently only interacts with loyalty programs that require first\nname, last name, and member ID or first name, last name, member ID, and\npassword.</p>\n\n<p>In the current version of the LCP, there is no way for your app to get a list of\nthe loyalty programs that are supported.</p>\n\n<p>For example, to perform a member validation for Southwest in sandbox mode, POST\nto:</p>\n\n<pre><code>https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/\n</code></pre>\n\n<p>with the member’s first name, last name, and member ID and sign the request\nusing your app’s sandbox credentials:</p>\n\n<pre><code>lcp_curl.py -v -X POST -u \\\nd8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \\\n-d \'{"firstName": "John", "lastName": "Doe", "memberId": "1234"}\' \\\n"https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/"\n</code></pre>\n\n<p>Since there is no member named John Doe with member ID 1234 in the sandbox, the\nLCP returns an error:</p>\n\n<pre><code>HTTP/1.1 422 UNPROCESSABLE ENTITY\n{\n  "errors": [\n    {\n      "code": "UNKNOWN_MEMBER",\n      "description": "The loyalty program couldn\'t find a member with the given credentials."\n    }\n  ]\n}\n</code></pre>\n\n<p>Since the sandbox environment doesn’t communicate directly with the loyalty\nprogram, we have provided a way to simulate a successful member validation. To\nsimulate a successful member validation, provide the loyalty program’s partner\nID from the table above in place of the member ID:</p>\n\n<pre><code>lcp_curl.py -v -X POST -u \\\nd8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \\\n-d \'{"firstName": "John", "lastName": "Doe", "memberId": "OfMq"}\' \\\n"https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/"\n</code></pre>\n\n<p>This creates a successful MV:</p>\n\n<pre><code>HTTP/1.1 201 CREATED\n{\n  "balance": 0,\n  "firstName": "John",\n  "lastName": "Doe",\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/1261b5f814d011e382d152540006e04e"\n    }\n  },\n  "memberId": "OfMq"\n}\n</code></pre>\n\n<p>The points balance is always zero in sandbox mode since it does not communicate\nwith the loyalty program. To simulate a non-zero balance, add the desired\nbalance to the lastName field:</p>\n\n<pre><code>lcp_curl.py -v -X POST -u \\\nd8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \\\n-d \'{"firstName": "John", "lastName": "Doe 2000", "memberId": "OfMq"}\' \\\n"https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/"\n</code></pre>\n\n<p>The balance is now 2000:</p>\n\n<pre><code>HTTP/1.1 201 CREATED\n{\n  "balance": 2000,\n  "firstName": "John",\n  "lastName": "Doe 2000",\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/fe3e1a4e14cf11e38f68525400a02ac6"\n    }\n  },\n  "memberId": "OfMq"\n}\n</code></pre>\n\n<p>You can retrieve a previous MV by performing a GET on the self link. This\nretrieves the MV and balance in the state it was when it was created. To get an\nupdated member’s balance, create a new MV.</p>\n\n<p>Congratulations, you’ve successfully performed a member validation. This is all\nyou need to complete your universal balance checker.</p>\n\n<p>To learn more about the capabilities of the LCP, including moving points in and\nout of member accounts, refer to the <a href="index.html?doc=reference-manual">LCP Reference\nManual</a>\nand the <a href="index.html?doc=api-reference">LCP API\nReference</a>.</p>\n\n<h2>Appendix A: Signing Requests</h2>\n\n<p>This appendix contains the a step-by-step guide for signing requests with OAuth\n2.0 MAC tokens as well as sample code. Follow these steps if you want to write\nyour own module to sign requests.</p>\n\n<ol>\n<li>Generate a timestamp. The timestamp is the number of seconds since January 1,\n1970 00:00:00 UTC. This is also known as POSIX time or Unix time. Requests\nare only valid within 30 seconds of the timestamp.</li>\n<li>Generate a nonce. A nonce is an arbitrary string that must be different for\neach request in a 30 second window with the same MAC ID.</li>\n<li>Generate the extension string. The extension string is blank for GET and\nDELETE requests. For PUT and POST requests, concatenate the value of the\nContent-Type header (e.g. "application/json") with the request body and hash\nit with SHA1.</li>\n<li>Build the normalized request string as follows:</li>\n</ol>\n\n<table>\n  <thead>\n    <tr>\n      <th>Format</th>\n      <th>GET Example</th>\n      <th>POST Example</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>Timestamp\\n<br>Nonce\\n<br>HTTP Method (all caps)\\n<br>Path\\n<br>Hostname\\n<br>Port\\n<br>Extension\\n</td>\n      <td>1377721336\\n<br>4FvtoumTybo=\\n<br>GET\\n<br>/v1/apps/\\n<br>lcp.points.com\\n<br>443\\n<br>\\n</td>\n      <td>1377724146\\n<br>u8BNUfE5Gu8=\\n<br>POST\\n<br>/v1/apps/\\n<br>lcp.points.com\\n<br>443\\n<br>a9d46382c97bd4b0475b5b152dddaf2d61c0a30d\\n</td>\n    </tr>\n  </tbody>\n</table>\n\n<ol start="5">\n  <li>Decode the MAC key from Base64 if you haven’t already. The MAC key is encoded in Base64 using a URL-safe alphabet. You may need to add padding to the MAC key to decode it.</li>\n  <li>Generate the signature by using the HMAC-SHA1 algorithm and the MAC key over the normalized request string.</li>\n  <li>Encode the signature in Base64. You do not need to use the URL-safe alphabet.</li>\n  <li>Generate the authorization header for the request.</li>\n</ol>\n\n<h4>Example request:</h4>\n\n<pre><code>GET /v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5 HTTP/1.1\nHost: lcp.points.com\nAuthorization: MAC id="97ee420faaa343d4a04b7378b319b48b",\n                   ts="1379541939",\n                   nonce="OK3HY80lkQ0=",\n                   ext="",\n                   mac="EmYShgBbKjp7XB3gbZq9e0zZy+8="\n</code></pre>\n\n<h4>Example C# code:</h4>\n\n<pre><code>using System.Security.Cryptography;\n\npublic string GetAuthorizationHeaderValue(\n    string httpMethod,\n    Uri url,\n    string macKeyIdentifier,\n    string macKey,\n    string contentType,\n    string body)\n{\n    // Step 1: Generate timestamp\n    TimeSpan t = (DateTime.UtcNow - new DateTime(1970, 1, 1));\n    string ts = ((int)t.TotalSeconds).ToString();\n\n    // Step 2: Generate nonce\n    string nonce = new Random().Next().ToString();\n\n    // Step 3: Generate ext\n    string ext = "";\n    if (contentType != null &amp;&amp; body != null &amp;&amp;\n        contentType.Length &gt; 0 &amp;&amp; body.Length &gt; 0)\n    {\n        string contentTypePlusBody = contentType + body;\n        SHA1 sha = new SHA1CryptoServiceProvider();\n        ext = BitConverter.ToString(sha.ComputeHash(\n            Encoding.ASCII.GetBytes(contentTypePlusBody)));\n        ext = ext.Replace("-", "").ToLower();\n    }\n\n    // Step 4: Build normalized request string\n    string normalizedRequestString =\n        string.Format("{0}\\n{1}\\n{2}\\n{3}\\n{4}\\n{5}\\n{6}\\n",\n            ts,\n            nonce,\n            httpMethod,\n            url.AbsolutePath,\n            url.Host,\n            url.Port,\n            ext);\n\n    // Step 5: Base64 decode the MAC key from URL-safe alphabet\n    // and add padding if needed\n    macKey = macKey.Replace(\'-\', \'+\').Replace(\'_\', \'/\');\n    macKey += new string(\'=\', (4 - macKey.Length % 4));\n    HashAlgorithm hashGenerator = new HMACSHA1(\n        System.Convert.FromBase64String(macKey));\n\n    // Step 6: Generate the signature\n    byte[] signature = hashGenerator.ComputeHash(\n        Encoding.ASCII.GetBytes(normalizedRequestString));\n\n    // Step 7: Base64 encode the result\n    string mac = System.Convert.ToBase64String(signature);\n\n    // Step 8: Build Authorization header\n    StringBuilder authorizationHeader = new StringBuilder();\n    authorizationHeader.AppendFormat(@"MAC id=""{0}"", ts=""{1}"", nonce=""{2}"", ext=""{3}"", mac=""{4}""", macKeyIdentifier, ts, nonce, ext, mac);\n\n    return authorizationHeader.ToString();\n}\n</code></pre>\n\n<h4>Example Python code:</h4>\n\n<pre><code>import urlparse\nimport httplib\nimport base64\nimport hmac\nimport hashlib\n\ndef generate_authorization_header_value(\n        http_method,\n        url,\n        mac_key_identifier,\n        mac_key,\n        content_type,\n        body):\n\n    url_parts = urlparse.urlparse(url)\n    port = url_parts.port\n    if not port:\n        if url_parts.scheme == \'https\':\n            port = httplib.HTTPS_PORT\n        else:\n            port = httplib.HTTP_PORT\n\n    # Step 1: Generate timestamp \n    ts = str(int(time.time()))\n\n    # Step 2: Generate nonce\n    nonce = base64.b64encode(os.urandom(8))\n\n    # Step 3: Generate ext\n    if content_type is not None and body is not None and len(content_type) &gt; 0 and len(body) &gt; 0:\n        content_type_plus_body = content_type + body\n        content_type_plus_body_hash = hashlib.sha1(content_type_plus_body)\n        ext = content_type_plus_body_hash.hexdigest()\n    else:\n        ext = ""\n\n    # Step 4: Build normalized request string\n    normalized_request_string = (\n        ts + \'\\n\' +\n        nonce + \'\\n\' +\n        http_method + \'\\n\' +\n        url_parts.path + \'\\n\' +\n        url_parts.hostname + \'\\n\' +\n        str(port) + \'\\n\' +\n        ext + \'\\n\'\n    )\n\n    # Step 5: Base64 decode the MAC key from URL-safe alphabet\n    # and add padding if needed\n    mac_key += \'=\' * (4 - len(mac_key) % 4)\n    mac_key = base64.urlsafe_b64decode(mac_key)\n\n    # Step 6: Generate the signature\n    signature = hmac.new(mac_key, normalized_request_string, hashlib.sha1)\n\n    # Step 7: Base64 encode the result\n    mac = base64.b64encode(signature.digest())\n\n    # Step 8: Build Authorization header\n    return \'MAC id="{0}", ts="{1}", nonce="{2}", ext="{3}", mac="{4}"\'.format(mac_key_identifier, ts, nonce, ext, mac)\n</code></pre>'}),define("mdown!modules/../../documents/reference-manual.md",[],function(){return'<h1>LCP Reference Manual</h1>\n\n<p>For Points Loyalty Commerce Platform - Version 1.0</p>\n\n<h2>Document Overview</h2>\n\n<p>This document contains an in-depth description of the Points Loyalty Commerce\nPlatform (LCP). You will find below descriptions of the platform,\nauthentication, and error codes. This document assumes have read the <a href="index.html">LCP Getting\nStarted Guide for Developers</a>. For a detailed description of the API, see the <a href="index.html?doc=api-reference">LCP\nAPI Reference</a>.</p>\n\n<h2>Sandbox vs Live</h2>\n\n<p>The LCP operates in two modes: sandbox mode and live mode. Sandbox mode is\naccessed at <code>https://sandbox.lcp.points.com</code> while live mode is accessed at\n<code>https://lcp.points.com</code>. Each has a separate set of credentials for\nauthentication. When you create an application, you will get a set of sandbox\ncredentials for use in the sandbox environment. Live mode credentials are issued\nby Points when you’re ready to deploy your application.</p>\n\n<p>Use sandbox mode during development and to test your application. In the\nSandbox, you can test your application against one or more loyalty programs\nwithout affecting live member accounts of the loyalty programs. Sandbox mode\nnever affects member accounts; all operations are simulated. The API reference\ndescribes how to simulate different success and failure conditions in sandbox\nmode that your app will experience in live mode.</p>\n\n<p>To go live, you’ll need to request live credentials from Points. Once your\nreceive them, you’ll need to update your application to use the live credentials\nand the live endpoint located at <code>https://lcp.points.com</code>. Only Live credentials\nhave permission to access this endpoint. Once in the live environment, we\nrecommend you run additional tests using live test accounts for each of the\nloyalty programs your app interacts.</p>\n\n<h2>Versioning</h2>\n\n<p>The LCP uses version numbering in the URI. To access the version of the API\ndescribed in this document use <code>https://sandbox.lcp.points.com/v1/</code> or\n<code>https://lcp.points.com/v1/</code>. New versions will be created for backwards\nincompatible changes to the API. We will notify you of new versions of the API\nand give you time to transition to the new version before discontinuing support\nfor the old version.</p>\n\n<h2>Multiple Data Centers</h2>\n\n<p>The LCP is a high availability service operating in multiple data centers\nglobally. The platform is designed to maximize availability and scalability but\nunderstanding how the LCP works will ensure your Application knows what to\nexpect.</p>\n\n<p>Requests to the LCP are routed to the closest data center. Unless that data\ncenter fails or you change geographies (significantly) your requests will\ncontinue to be routed to the same data center. Requests that change data in one\ndata center are replicated to the other data centers. Replication happens\nquickly and in the background so as not to delay processing of your requests.\nSince your requests typically hit the same data center, replication is generally\ninvisible to your application. This characteristic of the LCP is called eventual\nconsistency. For more background information on this topic please reference\n<a href="http://www.allthingsdistributed.com/2008/12/eventually_consistent.html">Eventually Consistent -\nRevisited</a>.</p>\n\n<p>In the unlikely event of a data center failing, the LCP will automatically\nfailover to a secondary data center. This may result in recently created\nresources not being immediately available in the data center to which you fail\nover until replication has completed. To get started don\'t worry about this\nfailure scenario. However, keep in mind that you in rare instances, you may need\nto wait and resend your request to access recently created or modified data.</p>\n\n<h2>Authorization</h2>\n\n<p>The LCP uses OAuth 2.0 Message Authentication Code (MAC) Tokens to authenticate\nrequests to the platform. This version of the LCP API matches <a href="http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02">draft 02 of the\nOAuth 2.0 MAC Token\nspecification</a>. We\nhave provided a set of <a href="https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util">LCP Client\nUtilities</a>\nto help you get started with OAuth 2.0 MAC authentication.</p>\n\n<h3>Types of Credentials</h3>\n\n<p>There are three types of MAC credentials used in the LCP:</p>\n\n<ol>\n<li><a href="index.html?doc=api-reference#account-credentials">Account credentials</a> are\nused to authenticate you when accessing <code>/accounts</code> and\n<code>/apps</code> resources. Account credentials are created automatically when you\ncreate an account.</li>\n<li><a href="index.html?doc=api-reference#sandbox-credentials">Sandbox credentials</a> are\nused by your app to authenticate its requests to the <code>/lps</code> resource in the\nsandbox environment. Sandbox credentials are created automatically when you\ncreate an app.</li>\n<li><a href="index.html?doc=api-reference#live-credentials">Live credentials</a> are used by\nyour app to authenticate its requests to the <code>/lps</code> resource in the live\nenvironment. Live credentials are managed by Points.</li>\n</ol>\n\n<p>Each set of credentials include a MAC key identifier, a MAC key and a MAC\nalgorithm. The MAC key identifier uniquely identifies the MAC key. The MAC key\nidentifier is sent with each request to tell the server which MAC key was used\nto sign the request. The MAC key is the shared secret key. It should never be\nshared with anyone or transmitted in any request. Keep this key secure as you\nwould any private key. Finally, the MAC algorithm describes the algorithm used\nto create the signature. It is always set to <code>HMAC-SHA1</code>.</p>\n\n<pre><code>{\n  "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b",\n  "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",\n  "macAlgorithm": "HMAC-SHA1"\n}\n</code></pre>\n\n<p>NOTE: The MAC key is <a href="http://tools.ietf.org/html/rfc4648">Base64</a> encoded using\na URL-safe alphabet, which substitutes <code>-</code> instead of <code>+</code> and <code>_</code> instead of <code>/</code>\nin the standard Base64 alphabet. TheMAC key also may not contain padding\n(represented with the <code>=</code> character). Prior to using the MAC key, decode it from\nBase64.</p>\n\n<h3>The Authorization Header</h3>\n\n<p>Except when creating an account, all requests to the platform must include an\nauthorization header. The authorization header includes the authorization type\n“MAC” and the following five fields:</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>Field</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>id</td>\n      <td>The MAC key identifier that uniquely identifies the MAC key used to generated the MAC signature.</td>\n    </tr>\n    <tr>\n      <td>ts</td>\n      <td>An integer timestamp equal to the number of seconds since January 1, 1970 00:00:00 UTC. This is also known as POSIX time or Unix time. Requests are only valid within 30 seconds of the timestamp.</td>\n    </tr>\n    <tr>\n      <td>nonce</td>\n      <td>An arbitrary string that must be different for each request in a 30 second window with the same MAC key identifier. Used to prevent replay attacks.</td>\n    </tr>\n    <tr>\n      <td>ext</td>\n      <td>The extension string is used to verify the contents of the request. It is an empty string for GET and DELETE request. For PUT and POST requests, concatenate the value of the Content-Type header (e.g. “application/json”) with the request body and hash it with SHA1.</td>\n    </tr>\n    <tr>\n      <td>mac</td>\n      <td>The MAC signature for this request. The MAC signature is a Base64 encoded string that is generated by the HMAC-SHA1 algorithm, the MAC key, and the normalized request string. This process is described in the next section.</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Note that the MAC key is not included in the authorization header. This key is a\nsecret and should not be included in any request. Here is an example of an\nauthorization header:</p>\n\n<pre><code>Authorization: MAC id="97ee420faaa343d4a04b7378b319b48b",\n                   ts="1379541939",\n                   nonce="OK3HY80lkQ0=",\n                   ext="",\n                   mac="EmYShgBbKjp7XB3gbZq9e0zZy+8="\n</code></pre>\n\n<p>When this authorization header is provided in requests to protected resources,\nthe LCP authenticates the request using the following steps:</p>\n\n<ol>\n<li>Checks that the timestamp is within 30 seconds of the current time.</li>\n<li>Checks that the nonce has not been used in a previous request with the same\nMAC key identifier in the 30 second window.</li>\n<li>Checks the MAC signature by using the same process as the client. Using the\nMAC key that corresponds to the MAC key identifier and the request details,\nthe LCP generates a MAC signature for this request and compares it to the one\nthat was passed in the authorization header. </li>\n<li>Generates the extension string and verifies that it matches the string provided in the authorization header.</li>\n</ol>\n\n<p>If all of these conditions are met the request is authenticated.</p>\n\n<h3>Generating the MAC Signature</h3>\n\n<p>The MAC signature is generated using the MAC key and a normalized request string\nthat contains the details of the request. The normalized request string is\nassembled as follows (<code>\\n</code> indicates a new line character at the end of every\nline):</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>Format</th>\n      <th>GET Example</th>\n      <th>POST Example</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>\n        Timestamp\\n<br>\n        Nonce\\n<br>\n        HTTP Method (all caps)\\n<br>\n        Path\\n<br>\n        Hostname\\n<br>\n        Port\\n<br>\n        Extension\\n<br>\n      </td>\n      <td>\n        1377721336\\n<br>\n        4FvtoumTybo=\\n<br>\n        GET\\n<br>\n        /v1/apps/\\n<br>\n        lcp.points.com\\n<br>\n        443\\n<br>\n        \\n<br>\n      </td>\n      <td>\n        1377724146\\n<br>\n        u8BNUfE5Gu8=\\n<br>\n        POST\\n<br>\n        /v1/apps/\\n<br>\n        lcp.points.com\\n<br>\n        443\\n<br>\n        a9d46382c97bd4b0475b5b152dddaf2d61c0a30d\\n<br>\n      </td>\n    </tr>\n  </tbody>\n</table>\n\n<ul>\n<li><strong>Timestamp:</strong> The number of seconds since January 1, 1970 00:00:00 UTC. This\nis also known as POSIX time or Unix time. Requests are only valid within 30\nseconds of the timestamp.</li>\n<li><strong>Nonce:</strong> An arbitrary string that must be different for each request in a 30\nsecond window with the same MAC ID.</li>\n<li><strong>HTTP Method:</strong> One of GET, PUT, POST, or DELETE (must be uppercase).</li>\n<li><strong>Path:</strong> The path to the resource on the server. Starts with the slash after\nthe hostname/port in the URI.</li>\n<li><strong>Hostname:</strong> The hostname of the server in the HTTP request. Do not include\nthe protocol (<code>https://</code>), port or path.</li>\n<li><strong>Port:</strong> The port for the HTTP request. Use 443 for HTTPS.</li>\n<li><strong>Extension:</strong> Blank for GET and DELETE request. For PUT and POST requests,\nconcatenate the value of the Content-Type header (e.g. <code>application/json</code>)\nwith the request body and hash it with SHA1.</li>\n</ul>\n\n<p>This normalized request string and the MAC key are fed into the HMAC-SHA1\nalgorithm to obtained the binary MAC signature. The binary signature is\n<a href="http://tools.ietf.org/html/rfc4648">Base64</a> encoded for inclusion in the\n<a href="#the-authorization-header">authorization header</a> for the request.</p>\n\n<p>Here is an example of using the HMAC-SHA1 algorithm to generate the signature in Python:</p>\n\n<pre><code>def generate_signature(mac_key, normalized_request_string):\n    """Generate a request\'s MAC given a normalized request string (aka\n    a summary of the key elements of the request and the mac key (shared\n    secret)."""\n\n    import hmac\n    import hashlib\n    import base64\n\n    # Add padding to the MAC key if needed\n    mac_key+= \'=\' * (4 - len(mac_key) % 4)\n\n    # Base64 decode the MAC key using URL-safe alphabet\n    mac_key= base64.urlsafe_b64decode(mac_key)\n\n    # Create the hash\n    hashed = hmac.new(mac_key, normalized_request_string, hashlib.sha1)\n\n    # Base64 encode the result\n    return base64.b64encode(hashed.digest())\n</code></pre>\n\n<h2>HTTP Status Codes</h2>\n\n<p>HTTP status codes are used to indicate success or failure. Status codes in the\n<code>200s</code> indicate the request was successful. Status codes in the <code>400s</code> indicate\nfailure. Details of the success or failure are contained in the body of the\nresponse.</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>HTTP Status Code</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>200 OK</td>\n      <td>The request completed successfully. The resource is contained in the body of the response.</td>\n    </tr>\n    <tr>\n      <td>201 Created</td>\n      <td>Request to create a resource completed successful. The URI of the created resource is included in the Location header in the response.</td>\n    </tr>\n    <tr>\n      <td>204 No Content</td>\n      <td>The request completed successfully with no content in the body of the message. Usually a response from a request to delete a resource.</td>\n    </tr>\n    <tr>\n      <td>400 Bad Request</td>\n      <td>The data provided in the request has incorrect. Check the JSON error response for details.</td>\n    </tr>\n    <tr>\n      <td>401 Unauthorized</td>\n      <td>Either the authorization header was not provided or was invalid.</td>\n    </tr>\n    <tr>\n      <td>404 Not Found</td>\n      <td>The requested resource was not found or the current user does not have permission to access it.</td>\n    </tr>\n    <tr>\n      <td>415 Unsupported Media Type</td>\n      <td>Returned if the request provided an unsupported content type. Only application/json is supported.</td>\n    </tr>\n    <tr>\n      <td>422 Unprocessable Entity</td>\n      <td>The data provided in the request for valid, but the request could not be completed for another reason. Check the JSON error response for details.</td>\n    </tr>\n  </tbody>\n</table>\n\n<h2>Errors</h2>\n\n<p>When the HTTP status code indicates a failure, the response includes a JSON\ndocument that lists the errors in a predictable format. The JSON contains a hash\ncalled “errors” that is an array of the errors encountered in the request. Here\nis an example of an error response:</p>\n\n<pre><code>{\n  "errors": [\n    {\n      "code": "MISSING_FIELD",\n      "description": "\'name\' is required.",\n      "field": "name"\n    },\n    {\n      "code": "MISSING_FIELD",\n      "description": "\'description\' is required.",\n      "field": "description"\n    }\n  ]\n}\n</code></pre>\n\n<p>Each error array element contains the following fields:</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>Error Field</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>code</td>\n      <td>A standard code describing the error. You can use this code to programmatically handle the error and take appropriate action. See below for a list of standard error codes.</td>\n    </tr>\n    <tr>\n      <td>description</td>\n      <td>A description of the error that further explains the error that can be displayed to the end-user</td>\n    </tr>\n    <tr>\n      <td>field</td>\n      <td>The name of the field in the request that caused the error (if applicable).</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Here is a list of possible error codes that the LCP may return:</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>Error Code</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>BAD_REQUEST</td>\n      <td>The browser (or proxy) sent a request that this server could not understand.</td>\n    </tr>\n    <tr>\n      <td>FORBIDDEN_LAST_CREDENTIALS</td>\n      <td>Unable to delete last set of credentials.</td>\n    </tr>\n    <tr>\n      <td>INCORRECT_TYPE</td>\n      <td>The value provided is of incorrect type. For example, a string was provided when an integer is required.</td>\n    </tr>\n    <tr>\n      <td>INVALID_VALUE</td>\n      <td>The value provided is not allowed. For example, the requested debit amount is greater than the balance on the member validation.</td>\n    </tr>\n    <tr>\n      <td>MISSING_FIELD</td>\n      <td>A required field was not provided in the body of the request. The “field” property of the returned error object contains which required field was not provided.</td>\n    </tr>\n    <tr>\n      <td>MISSING_REPRESENTATION</td>\n      <td>The request expected a JSON object to be provided in the body of the request and none was provided.</td>\n    </tr>\n    <tr>\n      <td>MV_ALREADY_USED</td>\n      <td>The member validation has already been used with another transaction. Member validations can only be used for one transaction.</td>\n    </tr>\n    <tr>\n      <td>NOT_FOUND</td>\n      <td>The requested URL was not found on the server.  If you entered the URL manually please check your spelling and try again.</td>\n    </tr>\n    <tr>\n      <td>NO_MATCH</td>\n      <td>A field provided in the request did not match the regular expression used to validate the field. The field name and regular expression is provided in the description of the error message.</td>\n    </tr>\n    <tr>\n      <td>UNAUTHORIZED</td>\n      <td>The server could not verify that you are authorized to access the URL requested.  You either supplied the wrong credentials (e.g. a bad password), or your browser doesn\'t understand how to supply the credentials required.</td>\n    </tr>\n    <tr>\n      <td>UNKNOWN_MEMBER</td>\n      <td>The loyalty program couldn\'t find a member with the given credentials.</td>\n    </tr>\n    <tr>\n      <td>UNSUPPORTED_MEDIA_TYPE</td>\n      <td>The server does not support the media type transmitted in the request. Only Content-Type: application/json is supported.</td>\n    </tr>\n    <tr>\n      <td>VALUE_NOT_UNIQUE</td>\n      <td>One of the fields you provided must be unique but the data provided already exists in the system.</td>\n    </tr>\n    <tr>\n      <td>VALUE_OUT_OF_RANGE</td>\n      <td>The number provided is outside of the range of valid input for the field. For example, a negative integer was provided when the number must be positive.</td>\n    </tr>\n  </tbody>\n</table>\n\n<h2>Links</h2>\n\n<p>JSON response documents that are returned by the LCP contain a “links” property.\nThis property contains URLs that help you consume further resources within the\nLCP REST API. You should not create your own links to access and platform and\ninstead should follow the links provided. This allows your code to be less\ndependent on the implementation details of the API.</p>\n\n<p>The types of links provided are:</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>Link Type</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>self</td>\n      <td>A link to the current resource.</td>\n    </tr>\n    <tr>\n      <td>friendly</td>\n      <td>A more user-friendly link to the current resource.</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Each link has an href property that contains the link. For example:</p>\n\n<pre><code>{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/&lt;id&gt;"\n    },\n    "friendly": {\n      "href": "https://lcp.points.com/v1/accounts/&lt;email&gt;"\n    }\n  }\n}\n</code></pre>'}),function(){define("modules/load-markdown-documents",["mdown!../../documents/api/account-credentials-example.md","mdown!../../documents/api/account-credentials.md","mdown!../../documents/api/accounts-example.md","mdown!../../documents/api/accounts.md","mdown!../../documents/api/apps-example.md","mdown!../../documents/api/apps.md","mdown!../../documents/api/create-a-credit-example.md","mdown!../../documents/api/create-a-credit.md","mdown!../../documents/api/create-a-debit-example.md","mdown!../../documents/api/create-a-debit.md","mdown!../../documents/api/create-a-mv-example.md","mdown!../../documents/api/create-a-mv.md","mdown!../../documents/api/create-account-credentials-example.md","mdown!../../documents/api/create-account-credentials.md","mdown!../../documents/api/create-an-account-example.md","mdown!../../documents/api/create-an-account.md","mdown!../../documents/api/create-an-app-example.md","mdown!../../documents/api/create-an-app.md","mdown!../../documents/api/credits-example.md","mdown!../../documents/api/credits.md","mdown!../../documents/api/debits-example.md","mdown!../../documents/api/debits.md","mdown!../../documents/api/delete-account-credentials-example.md","mdown!../../documents/api/delete-account-credentials.md","mdown!../../documents/api/documentation-overview.md","mdown!../../documents/api/get-a-credit-example.md","mdown!../../documents/api/get-a-credit.md","mdown!../../documents/api/get-a-debit-example.md","mdown!../../documents/api/get-a-debit.md","mdown!../../documents/api/get-a-mv-example.md","mdown!../../documents/api/get-a-mv.md","mdown!../../documents/api/get-account-credentials-example.md","mdown!../../documents/api/get-account-credentials.md","mdown!../../documents/api/get-an-account-example.md","mdown!../../documents/api/get-an-account.md","mdown!../../documents/api/get-an-app-by-mac-example.md","mdown!../../documents/api/get-an-app-by-mac.md","mdown!../../documents/api/get-an-app-example.md","mdown!../../documents/api/get-an-app.md","mdown!../../documents/api/get-live-credentials-example.md","mdown!../../documents/api/get-live-credentials.md","mdown!../../documents/api/get-sandbox-credentials-example.md","mdown!../../documents/api/get-sandbox-credentials.md","mdown!../../documents/api/live-credentials-example.md","mdown!../../documents/api/live-credentials.md","mdown!../../documents/api/loyalty-programs.md","mdown!../../documents/api/member-validations-example.md","mdown!../../documents/api/member-validations.md","mdown!../../documents/api/sandbox-credentials-example.md","mdown!../../documents/api/sandbox-credentials.md","mdown!../../documents/getting-started.md","mdown!../../documents/reference-manual.md"],function(e,t,n,r,i,s,o,u,a,f,l,c,h,p,d,v,m,g,y,b,w,E,S,x,T,N,C,k,L,A,O,M,_,D,P,H,B,j,F,I,q,R,U,z,W,X,V,$,J,K,Q,G){var Y;return Y={account_credentials_example:e,account_credentials:t,accounts_example:n,accounts:r,apps_example:i,apps:s,create_a_credit_example:o,create_a_credit:u,create_a_debit_example:a,create_a_debit:f,create_a_mv_example:l,create_a_mv:c,create_account_credentials_example:h,create_account_credentials:p,create_an_account_example:d,create_an_account:v,create_an_app_example:m,create_an_app:g,credits_example:y,credits:b,debits_example:w,debits:E,delete_account_credentials_example:S,delete_account_credentials:x,documentation_overview:T,get_a_credit_example:N,get_a_credit:C,get_a_debit_example:k,get_a_debit:L,get_a_mv_example:A,get_a_mv:O,get_account_credentials_example:M,get_account_credentials:_,get_an_account_example:D,get_an_account:P,get_an_app_by_mac_example:H,get_an_app_by_mac:B,get_an_app_example:j,get_an_app:F,get_live_credentials_example:I,get_live_credentials:q,get_sandbox_credentials_example:R,get_sandbox_credentials:U,live_credentials_example:z,live_credentials:W,loyalty_programs:X,member_validations_example:V,member_validations:$,sandbox_credentials_example:J,sandbox_credentials:K,getting_started:Q,reference_manual:G},Y})}.call(this),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};define("modules/api-documentation",["modules/process-documentation","jquery","json!../api-documents.json","hbars!../../templates/navigation","hbars!../../templates/api-section","hbars!../../templates/api-article","modules/load-markdown-documents"],function(e,n,r,i,s,o,u){var a,f;return a=function(e){function a(){return f=a.__super__.constructor.apply(this,arguments),f}return t(a,e),a.prototype.md=u,a.prototype.attachArticleAndNav=function(e,t){var r;return t===""?(n(this.elements.nav).append(i(this.oneArticle)),n(this.elements.doc).append(s(this.oneArticle)),n("#section-"+e).append(o(this.oneArticle))):(r=n(this.elements.nav).find('a[href="#'+t+'"]'),r.parent().children("ul").length===0&&r.parent().append("<ul />"),r.parent().find("ul").append(i(this.oneArticle)),n("#section-"+t).append(o(this.oneArticle)))},a.prototype.createArticle=function(e,t,n){var r,i;return r=e.id,i=e.parent,this.oneArticle={id:r,title:e.title,content:t,example:n},this.attachArticleAndNav(r,i)},a.prototype.loadApiDocs=function(){var e=this;return n("body").addClass("api-page"),n("#documentation").html('<div class="dark-bg" />'),n.each(r.articles,function(t,n){var i,s,o,u;u=n.id.replace(/\-/g,"_"),i=e.md[u],n.exampleId!==""&&(o=n.exampleId.replace(/\-/g,"_"),s=e.md[o]),e.createArticle(n,i,s);if(t+1===r.articles.length)return e.initProcess()})},a}(e),a})}.call(this),define("hbars!modules/../../templates/article",["Handlebars"],function(e){return e.compile('<div class="one-document">\n  {{{content}}}\n</div>\n')}),function(){var e={}.hasOwnProperty,t=function(t,n){function i(){this.constructor=t}for(var r in n)e.call(n,r)&&(t[r]=n[r]);return i.prototype=n.prototype,t.prototype=new i,t.__super__=n.prototype,t};define("modules/documentation",["modules/api-documentation","jquery","hbars!../../templates/navigation","hbars!../../templates/article"],function(e,n,r,i){var s,o;return s=function(e){function a(){return o=a.__super__.constructor.apply(this,arguments),o}var s,u;return t(a,e),s=function(e,t){var r,i,s;i=n(e).text().replace(/[\. ,#():-]+/g,"-").toLowerCase(),r=n(),r.push(e),s=e.nextSibling;while(s){if(!!n(s).is(t))break;r.push(s),s=s.nextSibling}return t==="h2"?r.wrapAll('<section id="section-'+i+'" class="documents" />'):r.wrapAll('<article class="document" id="'+i+'">')},u=function(e){var t,n;e=e.replace(/[\[]/,"\\[").replace(/[\]]/,"\\]"),t=new RegExp("[\\?&]"+e+"=([^&#]*)"),n=t.exec(location.search);if(n!==null)return decodeURIComponent(n[1].replace(/\+/g," "))},a.prototype.buildNav=function(e,t,i){var s;return n(e).is("h2")?n(this.elements.nav).append(r(t)):(s=n('a[href="#'+i+'"]'),s.parent().children("ul").length===0&&s.parent().append("<ul />"),s.parent().find("ul").append(r(t)))},a.prototype.cleanUpAndCreateNav=function(){var e=this;return this.regularArticle.find("h2").each(function(e,t){return s(t,"h2")}),this.regularArticle.find("h2, h3").each(function(e,t){return s(t,"h3")}),this.regularArticle.find("h2, h3").each(function(t,r){var i,s,o,u;return i=n(r).text().replace(/[\. ,#():-]+/g,"-").toLowerCase(),u=n(r).text(),s=n(r).parents("section").attr("id").replace("section-",""),o={id:i,title:u},e.buildNav(r,o,s)})},a.prototype.loadDoc=function(e){var t,r;return r=e.replace(/\-/g,"_"),t={content:this.md[r]},this.regularArticle=n(i(t)),this.cleanUpAndCreateNav(),n(this.elements.doc).append(this.regularArticle),this.initProcess()},a.prototype.init=function(){return this.doc=u("doc"),this.doc==="api-reference"?this.loadApiDocs():this.doc?this.loadDoc(this.doc):this.loadDoc("getting-started")},a}(e),s})}.call(this),function(){define("global",["jquery","modules/documentation"],function(e,t){return e(function(){var e;e=new t({elements:{doc:"#documentation",header:"#header",nav:"#doc-navigation .nav",humans:".for-humans",machines:".for-machines"}}),e.init(),e.initScrollSpy(),e.bindHeaderNavEvents();if(history.pushState&&e.isMobile!==!0)return e.bindPopstate()})})}.call(this),function(){require.config({baseUrl:"/static/scripts/",waitSeconds:30,shim:{"bootstrap.scrollspy":{deps:["jquery"]},"jquery.fixto":{deps:["jquery"]},Handlebars:{exports:"Handlebars"}},paths:{jquery:"../components/jquery/jquery",Handlebars:"../components/handlebars.js/dist/handlebars",prettify:"../components/google-code-prettify/src/prettify",showdown:"../components/showdown/src/showdown","jquery.fixto":"../components/fixto/dist/fixto","bootstrap.scrollspy":"../components/bootstrap/js/scrollspy",async:"../components/requirejs-plugins/src/async",json:"../components/requirejs-plugins/src/json",mdown:"../components/requirejs-plugins/src/mdown",text:"../components/requirejs-plugins/lib/text",markdownConverter:"../components/requirejs-plugins/lib/Markdown.Converter",hbars:"../components/requirejs-handlebars/hbars",global:"mediators/global"}}),require(["global"],function(e){})}.call(this),define("main",function(){});
+// NOTE :: if you don't need to load markdown files in production outside of
+// the build, precompile them into modules and set
+// `pragmasOnSave.excludeMdown=true`
+
+define(
+    'mdown',[
+    ],
+    function (
+    ) {
+
+
+        //API
+        return {
+
+            load : function(name, req, onLoad, config) {
+            }
+
+        };
+});
+
+define('mdown!modules/../../documents/api/account-credentials-example.md',[],function () { return '<h4>Example Object</h4>\n\n<pre><code>{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/&lt;id&gt;"\n    }\n  },\n  "macAlgorithm":"HMAC-SHA1",\n  "macKey":"&lt;macKey&gt;",\n  "macKeyIdentifier":"&lt;macKeyIdentifier&gt;"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/account-credentials.md',[],function () { return '<h2>Account Credentials</h2>\n\n<p>Account credentials authenticate you to perform actions on your developer account. A set of account credentials is created automatically when you create your developer account. Account credentials are the same for both sandbox and live mode. They are available at <code>/accounts/&lt;account-id&gt;/account-credentials</code> and are used to sign requests to <code>/accounts</code> and <code>/apps</code>.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>macAlgorithm</td>\n            <td>The MAC algorithm describes the algorithm used to create the signature.</td>\n        </tr>\n        <tr>\n            <td>macKey</td>\n            <td>The MAC key is the shared secret key. It should never be shared with anyone or transmitted in any request. Keep this key secure as you would any private key.</td>\n        </tr>\n        <tr>\n            <td>macKeyIdentifier</td>\n            <td>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier is sent with each request to tell the server which MAC key was used to sign the request.</td>\n        </td>\n    </tbody>\n</table>';});
+
+define('mdown!modules/../../documents/api/accounts-example.md',[],function () { return '<h4>Example Object</h4>\n\n<pre><code>{\n  "accountCredentials": [\n    {\n      "links": {\n        "self": {\n          "href": "https://lcp.points.com/v1/accounts/&lt;id&gt;/account-credentials/&lt;ac-id&gt;"\n        }\n      },\n      "macAlgorithm":"HMAC-SHA1",\n      "macKey":"&lt;macKey&gt;",\n      "macKeyIdentifier":"&lt;macKeyIdentifier&gt;"\n    }\n  ],\n  "email": "&lt;email&gt;",\n  "links": {\n      "self": {\n        "href": "https://lcp.points.com/v1/accounts/&lt;id&gt;"\n      },\n      "friendly": {\n        "href": "https://lcp.points.com/v1/accounts/&lt;email&gt;"\n      }\n  }\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/accounts.md',[],function () { return '<h2>Accounts</h2>\n\n<p>An account is your own personal developer account on the LCP system. It is tied to your email address and gives you access credentials to the LCP. It also enables you to create one or more applications that interface with the LCP.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>accountCredentials</td>\n            <td>An array of <a href="#account-credentials">account credential</a> objects that can be used to access this account.</td>\n        </tr>\n        <tr>\n            <td>email</td>\n            <td>The email address of the account owner.</td>\n        </tr>\n    </tbody>\n</table>';});
+
+define('mdown!modules/../../documents/api/apps-example.md',[],function () { return '<h4>Example Object</h4>\n\n<pre><code>{\n  "description": "&lt;description&gt;",\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/&lt;id&gt;"\n    }\n  },\n  "liveCredentials": [],\n  "name": "&lt;name&gt;",\n  "sandboxCredentials": [\n"https://lcp.points.com/v1/apps/&lt;id&gt;/sandbox-credentials/&lt;sc-id&gt;"\n  ]\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/apps.md',[],function () { return '<h2>Apps</h2>\n\n<p>Apps allow you to communicate with one or more loyalty programs. Apps are stored under the <code>/apps</code> endpoint. Use your account credentials to create one or more apps and to access your existing apps. Each app has its own set of business rules that determine which loyalty programs it can interact with, what actions it can perform, and how much each action costs.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>description</td>\n            <td>The identifier of the account to add credentials to.</td>\n        </tr>\n        <tr>\n            <td>liveCredentials</td>\n            <td>An array of <a href="#live-credentials">live credential</a> objects that the app can use to access the live environment.</td>\n        </tr>\n        <tr>\n            <td>name</td>\n            <td>The name of the app.</td>\n        </tr>\n        <tr>\n            <td>sandboxCredentials</td>\n            <td>An array of <a href="#sandbox-credentials">sandbox credential</a> objects that the app can use to access the sandbox environment.</td>\n        </tr>\n    </tbody>\n</table>';});
+
+define('mdown!modules/../../documents/api/create-a-credit-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>POST https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n{\n  "amount": 2000,\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;"\n}\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>201 CREATED\nlocation: https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;\n{\n  "amount": 2000,\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;"\n    }\n  },\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;",\n  "status": "success",\n  "transactionId": "&lt;transaction-id&gt;"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/create-a-credit.md',[],function () { return '<h3>Create a Credit</h3>\n\n<p>Create a credit object to attempt to add points to a loyalty program member\'s account. A credit first requires a successful <a href="#member-validations">member validation</a> that has not been used previously with another transaction. To create a new credit, POST a link to the member validation and the amount to add to the member\'s account under the credits endpoint for the loyalty program. Requests must be signed with your app\'s credentials.</p>\n\n<p>In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a credit.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the <a href="#loyalty-programs">loyalty program</a> (LP).</td>\n        </tr>\n        <tr>\n            <td>amount</td>\n            <td><p>The number of points to add to the member\'s account. Must be a positive integer.</p>\n            <p><strong>Sandbox mode</strong>: To simulate a failed credit, set the amount to 99.</p></td>\n        </tr>\n        <tr>\n            <td>memberValidation</td>\n            <td>Link to a member validation that identifies the member\'s account to be credited. The member validation cannot have been used with another transaction.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The credit object if it was created successfully. Returns an <a href="index.html?doc=reference-manual#errors">error</a> if the member validation is not valid.</p>';});
+
+define('mdown!modules/../../documents/api/create-a-debit-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>POST https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n{\n  "amount": 2000,\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;"\n}\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>201 CREATED\nlocation: https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;\n{\n  "amount": 2000,\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;"\n    }\n  },\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;",\n  "status": "success",\n  "transactionId": "&lt;transaction-id&gt;"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/create-a-debit.md',[],function () { return '<h3>Create a Debit</h3>\n\n<p>Create a debit object to attempt to deduct points from a loyalty program member\'s account. A debit first requires a successful <a href="#member-validations">member validation</a> that has not been used previously with another transaction. To create a new debit, POST a link to the member validation and the amount to deduct from the member\'s account under the debits endpoint for the loyalty program. Requests must be signed with your app\'s credentials.</p>\n\n<p>In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a debit.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the <a href="#loyalty-programs">loyalty program</a> (LP).</td>\n        </tr>\n        <tr>\n            <td>amount</td>\n            <td><p>The number of points to deduct from the member\'s account. Must be a positive integer less than the member\'s balance obtained from the member validation.</p>\n            <p><strong>Sandbox mode</strong>: To simulate a failed credit, set the amount to 99.</p></td>\n        </tr>\n        <tr>\n            <td>memberValidation</td>\n            <td>Link to a member validation that identifies the member\'s account to be debited. The member validation cannot have been used with another transaction.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The debit object if it was created successfully. Returns an <a href="index.html?doc=reference-manual#errors">error</a> if the member validation is not valid or if the amount is greater than the balance in the member validation.</p>';});
+
+define('mdown!modules/../../documents/api/create-a-mv-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>POST https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n{\n  "firstName": "John",\n  "lastName": "Doe",\n  "memberId": "1234"\n}\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>201 CREATED\nlocation: https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;\n{\n  "balance": 2000,\n  "firstName": "John",\n  "lastName": "Doe",\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;"\n    }\n  },\n  "memberId": "1234"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/create-a-mv.md',[],function () { return '<h3>Create an MV</h3>\n\n<p>To create a new MV, POST the loyalty program member\'s account details to the loyalty program\'s MV service and sign the request with your app credentials. In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a MV.</p>\n\n<p>Authenticating a member requires a specific set of fields, defined by the specific loyalty program you wish to communicate with. For example, some loyalty programs may require a member ID and password, while others require a member ID, last name, and password. To keep things simple for now, the LCP currently only interacts with loyalty programs that require first name, last name, and member ID or first name, last name, member ID, and password.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the <a href="#loyalty-programs">loyalty program</a> (LP).</td>\n        </tr>\n        <tr>\n            <td>firstName</td>\n            <td>The first name of the loyalty program member.</td>\n        </tr>\n        <tr>\n            <td>lastName</td>\n            <td><p>The last name of the loyalty program member.</p>\n                <p><strong>Sandbox mode</strong>: To simulate a non-zero balance, append a space and a positive integer to the lastName field. For example, to simulate a balance of 2000 for John Doe, set lastName to "Doe 2000".</p></td>\n        </tr>\n        <tr>\n            <td>memberId</td>\n            <td><p>The member ID of the loyalty program member.</p>\n                <p><strong>Sandbox mode</strong>: To simulate a successful MV, set the memberId to one of the following depending on the loyalty program:\n                <ul>\n                    <li>Delta: sNQC</li>\n                    <li>Southwest: OfMq</li>\n                    <li>USAirways: UVmr</li>\n                    <li>Virgin Atlantic: KtuR</li>\n                    <li>Wyndham: YPyM</li>\n                </ul>\n            </td>\n        </tr>\n        <tr>\n            <td>password</td>\n            <td>The password for the member\'s account. Only required for Delta.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The MV object if it was created successfully. Returns an <a href="index.html?doc=reference-manual#errors">error</a> if the firstName, lastName or memberId is not provided or if the member could not be validated for the given loyalty program.</p>';});
+
+define('mdown!modules/../../documents/api/create-account-credentials-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>POST https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Request</h4>\n\n<pre><code>201 CREATED\nlocation: https://lcp.points.com/v1/accounts//account-credentials/\n{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts//account-credentials/"\n    }\n  },\n  "macAlgorithm":"HMAC-SHA1",\n  "macKey":"",\n  "macKeyIdentifier":""\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/create-account-credentials.md',[],function () { return '<h3>Create Account Credentials</h3>\n\n<p>Account credentials are automatically created when you create your account. However, you can create additional credentials if you want another set or if your first set has been compromised. You must use your first set of credentials to sign the request.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>account-id</td>\n            <td>The identifier of the account to add credentials to.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The account credentials object if it was created successfully. Returns an <a href="index.html?doc=reference-manual#errors">error</a> if you are not authorized to create new account credentials on this account.</p>';});
+
+define('mdown!modules/../../documents/api/create-an-account-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>POST https://lcp.points.com/v1/accounts/\n{\n  "email": "youremail@yourcompany.com"\n}\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>201 CREATED\nlocation: https://lcp.points.com/v1/accounts/\n{\n  "accountCredentials": [\n    {\n      "links": {\n        "self": {\n          "href": "https://lcp.points.com/v1/accounts//account-credentials/"\n        }\n      },\n      "macAlgorithm":"HMAC-SHA1",\n      "macKey":"",\n      "macKeyIdentifier":""\n    }\n  ],\n  "email": "youremail@yourcompany.com",\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/"\n    },\n    "friendly": {\n      "href": "https://lcp.points.com/v1/accounts/youremail%40yourcompany.com"\n    }\n  }\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/create-an-account.md',[],function () { return '<h3>Create an Account</h3>\n\n<p>Create a new developer account to get started and obtain your account credentials. This is the only action that does not require authorization. Creating your account will return your account credentials that you can start using immediately to develop against the platform.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>email</td>\n            <td>Your email address. Provide a valid email address so that we can verify you are the owner of the account.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The account object if it was created successfully. Returns an <a href="index.html?doc=reference-manual#errors">error</a> if the email already exists for another account.</p>';});
+
+define('mdown!modules/../../documents/api/create-an-app-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>POST https://lcp.points.com/v1/apps/\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n{\n  "name": "My App",\n  "description": "Description of my app"\n}\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>201 CREATED\nlocation: https://lcp.points.com/v1/apps/&lt;id&gt;\n{\n  "description": "Description of my app",\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/&lt;id&gt;"\n    }\n  },\n  "liveCredentials": [],\n  "name": "My App",\n  "sandboxCredentials": [\n"https://lcp.points.com/v1/apps/&lt;id&gt;/sandbox-credentials/&lt;sc-id&gt;"\n  ]\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/create-an-app.md',[],function () { return '<h3>Create an App</h3>\n\n<p>To create a new application, POST the application name and description to <code>/apps</code> and sign the request with your account credentials. Sandbox credentials are created automatically when you create an app. Your app can use these credentials to access the sandbox environment. Credentials to access the live environment can only be created by Points.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>name</td>\n            <td>The name of your app.</td>\n        </tr>\n        <tr>\n            <td>description</td>\n            <td>A description for your app.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The app object if it was created successfully. Returns an <a href="index.html?doc=reference-manual#errors">error</a> if the name or description is not provided.</p>';});
+
+define('mdown!modules/../../documents/api/credits-example.md',[],function () { return '<h4>Example Object</h4>\n\n<pre><code>{\n  "amount": 2000,\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;"\n    }\n  },\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;",\n  "status": "success",\n  "transactionId": "&lt;transaction-id&gt;"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/credits.md',[],function () { return '<h2>Credits</h2>\n\n<p>A credit is a transaction that adds points to a loyalty program member\'s account. Creating a credit object triggers the addition of points. A record of the credit is kept that can later be retrieved. A credit requires a member validation that has not been previously used for another transaction. Credits are stored for each loyalty program under <code>/lps/&lt;lp-id&gt;/credits/</code>.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>amount</td>\n            <td>The number of points added to the member\'s account. Must be a positive integer.</td>\n        </tr>\n        <tr>\n            <td>memberValidation</td>\n            <td>Link to a member validation that identifies the member\'s account that was credited.</td>\n        </tr>\n        <tr>\n            <td>status</td>\n            <td>The status of the credit. Must be either success or failure.</td>\n        </tr>\n        <tr>\n            <td>transactionId</td>\n            <td>A transaction ID that can be used to reconcile the credit against the loyalty partner\'s records.</td>\n        </tr>\n    </tbody>\n</table>';});
+
+define('mdown!modules/../../documents/api/debits-example.md',[],function () { return '<h4>Example Object</h4>\n\n<pre><code>{\n  "amount": 2000,\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;"\n    }\n  },\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;",\n  "status": "success",\n  "transactionId": "&lt;transaction-id&gt;"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/debits.md',[],function () { return '<h2>Debits</h2>\n\n<p>A debit is a transaction that takes points out of a loyalty program member’s account. Creating a debit object triggers the removal of points. A record of the debit is kept that can later be retrieved. A debit requires a member validation that has not been previously used for another transaction. Debits are stored for each loyalty program under <code>/lps/&lt;lp-id&gt;/debits/</code>.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>amount</td>\n            <td>The number of points deducted from the member\'s account. Must be a positive integer.</td>\n        </tr>\n        <tr>\n            <td>memberValidation</td>\n            <td>Link to a member validation that identifies the member\'s account that was debited.</td>\n        </tr>\n        <tr>\n            <td>status</td>\n            <td>The status of the debit. Must be either success or failure.</td>\n        </tr>\n        <tr>\n            <td>transactionId</td>\n            <td>A transaction ID that can be used to reconcile the debit against the loyalty partner\'s records.</td>\n        </tr>\n    </tbody>\n</table>';});
+
+define('mdown!modules/../../documents/api/delete-account-credentials-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>DELETE https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>204 NO CONTENT\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/delete-account-credentials.md',[],function () { return '<h3>Delete Account Credentials</h3>\n\n<p>If your account credentials have been compromised or if you no longer wish to use one of them, you can delete them. However, you must have at least one set of account credentials. You cannot delete your only set. If you want to replace your current set of credentials, first <a href="#create-account-credentials">create a new set of credentials</a> before deleting your current set.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>account-id</td>\n            <td>The identifier of the account that has the credentials.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the account credentials to be deleted.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>HTTP status code 204 (No Content) if successful. Otherwise, returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>';});
+
+define('mdown!modules/../../documents/api/documentation-overview.md',[],function () { return '<h1>LCP API Reference</h1>\n\n<p>For Points Loyalty Platform - Version 1.0<br><br></p>\n\n<h2>Document Overview</h2>\n\n<p>This document contains a complete list of all objects and actions supported by the Points Loyalty Commerce Platform (LCP) API. The document is organized as follows. Each object is described with the list its properties and an example instance. For each object, a list of possible actions are provided. Each action contains a description of the action itself as well as descriptions and examples of the request and response parameters to perform the action. This document assumes you are already familiar with the LCP and have read the <a href="index.html">LCP Getting Started Guide for Developers</a> and the <a href="index.html?doc=reference-manual">LCP Reference Manual</a>.</p>';});
+
+define('mdown!modules/../../documents/api/get-a-credit-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>GET https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "amount": 2000,\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;"\n    }\n  },\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;",\n  "status": "success",\n  "transactionId": "&lt;transaction-id&gt;"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/get-a-credit.md',[],function () { return '<h3>Get a Credit</h3>\n\n<p>Retrieves the details of a previous credit. This retrieves a historical record of the credit transaction when it was created, including whether the transaction succeeded or failed. Requests must be signed with your app\'s credentials.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the loyalty program (LP).</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the credit.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The credit object if it exists, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>';});
+
+define('mdown!modules/../../documents/api/get-a-debit-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>GET https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "amount": 2000,\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;"\n    }\n  },\n  "memberValidation": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;",\n  "status": "success",\n  "transactionId": "&lt;transaction-id&gt;"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/get-a-debit.md',[],function () { return '<h3>Get a Debit</h3>\n\n<p>Retrieves the details of a previous debit. This retrieves a historical record of the debit transaction when it was created, including whether the transaction succeeded or failed. Requests must be signed with your app\'s credentials.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the loyalty program (LP).</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the debit.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The debit object if it exists, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>';});
+
+define('mdown!modules/../../documents/api/get-a-mv-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>GET https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "balance": 2000,\n  "firstName": "John",\n  "lastName": "Doe",\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;"\n    }\n  },\n  "memberId": "1234"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/get-a-mv.md',[],function () { return '<h3>Get an MV</h3>\n\n<p>Retrieves the details of a previous MV. This retrieves the MV and member\'s balance in the state it was when it was when the MV was created. To get an updated member\'s balance, create a new MV. Requests must be signed with your app\'s credentials.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the loyalty program (LP).</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the member validation (MV).</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The MV object if it exists, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>';});
+
+define('mdown!modules/../../documents/api/get-account-credentials-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>GET https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/&lt;id&gt;"\n    }\n  },\n  "macAlgorithm": "HMAC-SHA1",\n  "macKey": "&lt;macKey&gt;",\n  "macKeyIdentifier": "&lt;macKeyIdentifier&gt;"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/get-account-credentials.md',[],function () { return '<h3>Get Account Credentials</h3>\n\n<p>Retrieves an existing set of account credentials.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>account-id</td>\n            <td>The identifier of the account that has the credentials.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the account credentials.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The account credentials object if it exists and you’re authorized to access it, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>';});
+
+define('mdown!modules/../../documents/api/get-an-account-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>GET https://lcp.points.com/v1/accounts/\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "email": "",\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/"\n    },\n    "friendly": {\n      "href": "https://lcp.points.com/v1/accounts/"\n    }\n  }\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/get-an-account.md',[],function () { return '<h3>Get an Account</h3>\n\n<p>Retrieves the account details for an existing account. Requires account credentials for the account being accessed.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the account.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The account object if it exists, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>';});
+
+define('mdown!modules/../../documents/api/get-an-app-by-mac-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>GET https://lcp.points.com/v1/apps?macKeyIdentifier=&lt;mac-key-id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "apps": [\n    {\n      "description": "Description of my app",\n      "links": {\n        "self": {\n          "href": "https://lcp.points.com/v1/apps/&lt;id&gt;"\n        }\n      },\n      "name": "My App"\n    }\n  ]\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/get-an-app-by-mac.md',[],function () { return '<h3>Get an App by MAC Key Identifier</h3>\n\n<p>If you don\'t remember your app\'s ID, you can also retrieve it by querying the <code>/apps</code> endpoint with your app\'s MAC key identifier.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>mac-key-id</td>\n            <td>The MAC key identifier for the live or sandbox credentials of an app.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>A list of apps. If an app was found with the given MAC key identifier, the app is included in the list. Otherwise, the list is empty. The returned app object does not include links to live and sandbox credentials. Get the self link to retrieve links to your app\'s credentials.</p>';});
+
+define('mdown!modules/../../documents/api/get-an-app-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "description": "Description of my app",\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/&lt;id&gt;"\n    }\n  },\n  "liveCredentials": [],\n  "name": "My App",\n  "sandboxCredentials": [\n"https://lcp.points.com/v1/apps/&lt;id&gt;/sandbox-credentials/&lt;sc-id&gt;"\n  ]\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/get-an-app.md',[],function () { return '<h3>Get an App</h3>\n\n<p>Retrieves the details of an existing app.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the app.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The app object if it exists, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>';});
+
+define('mdown!modules/../../documents/api/get-live-credentials-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/live-credentials/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/&lt;app-id&gt;/live-credentials/&lt;id&gt;"\n    }\n  },\n  "macAlgorithm": "HMAC-SHA1",\n  "macKey": "&lt;macKey&gt;",\n  "macKeyIdentifier": "&lt;macKeyIdentifier&gt;"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/get-live-credentials.md',[],function () { return '<h3>Get Live Credentials</h3>\n\n<p>Retrieves an existing set of live credentials.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the app that has the credentials.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the live credentials.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The live credentials object if it exists and you\'re authorized to access it, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>';});
+
+define('mdown!modules/../../documents/api/get-sandbox-credentials-example.md',[],function () { return '<h4>Example Request</h4>\n\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-credentials/&lt;id&gt;\nAuthorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."\n</code></pre>\n\n<h4>Example Response</h4>\n\n<pre><code>200 OK\n{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-credentials/&lt;id&gt;"\n    }\n  },\n  "macAlgorithm": "HMAC-SHA1",\n  "macKey": "&lt;macKey&gt;",\n  "macKeyIdentifier": "&lt;macKeyIdentifier&gt;"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/get-sandbox-credentials.md',[],function () { return '<h3>Get Sandbox Credentials</h3>\n\n<p>Retrieves an existing set of sandbox credentials.</p>\n\n<h4>Parameters</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the app that has the credentials.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the sandbox credentials.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4>Returns</h4>\n\n<p>The sandbox credentials object if it exists and you\'re authorized to access it, otherwise returns an <a href="index.html?doc=reference-manual#errors">error</a>.</p>';});
+
+define('mdown!modules/../../documents/api/live-credentials-example.md',[],function () { return '<h4>Example Object</h4>\n\n<pre><code>{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/&lt;app-id&gt;/live-credentials/&lt;id&gt;"\n    }\n  },\n  "macAlgorithm": "HMAC-SHA1",\n  "macKey": "&lt;macKey&gt;",\n  "macKeyIdentifier": "&lt;macKeyIdentifier&gt;"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/live-credentials.md',[],function () { return '<h2>Live Credentials</h2>\n\n<p>Live credentials authenticate your app to perform actions on the LCP in live mode. App credentials are different for sandbox and live mode. Live credentials are created by Points when your app is promoted to live mode. Live credentials are available at <code>/apps/&lt;app-id&gt;/live-credentials</code> and are used to sign requests to <code>/lps</code> in live mode. You cannot create or delete live credentials.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>macAlgorithm</td>\n            <td>The MAC algorithm describes the algorithm used to create the signature.</td>\n        </tr>\n        <tr>\n            <td>macKey</td>\n            <td>The MAC key is the shared secret key. It should never be shared with anyone or transmitted in any request. Keep this key secure as you would any private key.</td>\n        </tr>\n        <tr>\n            <td>macKeyIdentifier</td>\n            <td>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier is sent with each request to tell the server which MAC key was used to sign the request.</td>\n        </tr>\n    </tbody>\n</table>';});
+
+define('mdown!modules/../../documents/api/loyalty-programs.md',[],function () { return '<h2>Loyalty Programs (LPs)</h2>\n\n<p>A loyalty program (LP) allows you to perform member validations, debits, and credits against the loyalty program\'s member database. Loyalty programs are found under the <code>/lps</code> endpoint.</p>\n\n<p>In this version of the API, the list of LPs is fixed and your app cannot get the list of the loyalty programs that are supported. Instead, here is the list of loyalty programs that are available in this version:</p>\n\n<p>Use the LP IDs above when performing <a href="#member-validations">member validations (MVs)</a>, <a href="#debits">debits</a>, and <a href="#credits">credits</a> on the loyalty programs.</p>';});
+
+define('mdown!modules/../../documents/api/member-validations-example.md',[],function () { return '<h4>Example Object</h4>\n\n<pre><code>{\n  "balance": 2000,\n  "firstName": "John",\n  "lastName": "Doe",\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;"\n    }\n  },\n  "memberId": "1234",\n  "password": "********"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/member-validations.md',[],function () { return '<h2>Member Validations (MVs)</h2>\n\n<p>A member validation (MV) authenticates a member of a loyalty program and retrieves their balance. MVs are required before any other transactions can be performed on a member\'s account and each transaction requires a separate MV.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>balance</td>\n            <td>The balance in the loyalty program member\'s account.</td>\n        </tr>\n        <tr>\n            <td>firstName</td>\n            <td>The first name of the loyalty program member.</td>\n        </tr>\n        <tr>\n            <td>lastName</td>\n            <td>The last name of the loyalty program member.</td>\n        </tr>\n        <tr>\n            <td>memberId</td>\n            <td>The member ID of the loyalty program member.</td>\n        </tr>\n        <tr>\n            <td>password</td>\n            <td>The password for the member\'s account (if required). For security reasons, the password is masked when retrieving MVs.</td>\n        </tr>\n    </tbody>\n</table>';});
+
+define('mdown!modules/../../documents/api/sandbox-credentials-example.md',[],function () { return '<h4>Example Object</h4>\n\n<pre><code>{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-credentials/&lt;id&gt;"\n    }\n  },\n  "macAlgorithm": "HMAC-SHA1",\n  "macKey": "&lt;macKey&gt;",\n  "macKeyIdentifier": "&lt;macKeyIdentifier&gt;"\n}\n</code></pre>';});
+
+define('mdown!modules/../../documents/api/sandbox-credentials.md',[],function () { return '<h2>Sandbox Credentials</h2>\n\n<p>Sandbox credentials authenticate your app to perform actions on the LCP. A set of sandbox credentials is created automatically when you create your app. App credentials are different for sandbox and live mode. Sandbox credentials are available at <code>/apps/&lt;app-id&gt;/sandbox-credentials</code> and are used to sign requests to <code>/lps</code>.</p>\n\n<h4>Properties</h4>\n\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>macAlgorithm</td>\n            <td>The MAC algorithm describes the algorithm used to create the signature.</td>\n        </tr>\n        <tr>\n            <td>macKey</td>\n            <td>The MAC key is the shared secret key. It should never be shared with anyone or transmitted in any request. Keep this key secure as you would any private key.</td>\n        </tr>\n        <tr>\n            <td>macKeyIdentifier</td>\n            <td>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier is sent with each request to tell the server which MAC key was used to sign the request.</td>\n        </tr>\n    </tbody>\n</table>';});
+
+define('mdown!modules/../../documents/getting-started.md',[],function () { return '<h1>LCP Getting Started Guide</h1>\n\n<p>For Points Loyalty Commerce Platform - Version 1.0</p>\n\n<h2>Document Overview</h2>\n\n<p>The purpose of this document is to provide a beginner’s guide to the Points\nLoyalty Commerce Platform (LCP). You will find below an introduction to the LCP,\nthings you need to know before you get started and a step-by-step guide on how\nto use the APIs to check member balances. To accomplish this, this document will\nintroduce you to the <code>/accounts</code>, <code>/apps</code> and <code>/lps</code> resources that are exposed in the\nAPI. The sample code provided uses <a href="http://en.wikipedia.org/wiki/CURL">cURL</a> to\ncommunicate with the LCP. For a more detailed description of the LCP and its\ncapabilities see the <a href="index.html?doc=reference-manual">LCP Reference\nManual</a>\nand the <a href="index.html?doc=api-reference">LCP API\nReference</a>.</p>\n\n<h2>Introducing the Loyalty Commerce Platform API</h2>\n\n<p>The LCP\'s capabilities are exposed to developers through a <a href="https://en.wikipedia.org/wiki/Representational_state_transfer#RESTful_web_APIs">RESTful web\nAPI</a>.\nThe API consists of a set of resources that can be operated on using standard\nHTTP methods. The top-level resources in the LCP are accounts, apps, and lps.</p>\n\n<p><strong>Accounts</strong> - Your developer account information and credentials are stored\nunder <code>/accounts</code>. Once you create your account you can access it at\n<code>/accounts/&lt;account-id&gt;</code></p>\n\n<p><strong>Apps</strong> - Your apps are stored under the <code>/apps</code> endpoint. Each app will be given\na unique ID under <code>/apps</code>.</p>\n\n<p><strong>LPs</strong> - Loyalty programs (LPs) are stored under <code>/lps</code>. Each LP will have it’s\nown ID under <code>/lps</code>.</p>\n\n<p>Some actions can be performed on the collection of resources, while others must\nbe performed on individual resources. Resources can be created, read, updated,\nand deleted using standard HTTP methods.</p>\n\n<p><strong>POST</strong> - Used to create a resource by sending resource data to the collection.\nIf successful, returns a <code>201 (Created)</code> status code with a Location header that\nspecifies the location of the newly created resource. All method parameters must\nbe passed as part of request body using JSON.</p>\n\n<p><strong>GET</strong> - Used to retrieve a resource from the LCP. This operation is\n<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.1.2">idempotent</a> and\nhas no side effects from submitting the same request multiple times. If\nsuccessful, returns a <code>200 (OK)</code> status code with the resource content.</p>\n\n<p><strong>PUT</strong> - Used to update an existing resource. This operation is\n<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.1.2">idempotent</a> and\nhas no side effects from submitting the same request multiple times. If\nsuccessful, returns a <code>200 (OK)</code> status code with the resource content. All method\nparameters must be passed as part of request body using JSON.</p>\n\n<p><strong>DELETE</strong> - Used to delete a resource. This operation is\n<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.7">idempotent</a> and\nhas no side effects from submitting same request multiple times. If successful,\nreturns a <code>204 (No Content)</code> status code with an empty response body.</p>\n\n<p>All request and response payloads are <a href="http://en.wikipedia.org/wiki/UTF8">UTF8</a>\nencoded <a href="http://en.wikipedia.org/wiki/JSON">JSON</a>.\n<a href="http://en.wikipedia.org/wiki/Https">HTTPS</a> is used for all requests to ensure\nsecure communication. When consuming APIs in the LCP, developers must use <a href="http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02">OAuth\n2.0 Message Authentication Code (MAC) Tokens (draft\n02)</a> to authenticate\nthemselves. <a href="https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util">Utilities</a>\nare available to simplify the request signing process.\nSee the <a href="#security">Security</a> section of this document for more\ndetails.</p>\n\n<h2>Things You Should Know About Using the LCP</h2>\n\n<p>The Loyalty Commerce Platform (LCP) allows you to write apps that can access\nmany loyalty programs. The LCP handles the complexity of working with each\nloyalty program, creating one simple interface for working with any number of\nprograms.</p>\n\n<p><img src="static/images/getting-started.png" alt="Getting Started" title="" /></p>\n\n<h3>Sandbox vs. Live Mode</h3>\n\n<p>The LCP supports two different modes of operation: sandbox mode and live mode.\nDuring development, your application will operate in sandbox mode so that it\ndoesn’t make changes to any loyalty program member’s account. In sandbox mode,\nthe LCP never communicates with the loyalty program. All operations are\nsimulated. When you\'re ready to deploy your application, Points will promote\nyour application to live mode.</p>\n\n<p>Sandbox mode is accessed through\n<code>https://sandbox.lcp.points.com</code> while live\nmode through <code>https://lcp.points.com</code>. Each app has two\nsets of credentials to access the LCP: one set for sandbox mode and another set\nfor live mode. When accessing the LCP in sandbox mode, the sandbox credentials\nmust be used. When your app is promoted to live mode, Points will provide you\nwith live mode credentials.</p>\n\n<h3>Security</h3>\n\n<p>This section describes things you will need to know about LCP security to get\nyou started with building applications on the LCP.</p>\n\n<p><strong>All requests to and responses from the LCP are made using HTTPS.</strong> Using HTTPS\nhas a couple of benefits:</p>\n\n<ol>\n<li>HTTPS protects network traffic from eavesdropping by encrypting all traffic\nto and from the LCP so that only the sender and receiver are able to read\nrequests and responses.</li>\n<li>HTTPS permits clients to verify the identity of the server to ensure the\ncorrect server is receiving its requests.</li>\n</ol>\n\n<p><strong>All requests include an HTTP Authorization header</strong> to enable the LCP to\nvalidate the sender’s identity. <a href="http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02">OAuth 2.0 Message Authentication Code (MAC)\nTokens</a>\nare used to sign all requests to the LCP after you’ve created your account.\nOAuth 2.0 MAC is an evolving variant of OAuth 2.0.</p>\n\n<p>MAC tokens provide enhanced security over OAuth 2.0 Bearer tokens because unlike\nBearer tokens, MAC tokens are never sent between the client and the server. A\nbearer token is a shared secret key that is passed from the client to the server\nfor authentication. However, because bearer tokens involves transmitting the\nshared secret key between the client and the server, it can be vulnerable to\nattack if a third party gains access to any HTTP request. MAC tokens avoid this\nsecurity vulnerability by never transmitting the shared secret key. Instead the\nclient sends a signature that is generated using the shared secret key and\ndetails about the request. The server also generates the signature using the\nsame key and request details. If the signatures match then the server knows that\nthe signatures were generated using the same key and that the message was not\nmodified during transmission.</p>\n\n<p>The downside of MAC tokens is that the standard is still evolving and has\nlimited support at this time. This version of the LCP complies with <a href="http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02">draft 02 of\nthe OAuth 2.0 MAC\nstandard</a>. When\nusing this scheme it is highly recommended that you use one of the <a href="https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util">LCP Client\nUtilities</a> to issue\nplatform requests because these utilities will compute MACs for you.</p>\n\n<p>The credentials required for MAC authentication include a MAC key identifier, a\nMAC key and a MAC algorithm. Below is an example of a JSON document representing\nthe credentials for use with MAC authentication.</p>\n\n<pre><code>{\n  "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b",\n  "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",\n  "macAlgorithm": "HMAC-SHA1"\n}\n</code></pre>\n\n<p>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier\nis sent with each request to tell the server which MAC key was used to sign the\nrequest. The MAC key is the shared secret key. It should never be shared with\nanyone or transmitted in any request. Keep this key secure as you would any\nprivate key. Finally, the MAC algorithm describes the algorithm used to create\nthe signature.</p>\n\n<p>The LCP defines 2 different types of credentials:</p>\n\n<ol>\n<li><strong>Account credentials</strong>\n<ul><li>Account credentials authenticate you to perform actions on your developer account.</li>\n<li>A set of account credentials is created automatically when you create your developer account.</li>\n<li>Account credentials are the same for both sandbox and live mode.</li>\n<li>They are available at <code>/accounts/&lt;account-id&gt;</code>.</li>\n<li>They are used to sign requests to <code>/accounts</code> and <code>/apps</code>.</li></ul></li>\n<li><strong>Application credentials</strong>\n<ul><li>Application credentials authenticate your app to perform actions on the LCP.</li>\n<li>Each app has two sets of application credentials: one for sandbox mode and one for live mode.</li>\n<li>A set of sandbox credentials is created automatically when you create an app.</li>\n<li>Live credentials are created by Points when your app is promoted to live mode.</li>\n<li>Application credentials are available at <code>/apps/&lt;app-id&gt;</code>.</li>\n<li>They are used to sign requests to <code>/lps</code>.</li></ul></li>\n</ol>\n\n<p>If your credentials are compromised, you can create additional credentials and\ndelete your existing credentials. See the <a href="index.html?doc=api-reference">LCP API\nReference</a>\nfor details.</p>\n\n<h3>HATEOAS</h3>\n\n<p>HATEOAS or <a href="http://en.wikipedia.org/wiki/HATEOAS">Hypermedia as the Engine of Application\nState</a> is a characteristic of REST APIs.\nIn practical terms, it means each response from the LCP contains URLs to other\nresources that are relevant to the current resource. This helps makes the API\ndiscoverable and means you don’t need to know how to construct URLs to access\nthe LCP platform after the first request. In addition, if resource locations are\nmoved in a later version of the API, your application can automatically follow\nthe new links without modification. All the information necessary to navigate\nthe API is in the resource itself.</p>\n\n<p>JSON response documents that are returned by the LCP contain a "links" property.\nThis property contains URLs that help you consume further resources within the\nLCP REST API. For example:</p>\n\n<pre><code>{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/1234"\n    },\n    "friendly": {\n      "href": "https://lcp.points.com/v1/accounts/email@company.com"\n    }\n  }\n}\n</code></pre>\n\n<p>All links sections provided by the LCP contain a "self" link that represents a\nURL that can be used to obtain the document again if needed.</p>\n\n<p>Some calls also return a URL called "friendly" which contains a more\nuser-friendly and readable URL to consume a particular resource.</p>\n\n<h2>Getting Started</h2>\n\n<p>Now that you’ve read through some of the background information and familiarized\nyourself with some of the key principles, you’re ready to dive in. In this\nsection you’ll find a set of steps needed to start working with the Loyalty\nCommerce Platform (LCP). By following these steps, you’ll have everything you’d\nneed to to build a universal balance checker to retrieve member balances across\nmultiple loyalty programs. The steps needed are:</p>\n\n<ol>\n<li>Create an account</li>\n<li>Sign requests</li>\n<li>Create an app</li>\n<li>Perform a member validation (MV)</li>\n</ol>\n\n<h3>Create an Account</h3>\n\n<p>In order to create a universal balance checker, your first step is to create an\naccount. An account is your own personal developer account on the LCP system. It\nis tied to your email address and gives you access credentials to the LCP. It\nalso enables you to create one or more applications that interface with the LCP.</p>\n\n<p>To create your developer account, <code>POST</code> to the <code>/accounts</code> resource with your email\naddress:</p>\n\n<pre><code>curl -v -X POST -H "Content-Type: application/json" \\\n-d \'{"email": "youremail@yourcompany.com"}\' \\\nhttps://lcp.points.com/v1/accounts/\n</code></pre>\n\n<p>If the above request is successful, the LCP will respond with the following:</p>\n\n<pre><code>HTTP/1.1 201 CREATED\n{\n  "accountCredentials": [\n    {\n      "links": {\n        "self": {\n          "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5/account-credentials/63ac7619-0073-4aa7-a996-0acae9f9bfb9"\n        }\n      },\n      "macAlgorithm": "HMAC-SHA1",\n      "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",\n      "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b"\n    }\n  ],\n  "email": "youremail@yourcompany.com",\n  "links": {\n    "friendly": {\n      "href": "https://lcp.points.com/v1/accounts/youremail%40yourcompany.com"\n    },\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5"\n    }\n  }\n}\n</code></pre>\n\n<p>From this response data, it’s important to record the "accountCredentials"\nresource that is returned. These are your credentials for accessing your account\nand apps on the LCP. The macKey is a shared secret key between you and the\nplatform. Keep it safe as you would for a private cryptographic key. It should\nnever be shared with anyone or sent to the LCP.</p>\n\n<h3>Sign Requests</h3>\n\n<p>Now that you have an account and its credentials, all future requests to the LCP\nneed to be signed with your MAC key. For example, let’s see what happens if we\ntry to get the account created above:</p>\n\n<pre><code>curl -v \\\nhttps://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5\n</code></pre>\n\n<p>The server returns a 401 status code indicating you are not authorized to access\nthis resource:</p>\n\n<pre><code>HTTP/1.1 401 UNAUTHORIZED\n{\n  "errors": [\n    {\n      "code": "UNAUTHORIZED",\n      "description": "The server could not verify that you are authorized to access the URL requested.  You either supplied the wrong credentials (e.g. a bad password), or your browser doesn\'t understand how to supply the credentials required.",\n      "field": null\n    }\n  ]\n}\n</code></pre>\n\n<p>To sign requests, you need to include an authorization header in your request.\nBuilding this header for OAuth 2.0 MAC is described in <a href="#appendix-a-signing-requests">Appendix A: Signing\nRequests</a>. To get started faster, you can use the\n<code>lcp_curl.py</code> Python script provided in the\n<a href="https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util">utilities</a>.</p>\n\n<p><code>lcp_curl.py</code> is a wrapper around curl to add the MAC authorization header. It\nrequires a -u parameter with your macKeyIdentifier and macKey, which it uses to\ngenerate the MAC signature and the authorization header. It passes all other\narguments on to curl. Let’s try to get the account resource again using\n<code>lcp_curl.py</code>:</p>\n\n<pre><code>lcp_curl.py -v -u \\\n97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \\\nhttps://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5\n</code></pre>\n\n<p><code>lcp_curl.py</code> generates the MAC signature, builds the authorization header, and\nincludes it in a call to curl:</p>\n\n<pre><code>curl -v -H \\\n\'Authorization: MAC id="97ee420faaa343d4a04b7378b319b48b", ts="1379541939", nonce="OK3HY80lkQ0=", ext="", mac="EmYShgBbKjp7XB3gbZq9e0zZy+8="\' \\\nhttps://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5\n</code></pre>\n\n<p>Now the account resource is returned in full:</p>\n\n<pre><code>HTTP/1.1 200 OK\n{\n  "accountCredentials": [\n    {\n      "links": {\n        "self": {\n          "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5/account-credentials/63ac7619-0073-4aa7-a996-0acae9f9bfb9"\n        }\n      },\n      "macAlgorithm": "HMAC-SHA1",\n      "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",\n      "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b",\n    }\n  ],\n  "email": "youremail@yourcompany.com",\n  "links": {\n    "friendly": {\n      "href": "https://lcp.points.com/v1/accounts/youremail%40yourcompany.com"\n    },\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5"\n    },\n  }\n}\n</code></pre>\n\n<p>If you still received 401 unauthorized, check that your computer’s time is\naccurate or is synced with an internet time server. <code>lcp_curl.py</code> adds a timestamp\nto each request and the LCP verifies that the timestamp is within 30 seconds of\nthe server’s time to prevent replay attacks.</p>\n\n<h3>Create an App</h3>\n\n<p>Now that we can sign requests, the next step in creating a universal balance\nchecker is to create an application on the LCP. Apps are stored under the <code>/apps</code>\nendpoint. To create the application, <code>POST</code> the application name and description\nto <code>/apps</code> and sign the request with your account credentials.</p>\n\n<pre><code>lcp_curl.py -v -u \\\n97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \\\n-X POST -d \'{"name": "UBC", "description": "Universal balance checker"}\' \\\nhttps://lcp.points.com/v1/apps/\n</code></pre>\n\n<p>This creates the app and returns the following JSON response that contains the\napp name and description you provided.</p>\n\n<pre><code>HTTP/1.1 201 CREATED\n{\n  "description": "Universal balance checker",\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc"\n    }\n  },\n  "liveCredentials": [],\n  "name": "UBC",\n  "sandboxCredentials": [\n"https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"\n  ]\n}\n</code></pre>\n\n<p>The created resource also contains the app’s sandbox credentials and a\nplaceholder for the app’s live credentials. The app credentials are different\nfrom your account credentials. The sandbox credentials are used whenever the app\nmakes requests in the sandbox environment. The live credentials must be used for\nrequests to the live environment. Right now, the app only has sandbox\ncredentials. When you’re ready to deploy the app, you can request live\ncredentials from Points.</p>\n\n<p>We’re going to need the app’s sandbox credentials, so let’s get them now:</p>\n\n<pre><code>lcp_curl.py -v -u \\\n97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \\\n"https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"\n</code></pre>\n\n<p>This returns the sandbox credentials for the app:</p>\n\n<pre><code>HTTP/1.1 200 OK\n{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"\n    }\n  },\n  "macAlgorithm": "HMAC-SHA1",\n  "macKey": "iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA",\n  "macKeyIdentifier": "d8b9ca1904a348e491884a9c44843d25"\n}\n</code></pre>\n\n<h3>Perform a Member Validation (MV)</h3>\n\n<p>The final step in creating a universal balance checker is to retrieve the\nbalance in a loyalty program member’s account. This is done by performing a\nmember validation or MV. An MV authenticates a member of a loyalty program and\nretrieves their balance. Authenticating a member requires a specific set of\nfields, defined by the specific loyalty program you wish to communicate with.\nFor example, some loyalty programs may require a member ID and password, while\nothers require a member ID, last name, and password. To keep things simple for\nnow, the LCP currently only interacts with loyalty programs that require first\nname, last name, and member ID or first name, last name, member ID, and\npassword.</p>\n\n<p>In the current version of the LCP, there is no way for your app to get a list of\nthe loyalty programs that are supported.</p>\n\n<p>For example, to perform a member validation for Southwest in sandbox mode, POST\nto:</p>\n\n<pre><code>https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/\n</code></pre>\n\n<p>with the member’s first name, last name, and member ID and sign the request\nusing your app’s sandbox credentials:</p>\n\n<pre><code>lcp_curl.py -v -X POST -u \\\nd8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \\\n-d \'{"firstName": "John", "lastName": "Doe", "memberId": "1234"}\' \\\n"https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/"\n</code></pre>\n\n<p>Since there is no member named John Doe with member ID 1234 in the sandbox, the\nLCP returns an error:</p>\n\n<pre><code>HTTP/1.1 422 UNPROCESSABLE ENTITY\n{\n  "errors": [\n    {\n      "code": "UNKNOWN_MEMBER",\n      "description": "The loyalty program couldn\'t find a member with the given credentials."\n    }\n  ]\n}\n</code></pre>\n\n<p>Since the sandbox environment doesn’t communicate directly with the loyalty\nprogram, we have provided a way to simulate a successful member validation. To\nsimulate a successful member validation, provide the loyalty program’s partner\nID from the table above in place of the member ID:</p>\n\n<pre><code>lcp_curl.py -v -X POST -u \\\nd8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \\\n-d \'{"firstName": "John", "lastName": "Doe", "memberId": "OfMq"}\' \\\n"https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/"\n</code></pre>\n\n<p>This creates a successful MV:</p>\n\n<pre><code>HTTP/1.1 201 CREATED\n{\n  "balance": 0,\n  "firstName": "John",\n  "lastName": "Doe",\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/1261b5f814d011e382d152540006e04e"\n    }\n  },\n  "memberId": "OfMq"\n}\n</code></pre>\n\n<p>The points balance is always zero in sandbox mode since it does not communicate\nwith the loyalty program. To simulate a non-zero balance, add the desired\nbalance to the lastName field:</p>\n\n<pre><code>lcp_curl.py -v -X POST -u \\\nd8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \\\n-d \'{"firstName": "John", "lastName": "Doe 2000", "memberId": "OfMq"}\' \\\n"https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/"\n</code></pre>\n\n<p>The balance is now 2000:</p>\n\n<pre><code>HTTP/1.1 201 CREATED\n{\n  "balance": 2000,\n  "firstName": "John",\n  "lastName": "Doe 2000",\n  "links": {\n    "self": {\n      "href": "https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/fe3e1a4e14cf11e38f68525400a02ac6"\n    }\n  },\n  "memberId": "OfMq"\n}\n</code></pre>\n\n<p>You can retrieve a previous MV by performing a GET on the self link. This\nretrieves the MV and balance in the state it was when it was created. To get an\nupdated member’s balance, create a new MV.</p>\n\n<p>Congratulations, you’ve successfully performed a member validation. This is all\nyou need to complete your universal balance checker.</p>\n\n<p>To learn more about the capabilities of the LCP, including moving points in and\nout of member accounts, refer to the <a href="index.html?doc=reference-manual">LCP Reference\nManual</a>\nand the <a href="index.html?doc=api-reference">LCP API\nReference</a>.</p>\n\n<h2>Appendix A: Signing Requests</h2>\n\n<p>This appendix contains the a step-by-step guide for signing requests with OAuth\n2.0 MAC tokens as well as sample code. Follow these steps if you want to write\nyour own module to sign requests.</p>\n\n<ol>\n<li>Generate a timestamp. The timestamp is the number of seconds since January 1,\n1970 00:00:00 UTC. This is also known as POSIX time or Unix time. Requests\nare only valid within 30 seconds of the timestamp.</li>\n<li>Generate a nonce. A nonce is an arbitrary string that must be different for\neach request in a 30 second window with the same MAC ID.</li>\n<li>Generate the extension string. The extension string is blank for GET and\nDELETE requests. For PUT and POST requests, concatenate the value of the\nContent-Type header (e.g. "application/json") with the request body and hash\nit with SHA1.</li>\n<li>Build the normalized request string as follows:</li>\n</ol>\n\n<table>\n  <thead>\n    <tr>\n      <th>Format</th>\n      <th>GET Example</th>\n      <th>POST Example</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>Timestamp\\n<br>Nonce\\n<br>HTTP Method (all caps)\\n<br>Path\\n<br>Hostname\\n<br>Port\\n<br>Extension\\n</td>\n      <td>1377721336\\n<br>4FvtoumTybo=\\n<br>GET\\n<br>/v1/apps/\\n<br>lcp.points.com\\n<br>443\\n<br>\\n</td>\n      <td>1377724146\\n<br>u8BNUfE5Gu8=\\n<br>POST\\n<br>/v1/apps/\\n<br>lcp.points.com\\n<br>443\\n<br>a9d46382c97bd4b0475b5b152dddaf2d61c0a30d\\n</td>\n    </tr>\n  </tbody>\n</table>\n\n<ol start="5">\n  <li>Decode the MAC key from Base64 if you haven’t already. The MAC key is encoded in Base64 using a URL-safe alphabet. You may need to add padding to the MAC key to decode it.</li>\n  <li>Generate the signature by using the HMAC-SHA1 algorithm and the MAC key over the normalized request string.</li>\n  <li>Encode the signature in Base64. You do not need to use the URL-safe alphabet.</li>\n  <li>Generate the authorization header for the request.</li>\n</ol>\n\n<h4>Example request:</h4>\n\n<pre><code>GET /v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5 HTTP/1.1\nHost: lcp.points.com\nAuthorization: MAC id="97ee420faaa343d4a04b7378b319b48b",\n                   ts="1379541939",\n                   nonce="OK3HY80lkQ0=",\n                   ext="",\n                   mac="EmYShgBbKjp7XB3gbZq9e0zZy+8="\n</code></pre>\n\n<h4>Example C# code:</h4>\n\n<pre><code>using System.Security.Cryptography;\n\npublic string GetAuthorizationHeaderValue(\n    string httpMethod,\n    Uri url,\n    string macKeyIdentifier,\n    string macKey,\n    string contentType,\n    string body)\n{\n    // Step 1: Generate timestamp\n    TimeSpan t = (DateTime.UtcNow - new DateTime(1970, 1, 1));\n    string ts = ((int)t.TotalSeconds).ToString();\n\n    // Step 2: Generate nonce\n    string nonce = new Random().Next().ToString();\n\n    // Step 3: Generate ext\n    string ext = "";\n    if (contentType != null &amp;&amp; body != null &amp;&amp;\n        contentType.Length &gt; 0 &amp;&amp; body.Length &gt; 0)\n    {\n        string contentTypePlusBody = contentType + body;\n        SHA1 sha = new SHA1CryptoServiceProvider();\n        ext = BitConverter.ToString(sha.ComputeHash(\n            Encoding.ASCII.GetBytes(contentTypePlusBody)));\n        ext = ext.Replace("-", "").ToLower();\n    }\n\n    // Step 4: Build normalized request string\n    string normalizedRequestString =\n        string.Format("{0}\\n{1}\\n{2}\\n{3}\\n{4}\\n{5}\\n{6}\\n",\n            ts,\n            nonce,\n            httpMethod,\n            url.AbsolutePath,\n            url.Host,\n            url.Port,\n            ext);\n\n    // Step 5: Base64 decode the MAC key from URL-safe alphabet\n    // and add padding if needed\n    macKey = macKey.Replace(\'-\', \'+\').Replace(\'_\', \'/\');\n    macKey += new string(\'=\', (4 - macKey.Length % 4));\n    HashAlgorithm hashGenerator = new HMACSHA1(\n        System.Convert.FromBase64String(macKey));\n\n    // Step 6: Generate the signature\n    byte[] signature = hashGenerator.ComputeHash(\n        Encoding.ASCII.GetBytes(normalizedRequestString));\n\n    // Step 7: Base64 encode the result\n    string mac = System.Convert.ToBase64String(signature);\n\n    // Step 8: Build Authorization header\n    StringBuilder authorizationHeader = new StringBuilder();\n    authorizationHeader.AppendFormat(@"MAC id=""{0}"", ts=""{1}"", nonce=""{2}"", ext=""{3}"", mac=""{4}""", macKeyIdentifier, ts, nonce, ext, mac);\n\n    return authorizationHeader.ToString();\n}\n</code></pre>\n\n<h4>Example Python code:</h4>\n\n<pre><code>import urlparse\nimport httplib\nimport base64\nimport hmac\nimport hashlib\n\ndef generate_authorization_header_value(\n        http_method,\n        url,\n        mac_key_identifier,\n        mac_key,\n        content_type,\n        body):\n\n    url_parts = urlparse.urlparse(url)\n    port = url_parts.port\n    if not port:\n        if url_parts.scheme == \'https\':\n            port = httplib.HTTPS_PORT\n        else:\n            port = httplib.HTTP_PORT\n\n    # Step 1: Generate timestamp \n    ts = str(int(time.time()))\n\n    # Step 2: Generate nonce\n    nonce = base64.b64encode(os.urandom(8))\n\n    # Step 3: Generate ext\n    if content_type is not None and body is not None and len(content_type) &gt; 0 and len(body) &gt; 0:\n        content_type_plus_body = content_type + body\n        content_type_plus_body_hash = hashlib.sha1(content_type_plus_body)\n        ext = content_type_plus_body_hash.hexdigest()\n    else:\n        ext = ""\n\n    # Step 4: Build normalized request string\n    normalized_request_string = (\n        ts + \'\\n\' +\n        nonce + \'\\n\' +\n        http_method + \'\\n\' +\n        url_parts.path + \'\\n\' +\n        url_parts.hostname + \'\\n\' +\n        str(port) + \'\\n\' +\n        ext + \'\\n\'\n    )\n\n    # Step 5: Base64 decode the MAC key from URL-safe alphabet\n    # and add padding if needed\n    mac_key += \'=\' * (4 - len(mac_key) % 4)\n    mac_key = base64.urlsafe_b64decode(mac_key)\n\n    # Step 6: Generate the signature\n    signature = hmac.new(mac_key, normalized_request_string, hashlib.sha1)\n\n    # Step 7: Base64 encode the result\n    mac = base64.b64encode(signature.digest())\n\n    # Step 8: Build Authorization header\n    return \'MAC id="{0}", ts="{1}", nonce="{2}", ext="{3}", mac="{4}"\'.format(mac_key_identifier, ts, nonce, ext, mac)\n</code></pre>';});
+
+define('mdown!modules/../../documents/reference-manual.md',[],function () { return '<h1>LCP Reference Manual</h1>\n\n<p>For Points Loyalty Commerce Platform - Version 1.0</p>\n\n<h2>Document Overview</h2>\n\n<p>This document contains an in-depth description of the Points Loyalty Commerce\nPlatform (LCP). You will find below descriptions of the platform,\nauthentication, and error codes. This document assumes have read the <a href="index.html">LCP Getting\nStarted Guide for Developers</a>. For a detailed description of the API, see the <a href="index.html?doc=api-reference">LCP\nAPI Reference</a>.</p>\n\n<h2>Sandbox vs Live</h2>\n\n<p>The LCP operates in two modes: sandbox mode and live mode. Sandbox mode is\naccessed at <code>https://sandbox.lcp.points.com</code> while live mode is accessed at\n<code>https://lcp.points.com</code>. Each has a separate set of credentials for\nauthentication. When you create an application, you will get a set of sandbox\ncredentials for use in the sandbox environment. Live mode credentials are issued\nby Points when you’re ready to deploy your application.</p>\n\n<p>Use sandbox mode during development and to test your application. In the\nSandbox, you can test your application against one or more loyalty programs\nwithout affecting live member accounts of the loyalty programs. Sandbox mode\nnever affects member accounts; all operations are simulated. The API reference\ndescribes how to simulate different success and failure conditions in sandbox\nmode that your app will experience in live mode.</p>\n\n<p>To go live, you’ll need to request live credentials from Points. Once your\nreceive them, you’ll need to update your application to use the live credentials\nand the live endpoint located at <code>https://lcp.points.com</code>. Only Live credentials\nhave permission to access this endpoint. Once in the live environment, we\nrecommend you run additional tests using live test accounts for each of the\nloyalty programs your app interacts.</p>\n\n<h2>Versioning</h2>\n\n<p>The LCP uses version numbering in the URI. To access the version of the API\ndescribed in this document use <code>https://sandbox.lcp.points.com/v1/</code> or\n<code>https://lcp.points.com/v1/</code>. New versions will be created for backwards\nincompatible changes to the API. We will notify you of new versions of the API\nand give you time to transition to the new version before discontinuing support\nfor the old version.</p>\n\n<h2>Multiple Data Centers</h2>\n\n<p>The LCP is a high availability service operating in multiple data centers\nglobally. The platform is designed to maximize availability and scalability but\nunderstanding how the LCP works will ensure your Application knows what to\nexpect.</p>\n\n<p>Requests to the LCP are routed to the closest data center. Unless that data\ncenter fails or you change geographies (significantly) your requests will\ncontinue to be routed to the same data center. Requests that change data in one\ndata center are replicated to the other data centers. Replication happens\nquickly and in the background so as not to delay processing of your requests.\nSince your requests typically hit the same data center, replication is generally\ninvisible to your application. This characteristic of the LCP is called eventual\nconsistency. For more background information on this topic please reference\n<a href="http://www.allthingsdistributed.com/2008/12/eventually_consistent.html">Eventually Consistent -\nRevisited</a>.</p>\n\n<p>In the unlikely event of a data center failing, the LCP will automatically\nfailover to a secondary data center. This may result in recently created\nresources not being immediately available in the data center to which you fail\nover until replication has completed. To get started don\'t worry about this\nfailure scenario. However, keep in mind that you in rare instances, you may need\nto wait and resend your request to access recently created or modified data.</p>\n\n<h2>Authorization</h2>\n\n<p>The LCP uses OAuth 2.0 Message Authentication Code (MAC) Tokens to authenticate\nrequests to the platform. This version of the LCP API matches <a href="http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02">draft 02 of the\nOAuth 2.0 MAC Token\nspecification</a>. We\nhave provided a set of <a href="https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util">LCP Client\nUtilities</a>\nto help you get started with OAuth 2.0 MAC authentication.</p>\n\n<h3>Types of Credentials</h3>\n\n<p>There are three types of MAC credentials used in the LCP:</p>\n\n<ol>\n<li><a href="index.html?doc=api-reference#account-credentials">Account credentials</a> are\nused to authenticate you when accessing <code>/accounts</code> and\n<code>/apps</code> resources. Account credentials are created automatically when you\ncreate an account.</li>\n<li><a href="index.html?doc=api-reference#sandbox-credentials">Sandbox credentials</a> are\nused by your app to authenticate its requests to the <code>/lps</code> resource in the\nsandbox environment. Sandbox credentials are created automatically when you\ncreate an app.</li>\n<li><a href="index.html?doc=api-reference#live-credentials">Live credentials</a> are used by\nyour app to authenticate its requests to the <code>/lps</code> resource in the live\nenvironment. Live credentials are managed by Points.</li>\n</ol>\n\n<p>Each set of credentials include a MAC key identifier, a MAC key and a MAC\nalgorithm. The MAC key identifier uniquely identifies the MAC key. The MAC key\nidentifier is sent with each request to tell the server which MAC key was used\nto sign the request. The MAC key is the shared secret key. It should never be\nshared with anyone or transmitted in any request. Keep this key secure as you\nwould any private key. Finally, the MAC algorithm describes the algorithm used\nto create the signature. It is always set to <code>HMAC-SHA1</code>.</p>\n\n<pre><code>{\n  "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b",\n  "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",\n  "macAlgorithm": "HMAC-SHA1"\n}\n</code></pre>\n\n<p>NOTE: The MAC key is <a href="http://tools.ietf.org/html/rfc4648">Base64</a> encoded using\na URL-safe alphabet, which substitutes <code>-</code> instead of <code>+</code> and <code>_</code> instead of <code>/</code>\nin the standard Base64 alphabet. TheMAC key also may not contain padding\n(represented with the <code>=</code> character). Prior to using the MAC key, decode it from\nBase64.</p>\n\n<h3>The Authorization Header</h3>\n\n<p>Except when creating an account, all requests to the platform must include an\nauthorization header. The authorization header includes the authorization type\n“MAC” and the following five fields:</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>Field</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>id</td>\n      <td>The MAC key identifier that uniquely identifies the MAC key used to generated the MAC signature.</td>\n    </tr>\n    <tr>\n      <td>ts</td>\n      <td>An integer timestamp equal to the number of seconds since January 1, 1970 00:00:00 UTC. This is also known as POSIX time or Unix time. Requests are only valid within 30 seconds of the timestamp.</td>\n    </tr>\n    <tr>\n      <td>nonce</td>\n      <td>An arbitrary string that must be different for each request in a 30 second window with the same MAC key identifier. Used to prevent replay attacks.</td>\n    </tr>\n    <tr>\n      <td>ext</td>\n      <td>The extension string is used to verify the contents of the request. It is an empty string for GET and DELETE request. For PUT and POST requests, concatenate the value of the Content-Type header (e.g. “application/json”) with the request body and hash it with SHA1.</td>\n    </tr>\n    <tr>\n      <td>mac</td>\n      <td>The MAC signature for this request. The MAC signature is a Base64 encoded string that is generated by the HMAC-SHA1 algorithm, the MAC key, and the normalized request string. This process is described in the next section.</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Note that the MAC key is not included in the authorization header. This key is a\nsecret and should not be included in any request. Here is an example of an\nauthorization header:</p>\n\n<pre><code>Authorization: MAC id="97ee420faaa343d4a04b7378b319b48b",\n                   ts="1379541939",\n                   nonce="OK3HY80lkQ0=",\n                   ext="",\n                   mac="EmYShgBbKjp7XB3gbZq9e0zZy+8="\n</code></pre>\n\n<p>When this authorization header is provided in requests to protected resources,\nthe LCP authenticates the request using the following steps:</p>\n\n<ol>\n<li>Checks that the timestamp is within 30 seconds of the current time.</li>\n<li>Checks that the nonce has not been used in a previous request with the same\nMAC key identifier in the 30 second window.</li>\n<li>Checks the MAC signature by using the same process as the client. Using the\nMAC key that corresponds to the MAC key identifier and the request details,\nthe LCP generates a MAC signature for this request and compares it to the one\nthat was passed in the authorization header. </li>\n<li>Generates the extension string and verifies that it matches the string provided in the authorization header.</li>\n</ol>\n\n<p>If all of these conditions are met the request is authenticated.</p>\n\n<h3>Generating the MAC Signature</h3>\n\n<p>The MAC signature is generated using the MAC key and a normalized request string\nthat contains the details of the request. The normalized request string is\nassembled as follows (<code>\\n</code> indicates a new line character at the end of every\nline):</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>Format</th>\n      <th>GET Example</th>\n      <th>POST Example</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>\n        Timestamp\\n<br>\n        Nonce\\n<br>\n        HTTP Method (all caps)\\n<br>\n        Path\\n<br>\n        Hostname\\n<br>\n        Port\\n<br>\n        Extension\\n<br>\n      </td>\n      <td>\n        1377721336\\n<br>\n        4FvtoumTybo=\\n<br>\n        GET\\n<br>\n        /v1/apps/\\n<br>\n        lcp.points.com\\n<br>\n        443\\n<br>\n        \\n<br>\n      </td>\n      <td>\n        1377724146\\n<br>\n        u8BNUfE5Gu8=\\n<br>\n        POST\\n<br>\n        /v1/apps/\\n<br>\n        lcp.points.com\\n<br>\n        443\\n<br>\n        a9d46382c97bd4b0475b5b152dddaf2d61c0a30d\\n<br>\n      </td>\n    </tr>\n  </tbody>\n</table>\n\n<ul>\n<li><strong>Timestamp:</strong> The number of seconds since January 1, 1970 00:00:00 UTC. This\nis also known as POSIX time or Unix time. Requests are only valid within 30\nseconds of the timestamp.</li>\n<li><strong>Nonce:</strong> An arbitrary string that must be different for each request in a 30\nsecond window with the same MAC ID.</li>\n<li><strong>HTTP Method:</strong> One of GET, PUT, POST, or DELETE (must be uppercase).</li>\n<li><strong>Path:</strong> The path to the resource on the server. Starts with the slash after\nthe hostname/port in the URI.</li>\n<li><strong>Hostname:</strong> The hostname of the server in the HTTP request. Do not include\nthe protocol (<code>https://</code>), port or path.</li>\n<li><strong>Port:</strong> The port for the HTTP request. Use 443 for HTTPS.</li>\n<li><strong>Extension:</strong> Blank for GET and DELETE request. For PUT and POST requests,\nconcatenate the value of the Content-Type header (e.g. <code>application/json</code>)\nwith the request body and hash it with SHA1.</li>\n</ul>\n\n<p>This normalized request string and the MAC key are fed into the HMAC-SHA1\nalgorithm to obtained the binary MAC signature. The binary signature is\n<a href="http://tools.ietf.org/html/rfc4648">Base64</a> encoded for inclusion in the\n<a href="#the-authorization-header">authorization header</a> for the request.</p>\n\n<p>Here is an example of using the HMAC-SHA1 algorithm to generate the signature in Python:</p>\n\n<pre><code>def generate_signature(mac_key, normalized_request_string):\n    """Generate a request\'s MAC given a normalized request string (aka\n    a summary of the key elements of the request and the mac key (shared\n    secret)."""\n\n    import hmac\n    import hashlib\n    import base64\n\n    # Add padding to the MAC key if needed\n    mac_key+= \'=\' * (4 - len(mac_key) % 4)\n\n    # Base64 decode the MAC key using URL-safe alphabet\n    mac_key= base64.urlsafe_b64decode(mac_key)\n\n    # Create the hash\n    hashed = hmac.new(mac_key, normalized_request_string, hashlib.sha1)\n\n    # Base64 encode the result\n    return base64.b64encode(hashed.digest())\n</code></pre>\n\n<h2>HTTP Status Codes</h2>\n\n<p>HTTP status codes are used to indicate success or failure. Status codes in the\n<code>200s</code> indicate the request was successful. Status codes in the <code>400s</code> indicate\nfailure. Details of the success or failure are contained in the body of the\nresponse.</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>HTTP Status Code</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>200 OK</td>\n      <td>The request completed successfully. The resource is contained in the body of the response.</td>\n    </tr>\n    <tr>\n      <td>201 Created</td>\n      <td>Request to create a resource completed successful. The URI of the created resource is included in the Location header in the response.</td>\n    </tr>\n    <tr>\n      <td>204 No Content</td>\n      <td>The request completed successfully with no content in the body of the message. Usually a response from a request to delete a resource.</td>\n    </tr>\n    <tr>\n      <td>400 Bad Request</td>\n      <td>The data provided in the request has incorrect. Check the JSON error response for details.</td>\n    </tr>\n    <tr>\n      <td>401 Unauthorized</td>\n      <td>Either the authorization header was not provided or was invalid.</td>\n    </tr>\n    <tr>\n      <td>404 Not Found</td>\n      <td>The requested resource was not found or the current user does not have permission to access it.</td>\n    </tr>\n    <tr>\n      <td>415 Unsupported Media Type</td>\n      <td>Returned if the request provided an unsupported content type. Only application/json is supported.</td>\n    </tr>\n    <tr>\n      <td>422 Unprocessable Entity</td>\n      <td>The data provided in the request for valid, but the request could not be completed for another reason. Check the JSON error response for details.</td>\n    </tr>\n  </tbody>\n</table>\n\n<h2>Errors</h2>\n\n<p>When the HTTP status code indicates a failure, the response includes a JSON\ndocument that lists the errors in a predictable format. The JSON contains a hash\ncalled “errors” that is an array of the errors encountered in the request. Here\nis an example of an error response:</p>\n\n<pre><code>{\n  "errors": [\n    {\n      "code": "MISSING_FIELD",\n      "description": "\'name\' is required.",\n      "field": "name"\n    },\n    {\n      "code": "MISSING_FIELD",\n      "description": "\'description\' is required.",\n      "field": "description"\n    }\n  ]\n}\n</code></pre>\n\n<p>Each error array element contains the following fields:</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>Error Field</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>code</td>\n      <td>A standard code describing the error. You can use this code to programmatically handle the error and take appropriate action. See below for a list of standard error codes.</td>\n    </tr>\n    <tr>\n      <td>description</td>\n      <td>A description of the error that further explains the error that can be displayed to the end-user</td>\n    </tr>\n    <tr>\n      <td>field</td>\n      <td>The name of the field in the request that caused the error (if applicable).</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Here is a list of possible error codes that the LCP may return:</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>Error Code</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>BAD_REQUEST</td>\n      <td>The browser (or proxy) sent a request that this server could not understand.</td>\n    </tr>\n    <tr>\n      <td>FORBIDDEN_LAST_CREDENTIALS</td>\n      <td>Unable to delete last set of credentials.</td>\n    </tr>\n    <tr>\n      <td>INCORRECT_TYPE</td>\n      <td>The value provided is of incorrect type. For example, a string was provided when an integer is required.</td>\n    </tr>\n    <tr>\n      <td>INVALID_VALUE</td>\n      <td>The value provided is not allowed. For example, the requested debit amount is greater than the balance on the member validation.</td>\n    </tr>\n    <tr>\n      <td>MISSING_FIELD</td>\n      <td>A required field was not provided in the body of the request. The “field” property of the returned error object contains which required field was not provided.</td>\n    </tr>\n    <tr>\n      <td>MISSING_REPRESENTATION</td>\n      <td>The request expected a JSON object to be provided in the body of the request and none was provided.</td>\n    </tr>\n    <tr>\n      <td>MV_ALREADY_USED</td>\n      <td>The member validation has already been used with another transaction. Member validations can only be used for one transaction.</td>\n    </tr>\n    <tr>\n      <td>NOT_FOUND</td>\n      <td>The requested URL was not found on the server.  If you entered the URL manually please check your spelling and try again.</td>\n    </tr>\n    <tr>\n      <td>NO_MATCH</td>\n      <td>A field provided in the request did not match the regular expression used to validate the field. The field name and regular expression is provided in the description of the error message.</td>\n    </tr>\n    <tr>\n      <td>UNAUTHORIZED</td>\n      <td>The server could not verify that you are authorized to access the URL requested.  You either supplied the wrong credentials (e.g. a bad password), or your browser doesn\'t understand how to supply the credentials required.</td>\n    </tr>\n    <tr>\n      <td>UNKNOWN_MEMBER</td>\n      <td>The loyalty program couldn\'t find a member with the given credentials.</td>\n    </tr>\n    <tr>\n      <td>UNSUPPORTED_MEDIA_TYPE</td>\n      <td>The server does not support the media type transmitted in the request. Only Content-Type: application/json is supported.</td>\n    </tr>\n    <tr>\n      <td>VALUE_NOT_UNIQUE</td>\n      <td>One of the fields you provided must be unique but the data provided already exists in the system.</td>\n    </tr>\n    <tr>\n      <td>VALUE_OUT_OF_RANGE</td>\n      <td>The number provided is outside of the range of valid input for the field. For example, a negative integer was provided when the number must be positive.</td>\n    </tr>\n  </tbody>\n</table>\n\n<h2>Links</h2>\n\n<p>JSON response documents that are returned by the LCP contain a “links” property.\nThis property contains URLs that help you consume further resources within the\nLCP REST API. You should not create your own links to access and platform and\ninstead should follow the links provided. This allows your code to be less\ndependent on the implementation details of the API.</p>\n\n<p>The types of links provided are:</p>\n\n<table>\n  <thead>\n    <tr>\n      <th>Link Type</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>self</td>\n      <td>A link to the current resource.</td>\n    </tr>\n    <tr>\n      <td>friendly</td>\n      <td>A more user-friendly link to the current resource.</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Each link has an href property that contains the link. For example:</p>\n\n<pre><code>{\n  "links": {\n    "self": {\n      "href": "https://lcp.points.com/v1/accounts/&lt;id&gt;"\n    },\n    "friendly": {\n      "href": "https://lcp.points.com/v1/accounts/&lt;email&gt;"\n    }\n  }\n}\n</code></pre>';});
+
+(function() {
+  define('modules/load-markdown-documents',["mdown!../../documents/api/account-credentials-example.md", "mdown!../../documents/api/account-credentials.md", "mdown!../../documents/api/accounts-example.md", "mdown!../../documents/api/accounts.md", "mdown!../../documents/api/apps-example.md", "mdown!../../documents/api/apps.md", "mdown!../../documents/api/create-a-credit-example.md", "mdown!../../documents/api/create-a-credit.md", "mdown!../../documents/api/create-a-debit-example.md", "mdown!../../documents/api/create-a-debit.md", "mdown!../../documents/api/create-a-mv-example.md", "mdown!../../documents/api/create-a-mv.md", "mdown!../../documents/api/create-account-credentials-example.md", "mdown!../../documents/api/create-account-credentials.md", "mdown!../../documents/api/create-an-account-example.md", "mdown!../../documents/api/create-an-account.md", "mdown!../../documents/api/create-an-app-example.md", "mdown!../../documents/api/create-an-app.md", "mdown!../../documents/api/credits-example.md", "mdown!../../documents/api/credits.md", "mdown!../../documents/api/debits-example.md", "mdown!../../documents/api/debits.md", "mdown!../../documents/api/delete-account-credentials-example.md", "mdown!../../documents/api/delete-account-credentials.md", "mdown!../../documents/api/documentation-overview.md", "mdown!../../documents/api/get-a-credit-example.md", "mdown!../../documents/api/get-a-credit.md", "mdown!../../documents/api/get-a-debit-example.md", "mdown!../../documents/api/get-a-debit.md", "mdown!../../documents/api/get-a-mv-example.md", "mdown!../../documents/api/get-a-mv.md", "mdown!../../documents/api/get-account-credentials-example.md", "mdown!../../documents/api/get-account-credentials.md", "mdown!../../documents/api/get-an-account-example.md", "mdown!../../documents/api/get-an-account.md", "mdown!../../documents/api/get-an-app-by-mac-example.md", "mdown!../../documents/api/get-an-app-by-mac.md", "mdown!../../documents/api/get-an-app-example.md", "mdown!../../documents/api/get-an-app.md", "mdown!../../documents/api/get-live-credentials-example.md", "mdown!../../documents/api/get-live-credentials.md", "mdown!../../documents/api/get-sandbox-credentials-example.md", "mdown!../../documents/api/get-sandbox-credentials.md", "mdown!../../documents/api/live-credentials-example.md", "mdown!../../documents/api/live-credentials.md", "mdown!../../documents/api/loyalty-programs.md", "mdown!../../documents/api/member-validations-example.md", "mdown!../../documents/api/member-validations.md", "mdown!../../documents/api/sandbox-credentials-example.md", "mdown!../../documents/api/sandbox-credentials.md", "mdown!../../documents/getting-started.md", "mdown!../../documents/reference-manual.md"], function(account_credentials_example, account_credentials, accounts_example, accounts, apps_example, apps, create_a_credit_example, create_a_credit, create_a_debit_example, create_a_debit, create_a_mv_example, create_a_mv, create_account_credentials_example, create_account_credentials, create_an_account_example, create_an_account, create_an_app_example, create_an_app, credits_example, credits, debits_example, debits, delete_account_credentials_example, delete_account_credentials, documentation_overview, get_a_credit_example, get_a_credit, get_a_debit_example, get_a_debit, get_a_mv_example, get_a_mv, get_account_credentials_example, get_account_credentials, get_an_account_example, get_an_account, get_an_app_by_mac_example, get_an_app_by_mac, get_an_app_example, get_an_app, get_live_credentials_example, get_live_credentials, get_sandbox_credentials_example, get_sandbox_credentials, live_credentials_example, live_credentials, loyalty_programs, member_validations_example, member_validations, sandbox_credentials_example, sandbox_credentials, getting_started, reference_manual) {
+    var Markdown;
+    Markdown = {
+      account_credentials_example: account_credentials_example,
+      account_credentials: account_credentials,
+      accounts_example: accounts_example,
+      accounts: accounts,
+      apps_example: apps_example,
+      apps: apps,
+      create_a_credit_example: create_a_credit_example,
+      create_a_credit: create_a_credit,
+      create_a_debit_example: create_a_debit_example,
+      create_a_debit: create_a_debit,
+      create_a_mv_example: create_a_mv_example,
+      create_a_mv: create_a_mv,
+      create_account_credentials_example: create_account_credentials_example,
+      create_account_credentials: create_account_credentials,
+      create_an_account_example: create_an_account_example,
+      create_an_account: create_an_account,
+      create_an_app_example: create_an_app_example,
+      create_an_app: create_an_app,
+      credits_example: credits_example,
+      credits: credits,
+      debits_example: debits_example,
+      debits: debits,
+      delete_account_credentials_example: delete_account_credentials_example,
+      delete_account_credentials: delete_account_credentials,
+      documentation_overview: documentation_overview,
+      get_a_credit_example: get_a_credit_example,
+      get_a_credit: get_a_credit,
+      get_a_debit_example: get_a_debit_example,
+      get_a_debit: get_a_debit,
+      get_a_mv_example: get_a_mv_example,
+      get_a_mv: get_a_mv,
+      get_account_credentials_example: get_account_credentials_example,
+      get_account_credentials: get_account_credentials,
+      get_an_account_example: get_an_account_example,
+      get_an_account: get_an_account,
+      get_an_app_by_mac_example: get_an_app_by_mac_example,
+      get_an_app_by_mac: get_an_app_by_mac,
+      get_an_app_example: get_an_app_example,
+      get_an_app: get_an_app,
+      get_live_credentials_example: get_live_credentials_example,
+      get_live_credentials: get_live_credentials,
+      get_sandbox_credentials_example: get_sandbox_credentials_example,
+      get_sandbox_credentials: get_sandbox_credentials,
+      live_credentials_example: live_credentials_example,
+      live_credentials: live_credentials,
+      loyalty_programs: loyalty_programs,
+      member_validations_example: member_validations_example,
+      member_validations: member_validations,
+      sandbox_credentials_example: sandbox_credentials_example,
+      sandbox_credentials: sandbox_credentials,
+      getting_started: getting_started,
+      reference_manual: reference_manual
+    };
+    return Markdown;
+  });
+
+}).call(this);
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('modules/api-documentation',['modules/process-documentation', 'jquery', 'json!../api-documents.json', 'hbars!../../templates/navigation', 'hbars!../../templates/api-section', 'hbars!../../templates/api-article', 'modules/load-markdown-documents'], function(ProcessDocumentation, $, documents, tmplNavigation, tmplApiSection, tmplApiArticle, markdownDocuments) {
+    var ApiDocumentation, _ref;
+    ApiDocumentation = (function(_super) {
+      __extends(ApiDocumentation, _super);
+
+      function ApiDocumentation() {
+        _ref = ApiDocumentation.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      ApiDocumentation.prototype.md = markdownDocuments;
+
+      ApiDocumentation.prototype.attachArticleAndNav = function(id, parent) {
+        var $parentLink;
+        if (parent === '') {
+          $(this.elements.nav).append(tmplNavigation(this.oneArticle));
+          $(this.elements.doc).append(tmplApiSection(this.oneArticle));
+          return $('#section-' + id).append(tmplApiArticle(this.oneArticle));
+        } else {
+          $parentLink = $(this.elements.nav).find('a[href="#' + parent + '"]');
+          if ($parentLink.parent().children('ul').length === 0) {
+            $parentLink.parent().append('<ul />');
+          }
+          $parentLink.parent().find('ul').append(tmplNavigation(this.oneArticle));
+          return $('#section-' + parent).append(tmplApiArticle(this.oneArticle));
+        }
+      };
+
+      ApiDocumentation.prototype.createArticle = function(article, content, example) {
+        var id, parent;
+        id = article.id;
+        parent = article.parent;
+        this.oneArticle = {
+          id: id,
+          title: article.title,
+          content: content,
+          example: example
+        };
+        return this.attachArticleAndNav(id, parent);
+      };
+
+      ApiDocumentation.prototype.loadApiDocs = function() {
+        var _this = this;
+        $('body').addClass('api-page');
+        $('#documentation').html('<div class="dark-bg" />');
+        return $.each(documents.articles, function(i, article) {
+          var content, example, exampleId, id;
+          id = article.id.replace(/\-/g, '_');
+          content = _this.md[id];
+          if (article.exampleId !== '') {
+            exampleId = article.exampleId.replace(/\-/g, '_');
+            example = _this.md[exampleId];
+          }
+          _this.createArticle(article, content, example);
+          if ((i + 1) === documents.articles.length) {
+            return _this.initProcess();
+          }
+        });
+      };
+
+      return ApiDocumentation;
+
+    })(ProcessDocumentation);
+    return ApiDocumentation;
+  });
+
+}).call(this);
+
+define('hbars!modules/../../templates/article', ['Handlebars'], function (Handlebars) { return Handlebars.compile('<div class="one-document">\n  {{{content}}}\n</div>\n'); });
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  define('modules/documentation',['modules/api-documentation', 'jquery', 'hbars!../../templates/navigation', 'hbars!../../templates/article'], function(ApiDocumentation, $, tmplNavigation, tmplArticle) {
+    var Documentation, _ref;
+    Documentation = (function(_super) {
+      var groupHtml, urlQueryResult;
+
+      __extends(Documentation, _super);
+
+      function Documentation() {
+        _ref = Documentation.__super__.constructor.apply(this, arguments);
+        return _ref;
+      }
+
+      groupHtml = function(obj, el) {
+        var $set, id, next;
+        id = $(obj).text().replace(/[\. ,#():-]+/g, '-').toLowerCase();
+        $set = $();
+        $set.push(obj);
+        next = obj.nextSibling;
+        while (next) {
+          if (!$(next).is(el)) {
+            $set.push(next);
+            next = next.nextSibling;
+          } else {
+            break;
+          }
+        }
+        if (el === 'h2') {
+          return $set.wrapAll('<section id="section-' + id + '" class="documents" />');
+        } else {
+          return $set.wrapAll('<article class="document" id="' + id + '">');
+        }
+      };
+
+      urlQueryResult = function(name) {
+        var regex, results;
+        name = name.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]');
+        regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        results = regex.exec(location.search);
+        if (results !== null) {
+          return decodeURIComponent(results[1].replace(/\+/g, " "));
+        }
+      };
+
+      Documentation.prototype.buildNav = function(obj, regularArticleNav, parent) {
+        var $parentLink;
+        if ($(obj).is('h2')) {
+          return $(this.elements.nav).append(tmplNavigation(regularArticleNav));
+        } else {
+          $parentLink = $('a[href="#' + parent + '"]');
+          if ($parentLink.parent().children('ul').length === 0) {
+            $parentLink.parent().append('<ul />');
+          }
+          return $parentLink.parent().find('ul').append(tmplNavigation(regularArticleNav));
+        }
+      };
+
+      Documentation.prototype.cleanUpAndCreateNav = function() {
+        var _this = this;
+        this.regularArticle.find('h2').each(function(i, obj) {
+          return groupHtml(obj, 'h2');
+        });
+        this.regularArticle.find('h2, h3').each(function(i, obj) {
+          return groupHtml(obj, 'h3');
+        });
+        return this.regularArticle.find('h2, h3').each(function(i, obj) {
+          var id, parent, regularArticleNav, title;
+          id = $(obj).text().replace(/[\. ,#():-]+/g, '-').toLowerCase();
+          title = $(obj).text();
+          parent = $(obj).parents('section').attr('id').replace('section-', '');
+          regularArticleNav = {
+            id: id,
+            title: title
+          };
+          return _this.buildNav(obj, regularArticleNav, parent);
+        });
+      };
+
+      Documentation.prototype.loadDoc = function(doc) {
+        var content, id;
+        id = doc.replace(/\-/g, '_');
+        content = {
+          content: this.md[id]
+        };
+        this.regularArticle = $(tmplArticle(content));
+        this.cleanUpAndCreateNav();
+        $(this.elements.doc).append(this.regularArticle);
+        return this.initProcess();
+      };
+
+      Documentation.prototype.init = function() {
+        this.doc = urlQueryResult('doc');
+        if (this.doc === 'api-reference') {
+          return this.loadApiDocs();
+        } else if (this.doc) {
+          return this.loadDoc(this.doc);
+        } else {
+          return this.loadDoc('getting-started');
+        }
+      };
+
+      return Documentation;
+
+    })(ApiDocumentation);
+    return Documentation;
+  });
+
+}).call(this);
+
+(function() {
+  define('global',['jquery', 'modules/documentation'], function($, Documentation) {
+    return $(function() {
+      var documentation;
+      documentation = new Documentation({
+        elements: {
+          doc: '#documentation',
+          header: '#header',
+          nav: '#doc-navigation .nav',
+          humans: '.for-humans',
+          machines: '.for-machines'
+        }
+      });
+      documentation.init();
+      documentation.initScrollSpy();
+      documentation.bindHeaderNavEvents();
+      if (history.pushState && documentation.isMobile !== true) {
+        return documentation.bindPopstate();
+      }
+    });
+  });
+
+}).call(this);
+
+(function() {
+  require.config({
+    baseUrl: '/static/scripts/',
+    waitSeconds: 30,
+    shim: {
+      'bootstrap.scrollspy': {
+        deps: ['jquery']
+      },
+      'jquery.fixto': {
+        deps: ['jquery']
+      },
+      'Handlebars': {
+        exports: 'Handlebars'
+      }
+    },
+    paths: {
+      'jquery': '../components/jquery/jquery',
+      'Handlebars': '../components/handlebars.js/dist/handlebars',
+      'prettify': '../components/google-code-prettify/src/prettify',
+      'showdown': '../components/showdown/src/showdown',
+      'jquery.fixto': '../components/fixto/dist/fixto',
+      'bootstrap.scrollspy': '../components/bootstrap/js/scrollspy',
+      'async': '../components/requirejs-plugins/src/async',
+      'json': '../components/requirejs-plugins/src/json',
+      'mdown': '../components/requirejs-plugins/src/mdown',
+      'text': '../components/requirejs-plugins/lib/text',
+      'markdownConverter': '../components/requirejs-plugins/lib/Markdown.Converter',
+      'hbars': '../components/requirejs-handlebars/hbars',
+      'global': 'mediators/global'
+    }
+  });
+
+  require(['global'], function(global) {});
+
+}).call(this);
+
+define("main", function(){});
