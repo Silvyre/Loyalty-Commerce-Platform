@@ -12,5 +12,6 @@ define ['jquery', 'modules/documentation'], ($, Documentation) ->
     documentation.init()
     documentation.initScrollSpy()
     documentation.bindHeaderNavEvents()
-    documentation.bindPopstate()
+    if history.pushState and documentation.isMobile isnt true
+      documentation.bindPopstate()
 
