@@ -182,10 +182,7 @@ module.exports = function (grunt) {
             }
           },
 
-          optimize: 'uglify',
-          uglify: {
-            no_mangle: true
-          },
+          optimize: 'uglify2',
 
           fileExclusionRegExp: /^(node_modules|.svn)/,
           findNestedDependencies: true,
