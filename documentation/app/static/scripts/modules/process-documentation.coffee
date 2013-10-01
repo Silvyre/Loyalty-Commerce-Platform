@@ -45,21 +45,22 @@ define [
       imgLength = $imgs.length
       imgLoaded = 0
 
-      if imgLength is 0
+      initOrRefresh = =>
         if type is 'init'
           scrollSpy.init()
         else
           $('body').scrollspy 'refresh'
+          $(@elements.nav).find('a[href="'+hash+'"]').parent().addClass 'active'
+
+      if imgLength is 0
+        initOrRefresh()
         @scrollToHash(hash, 50)
       else
         $imgs.on 'load', =>
           imgLoaded++
 
           if imgLoaded is imgLength
-            if type is 'init'
-              scrollSpy.init()
-            else
-              $('body').scrollspy 'refresh'
+            initOrRefresh()
             @scrollToHash(hash)
 
     addTableWrapper: ->
