@@ -37,29 +37,30 @@ define [
       $(el.header).fixTo 'destroy'
       $(el.nav).fixTo 'destroy'
 
-    initScrollSpy: ->
-      scrollSpy = new Scrollspy()
-      hash = window.location.hash
-
-      $imgs = $(@elements.doc).find 'img'
-      imgLength = $imgs.length
-    initScrollSpy: ->
-      scrollSpy = new Scrollspy()
+    scrollSpyController: (type) ->
+      if type is 'init' then scrollSpy = new Scrollspy()
       hash = window.location.hash
 
       $imgs = $(@elements.doc).find 'img'
       imgLength = $imgs.length
       imgLoaded = 0
 
+      initOrRefresh = =>
+        if type is 'init'
+          scrollSpy.init()
+        else
+          $('body').scrollspy 'refresh'
+          $(@elements.nav).find('a[href="'+hash+'"]').parent().addClass 'active'
+
       if imgLength is 0
-        scrollSpy.init()
+        initOrRefresh()
         @scrollToHash(hash, 50)
       else
         $imgs.on 'load', =>
           imgLoaded++
 
           if imgLoaded is imgLength
-            scrollSpy.init()
+            initOrRefresh()
             @scrollToHash(hash)
 
     addTableWrapper: ->
@@ -72,6 +73,11 @@ define [
       if hash
         $('html, body').animate
           scrollTop: $(hash).offset().top, time
+
+    reload: ->
+      @destroyFixTo()
+      @init()
+      @scrollSpyController()
 
     bindHeaderNavEvents: ->
       $(@elements.header).find('a').on 'click', (evt) =>
@@ -94,9 +100,7 @@ define [
           $(@elements.doc).empty()
           window.scrollTo(0,0)
 
-          @destroyFixTo()
-          @init()
-          $('body').scrollspy 'refresh'
+          @reload()
           NProgress.done()
 
     bindPopstate: ->
@@ -111,9 +115,7 @@ define [
         $(@elements.nav).empty()
         $(@elements.doc).empty()
 
-        @destroyFixTo()
-        @init()
-        $('body').scrollspy 'refresh'
+        @reload()
 
     bindDocNavEvents: ->
       $(@elements.nav).find('a').on 'click', (evt) =>
