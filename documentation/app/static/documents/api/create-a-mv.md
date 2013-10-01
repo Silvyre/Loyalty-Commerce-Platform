@@ -30,14 +30,7 @@ Authenticating a member requires a specific set of fields, defined by the specif
         <tr>
             <td>memberId</td>
             <td><p>The member ID of the loyalty program member.</p>
-                <p><strong>Sandbox mode</strong>: To simulate a successful MV, set the memberId to one of the following depending on the loyalty program:
-                <ul>
-                    <li>Delta: sNQC</li>
-                    <li>Southwest: OfMq</li>
-                    <li>USAirways: UVmr</li>
-                    <li>Virgin Atlantic: KtuR</li>
-                    <li>Wyndham: YPyM</li>
-                </ul>
+                <p><strong>Sandbox mode</strong>: To simulate a successful MV, set the memberId field to "dVNm" when using the <a href="#loyalty-programs">demo loyalty program</a>.
             </td>
         </tr>
         <tr>
@@ -50,6 +43,10 @@ Authenticating a member requires a specific set of fields, defined by the specif
 #### Returns
 
 The MV object if it was created successfully. Returns an [error](index.html?doc=reference-manual#errors) if the firstName, lastName or memberId is not provided or if the member could not be validated for the given loyalty program.
+
+
+
+
 
 
 

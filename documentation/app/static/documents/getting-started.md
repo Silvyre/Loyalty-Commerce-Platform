@@ -416,21 +416,20 @@ now, the LCP currently only interacts with loyalty programs that require first
 name, last name, and member ID or first name, last name, member ID, and
 password.
 
-In the current version of the LCP, there is no way for your app to get a list of
-the loyalty programs that are supported.
+Contact Points to discuss which loyalty programs are supported. To get started,
+you can use the demo loyalty program at:
+
+    https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57
 
 For example, to perform a member validation for Southwest in sandbox mode, POST
-to:
-
-    https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/
-
+to `https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/`
 with the member’s first name, last name, and member ID and sign the request
 using your app’s sandbox credentials:
 
     lcp_curl.py -v -X POST -u \
     d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \
     -d '{"firstName": "John", "lastName": "Doe", "memberId": "1234"}' \
-    "https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/"
+    "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
 
 Since there is no member named John Doe with member ID 1234 in the sandbox, the
 LCP returns an error:
@@ -447,13 +446,12 @@ LCP returns an error:
 
 Since the sandbox environment doesn’t communicate directly with the loyalty
 program, we have provided a way to simulate a successful member validation. To
-simulate a successful member validation, provide the loyalty program’s partner
-ID from the table above in place of the member ID:
+simulate a successful member validation, provide a member ID of "dVNm":
 
     lcp_curl.py -v -X POST -u \
     d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \
-    -d '{"firstName": "John", "lastName": "Doe", "memberId": "OfMq"}' \
-    "https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/"
+    -d '{"firstName": "John", "lastName": "Doe", "memberId": "dVNm"}' \
+    "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
 
 This creates a successful MV:
 
@@ -464,10 +462,10 @@ This creates a successful MV:
       "lastName": "Doe",
       "links": {
         "self": {
-          "href": "https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/1261b5f814d011e382d152540006e04e"
+          "href": "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
         }
       },
-      "memberId": "OfMq"
+      "memberId": "dVNm"
     }
 
 The points balance is always zero in sandbox mode since it does not communicate
@@ -476,8 +474,8 @@ balance to the lastName field:
 
     lcp_curl.py -v -X POST -u \
     d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \
-    -d '{"firstName": "John", "lastName": "Doe 2000", "memberId": "OfMq"}' \
-    "https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/"
+    -d '{"firstName": "John", "lastName": "Doe 2000", "memberId": "dVNm"}' \
+    "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
 
 The balance is now 2000:
 
@@ -488,10 +486,10 @@ The balance is now 2000:
       "lastName": "Doe 2000",
       "links": {
         "self": {
-          "href": "https://sandbox.lcp.points.com/v1/lps/4fd75846-1dae-474b-ac04-26c8d6dc0353/mvs/fe3e1a4e14cf11e38f68525400a02ac6"
+          "href": "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/1c220489-887f-494e-be88-5687721d0bb9"
         }
       },
-      "memberId": "OfMq"
+      "memberId": "dVNm"
     }
 
 You can retrieve a previous MV by performing a GET on the self link. This
@@ -681,6 +679,8 @@ your own module to sign requests.
 
         # Step 8: Build Authorization header
         return 'MAC id="{0}", ts="{1}", nonce="{2}", ext="{3}", mac="{4}"'.format(mac_key_identifier, ts, nonce, ext, mac)
+
+
 
 
 
