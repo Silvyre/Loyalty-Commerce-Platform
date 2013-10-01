@@ -183,6 +183,9 @@ module.exports = function (grunt) {
           },
 
           optimize: 'uglify',
+          uglify: {
+            no_mangle: true
+          },
 
           fileExclusionRegExp: /^(node_modules|.svn)/,
           findNestedDependencies: true,
