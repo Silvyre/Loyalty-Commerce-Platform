@@ -13,6 +13,9 @@ define [
     constructor: (@options) ->
       {@elements} = options
 
+    isMobile: ->
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
     initPrettyPrint: ->
       $('pre').addClass 'prettyprint'
       prettyPrint()
@@ -71,7 +74,7 @@ define [
 
     bindHeaderNavEvents: ->
       $(@elements.header).find('a').on 'click', (evt) =>
-        if history.pushState
+        if history.pushState or @isMobile isnt true
           evt.preventDefault()
 
           $ct = $(evt.currentTarget)
@@ -100,8 +103,6 @@ define [
       history.pushState(url: url, title, url)
 
       $(window).on 'popstate', (evt) =>
-        url = evt.originalEvent.state.url
-
         $(@elements.header).find('li').removeClass 'active'
         $('body').removeClass 'api-page'
         $(@elements.nav).empty()
