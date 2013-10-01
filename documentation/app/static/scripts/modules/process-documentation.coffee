@@ -3,11 +3,13 @@ define [
   'prettify'
   'jquery.fixto'
   'modules/scrollspy'
+  'nprogress'
 ], (
   $
   __prettify
   __fixTo
   Scrollspy
+  __nprogress
 ) ->
   class ProcessDocumentation
     constructor: (@options) ->
@@ -74,6 +76,7 @@ define [
     bindHeaderNavEvents: ->
       $(@elements.header).find('a').on 'click', (evt) =>
         if history.pushState and @isMobile isnt true
+          NProgress.start()
           evt.preventDefault()
 
           $ct = $(evt.currentTarget)
@@ -94,6 +97,7 @@ define [
           @destroyFixTo()
           @init()
           $('body').scrollspy 'refresh'
+          NProgress.done()
 
     bindPopstate: ->
       $activeLink = $(@elements.header).find('a[href="'+url+'"]')

@@ -9,7 +9,8 @@
         "handlebars.js": "*",
         "requirejs-handlebars": "git://github.com/jfparadis/requirejs-handlebars",
         "fixto": "git://github.com/bbarakaci/fixto",
-        "google-code-prettify": "git://github.com/teddyhwang/google-code-prettify"
+        "google-code-prettify": "git://github.com/teddyhwang/google-code-prettify",
+        "nprogress": "*"
     }
 }
 

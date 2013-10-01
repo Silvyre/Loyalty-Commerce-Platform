@@ -6,6 +6,7 @@ require.config
     # jQuery plugins (non-amd compliant) need this shim config
     'bootstrap.scrollspy' : deps: ['jquery']
     'jquery.fixto'        : deps: ['jquery']
+    'nprogress'           : deps: ['jquery']
     'Handlebars'          : exports: 'Handlebars'
 
   paths:
@@ -16,6 +17,7 @@ require.config
     # Third Party Plugins
     'prettify'            : '../components/google-code-prettify/src/prettify'
     'showdown'            : '../components/showdown/src/showdown'
+    'nprogress'           : '../components/nprogress/nprogress'
 
     # jQuery Plugins
     'jquery.fixto'        : '../components/fixto/dist/fixto'
@@ -37,4 +39,10 @@ require.config
     # Global Mediator
     'global'              : 'mediators/global'
 
-require ['global'], (global) ->
+require ['nprogress'], (__nprogress) ->
+  if /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) isnt true
+    NProgress.configure showSpinner: false
+    NProgress.start()
+
+  require ['global'], (global) ->
+    NProgress.done()
