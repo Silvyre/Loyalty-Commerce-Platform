@@ -54,14 +54,14 @@ define [
 
       if imgLength is 0
         initOrRefresh()
-        @scrollToHash(hash, 50)
+        @scrollToHash(hash)
       else
         $imgs.on 'load', =>
           imgLoaded++
 
           if imgLoaded is imgLength
             initOrRefresh()
-            @scrollToHash(hash)
+            @scrollToHash(hash, 50)
 
     addTableWrapper: ->
       $(@elements.doc).find('table').wrap '<div class="definitions" />'
