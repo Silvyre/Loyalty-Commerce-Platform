@@ -10,7 +10,7 @@ define ['jquery', 'modules/documentation'], ($, Documentation) ->
         machines: '.for-machines'
 
     documentation.init()
-    documentation.initScrollSpy()
+    documentation.scrollSpyController('init')
     documentation.bindHeaderNavEvents()
     if history.pushState and documentation.isMobile isnt true
       documentation.bindPopstate()
