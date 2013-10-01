@@ -83,9 +83,9 @@ define [
 
       if @doc is 'api-reference'
         @loadApiDocs()
-      else if @doc is undefined
-        @loadDoc('getting-started')
-      else
+      else if @doc
         @loadDoc(@doc)
+      else
+        @loadDoc('getting-started')
 
   return Documentation
