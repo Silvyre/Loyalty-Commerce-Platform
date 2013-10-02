@@ -302,7 +302,7 @@ generate the MAC signature and the authorization header. It passes all other
 arguments on to curl. Let’s try to get the account resource again using
 `lcp_curl.py`:
 
-    lcp_curl.py -v -u \
+    python lcp_curl.py -v -u \
     97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \
     https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5
 
@@ -352,7 +352,7 @@ checker is to create an application on the LCP. Apps are stored under the `/apps
 endpoint. To create the application, `POST` the application name and description
 to `/apps` and sign the request with your account credentials.
 
-    lcp_curl.py -v -u \
+    python lcp_curl.py -v -u \
     97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \
     -X POST -d '{"name": "UBC", "description": "Universal balance checker"}' \
     https://lcp.points.com/v1/apps/
@@ -385,7 +385,7 @@ credentials from Points.
 
 We’re going to need the app’s sandbox credentials, so let’s get them now:
 
-    lcp_curl.py -v -u \
+    python lcp_curl.py -v -u \
     97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \
     "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"
 
@@ -426,7 +426,7 @@ to `https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/m
 with the member’s first name, last name, and member ID and sign the request
 using your app’s sandbox credentials:
 
-    lcp_curl.py -v -X POST -u \
+    python lcp_curl.py -v -X POST -u \
     d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \
     -d '{"firstName": "John", "lastName": "Doe", "memberId": "1234"}' \
     "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
@@ -448,7 +448,7 @@ Since the sandbox environment doesn’t communicate directly with the loyalty
 program, we have provided a way to simulate a successful member validation. To
 simulate a successful member validation, provide a member ID of "dVNm":
 
-    lcp_curl.py -v -X POST -u \
+    python lcp_curl.py -v -X POST -u \
     d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \
     -d '{"firstName": "John", "lastName": "Doe", "memberId": "dVNm"}' \
     "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
@@ -472,7 +472,7 @@ The points balance is always zero in sandbox mode since it does not communicate
 with the loyalty program. To simulate a non-zero balance, add the desired
 balance to the lastName field:
 
-    lcp_curl.py -v -X POST -u \
+    python lcp_curl.py -v -X POST -u \
     d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \
     -d '{"firstName": "John", "lastName": "Doe 2000", "memberId": "dVNm"}' \
     "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
@@ -624,6 +624,8 @@ your own module to sign requests.
     import base64
     import hmac
     import hashlib
+    import time
+    import os
 
     def generate_authorization_header_value(
             http_method,
@@ -679,21 +681,3 @@ your own module to sign requests.
 
         # Step 8: Build Authorization header
         return 'MAC id="{0}", ts="{1}", nonce="{2}", ext="{3}", mac="{4}"'.format(mac_key_identifier, ts, nonce, ext, mac)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
