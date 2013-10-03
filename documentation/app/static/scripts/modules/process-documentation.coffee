@@ -50,7 +50,7 @@ define [
           $('body').scrollspy 'refresh'
           $(@elements.nav).find('a[href="'+hash+'"]').parent().addClass 'active'
 
-      @scrollToHash(hash, 30)
+      @scrollToHash(hash, 50)
 
       if imgLength is 0
         initOrRefresh()
