@@ -25,6 +25,6 @@ Retrieves the details of a previous debit. This retrieves a historical record of
 
 #### Returns
 
-The debit object if it exists, otherwise returns an [error](index.html?doc=reference-manual#errors).
+The debit object if it exists, otherwise returns an [error](./?doc=reference-manual#errors).
 
 

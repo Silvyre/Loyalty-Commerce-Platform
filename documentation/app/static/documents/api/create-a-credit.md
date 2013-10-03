@@ -32,7 +32,7 @@ In sandbox mode, the LCP never communicates with the loyalty program. All operat
 
 #### Returns
 
-The credit object if it was created successfully. Returns an [error](index.html?doc=reference-manual#errors) if the member validation is not valid.
+The credit object if it was created successfully. Returns an [error](./?doc=reference-manual#errors) if the member validation is not valid.
 
 
 

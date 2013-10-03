@@ -42,7 +42,7 @@ Authenticating a member requires a specific set of fields, defined by the specif
 
 #### Returns
 
-The MV object if it was created successfully. Returns an [error](index.html?doc=reference-manual#errors) if the firstName, lastName or memberId is not provided or if the member could not be validated for the given loyalty program.
+The MV object if it was created successfully. Returns an [error](./?doc=reference-manual#errors) if the firstName, lastName or memberId is not provided or if the member could not be validated for the given loyalty program.
 
 
 

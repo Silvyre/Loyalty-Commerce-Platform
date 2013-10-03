@@ -21,6 +21,6 @@ Retrieves the account details for an existing account. Requires account credenti
 
 #### Returns
 
-The account object if it exists, otherwise returns an [error](index.html?doc=reference-manual#errors).
+The account object if it exists, otherwise returns an [error](./?doc=reference-manual#errors).
 
 

@@ -21,6 +21,6 @@ Create a new developer account to get started and obtain your account credential
 
 #### Returns
 
-The account object if it was created successfully. Returns an [error](index.html?doc=reference-manual#errors) if the email already exists for another account.
+The account object if it was created successfully. Returns an [error](./?doc=reference-manual#errors) if the email already exists for another account.
 
 

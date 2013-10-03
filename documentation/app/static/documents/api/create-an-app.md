@@ -25,7 +25,7 @@ To create a new application, POST the application name and description to `/apps
 
 #### Returns
 
-The app object if it was created successfully. Returns an [error](index.html?doc=reference-manual#errors) if the name or description is not provided.
+The app object if it was created successfully. Returns an [error](./?doc=reference-manual#errors) if the name or description is not provided.
 
 
 

@@ -11,9 +11,9 @@ introduce you to the `/accounts`, `/apps` and `/lps` resources that are exposed 
 API. The sample code provided uses [cURL](http://en.wikipedia.org/wiki/CURL) to
 communicate with the LCP. For a more detailed description of the LCP and its
 capabilities see the [LCP Reference
-Manual](index.html?doc=reference-manual)
+Manual](./?doc=reference-manual)
 and the [LCP API
-Reference](index.html?doc=api-reference).
+Reference](./?doc=api-reference).
 
 ## Introducing the Loyalty Commerce Platform API
 
@@ -170,7 +170,7 @@ The LCP defines 2 different types of credentials:
 
 If your credentials are compromised, you can create additional credentials and
 delete your existing credentials. See the [LCP API
-Reference](index.html?doc=api-reference)
+Reference](./?doc=api-reference)
 for details.
 
 ### HATEOAS
@@ -501,9 +501,9 @@ you need to complete your universal balance checker.
 
 To learn more about the capabilities of the LCP, including moving points in and
 out of member accounts, refer to the [LCP Reference
-Manual](index.html?doc=reference-manual)
+Manual](./?doc=reference-manual)
 and the [LCP API
-Reference](index.html?doc=api-reference).
+Reference](./?doc=api-reference).
 
 ## Appendix A: Signing Requests
 

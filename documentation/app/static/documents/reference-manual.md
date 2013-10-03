@@ -6,8 +6,8 @@ For Points Loyalty Commerce Platform - Version 1.0
 This document contains an in-depth description of the Points Loyalty Commerce
 Platform (LCP). You will find below descriptions of the platform,
 authentication, and error codes. This document assumes have read the [LCP Getting
-Started Guide for Developers](index.html). For a detailed description of the API, see the [LCP
-API Reference](index.html?doc=api-reference).
+Started Guide for Developers](./). For a detailed description of the API, see the [LCP
+API Reference](./?doc=api-reference).
 
 ## Sandbox vs Live
 
@@ -80,15 +80,15 @@ to help you get started with OAuth 2.0 MAC authentication.
 
 There are three types of MAC credentials used in the LCP:
 
-1. [Account credentials](index.html?doc=api-reference#account-credentials) are
+1. [Account credentials](./?doc=api-reference#account-credentials) are
    used to authenticate you when accessing `/accounts` and
    `/apps` resources. Account credentials are created automatically when you
    create an account.
-1. [Sandbox credentials](index.html?doc=api-reference#sandbox-credentials) are
+1. [Sandbox credentials](./?doc=api-reference#sandbox-credentials) are
    used by your app to authenticate its requests to the `/lps` resource in the
    sandbox environment. Sandbox credentials are created automatically when you
    create an app.
-1. [Live credentials](index.html?doc=api-reference#live-credentials) are used by
+1. [Live credentials](./?doc=api-reference#live-credentials) are used by
    your app to authenticate its requests to the `/lps` resource in the live
    environment. Live credentials are managed by Points.
 

@@ -25,6 +25,6 @@ Retrieves an existing set of live credentials.
 
 #### Returns
 
-The live credentials object if it exists and you're authorized to access it, otherwise returns an [error](index.html?doc=reference-manual#errors).
+The live credentials object if it exists and you're authorized to access it, otherwise returns an [error](./?doc=reference-manual#errors).
 
 

@@ -32,7 +32,7 @@ In sandbox mode, the LCP never communicates with the loyalty program. All operat
 
 #### Returns
 
-The debit object if it was created successfully. Returns an [error](index.html?doc=reference-manual#errors) if the member validation is not valid or if the amount is greater than the balance in the member validation.
+The debit object if it was created successfully. Returns an [error](./?doc=reference-manual#errors) if the member validation is not valid or if the amount is greater than the balance in the member validation.
 
 
 

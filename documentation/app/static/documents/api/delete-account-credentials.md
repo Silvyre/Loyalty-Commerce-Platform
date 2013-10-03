@@ -25,7 +25,7 @@ If your account credentials have been compromised or if you no longer wish to us
 
 #### Returns
 
-HTTP status code 204 (No Content) if successful. Otherwise, returns an [error](index.html?doc=reference-manual#errors).
+HTTP status code 204 (No Content) if successful. Otherwise, returns an [error](./?doc=reference-manual#errors).
 
 
 
