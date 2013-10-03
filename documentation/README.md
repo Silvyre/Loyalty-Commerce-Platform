@@ -11,6 +11,7 @@ into HTML.
 ## Setup
 
 Download this repo and from the `documentation` folder:
+
 1. Install [nodejs](http://nodejs.org/)
 1. Install Grunt: `npm install -g grunt-cli`
 1. Install dependencies: `npm install`
