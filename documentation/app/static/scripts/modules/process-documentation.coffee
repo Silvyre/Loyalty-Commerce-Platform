@@ -50,16 +50,16 @@ define [
           $('body').scrollspy 'refresh'
           $(@elements.nav).find('a[href="'+hash+'"]').parent().addClass 'active'
 
+      @scrollToHash(hash, 20)
+
       if imgLength is 0
         initOrRefresh()
-        @scrollToHash(hash)
       else
         $imgs.on 'load', =>
           imgLoaded++
 
           if imgLoaded is imgLength
             initOrRefresh()
-            @scrollToHash(hash, 30)
 
     processHtml: ->
       $('pre').addClass 'prettyprint'
