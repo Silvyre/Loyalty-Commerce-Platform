@@ -43,6 +43,8 @@ require ['nprogress'], (__nprogress) ->
   if /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) isnt true
     NProgress.configure showSpinner: false
     NProgress.start()
+  else
+    $('body').addClass 'mobile'
 
   require ['global'], (global) ->
     NProgress.done()

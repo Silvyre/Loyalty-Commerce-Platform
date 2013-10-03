@@ -133,5 +133,5 @@ define [
     initProcess: ->
       @processHtml()
       responsiveTables 'table'
-      @initFixTo()
+      if @isMobile isnt true then @initFixTo()
       @bindDocNavEvents()

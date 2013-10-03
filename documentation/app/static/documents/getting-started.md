@@ -85,8 +85,8 @@ the LCP never communicates with the loyalty program. All operations are
 simulated. When you're ready to deploy your application, Points will promote
 your application to live mode.
 
-Sandbox mode is accessed through https://sandbox.lcp.points.com while live mode
-through https://lcp.points.com. Each app has two sets of credentials to access
+Sandbox mode is accessed through `https://sandbox.lcp.points.com` while live mode
+through `https://lcp.points.com`. Each app has two sets of credentials to access
 the LCP: one set for sandbox mode and another set for live mode. When accessing
 the LCP in sandbox mode, the sandbox credentials must be used. When your app is
 promoted to live mode, Points will provide you with live mode credentials.
