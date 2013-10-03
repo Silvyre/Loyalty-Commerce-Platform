@@ -65,6 +65,7 @@ define [
       $('pre').addClass 'prettyprint'
       prettyPrint()
 
+      $(@elements.doc).find('img').parent().addClass('center')
       $(@elements.doc).find('table').wrap '<div class="definitions" />'
 
       title = $('h1').text()
