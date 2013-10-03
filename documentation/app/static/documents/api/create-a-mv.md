@@ -20,7 +20,8 @@ Authenticating a member requires a specific set of fields, defined by the specif
         </tr>
         <tr>
             <td>firstName</td>
-            <td>The first name of the loyalty program member.</td>
+            <td>The first name of the loyalty program member.</p>
+                <p><strong>Sandbox mode</strong>: To simulate an unknown error from the loyalty program, set the firstName field to "Bugs".</p></td>
         </tr>
         <tr>
             <td>lastName</td>
@@ -43,6 +44,8 @@ Authenticating a member requires a specific set of fields, defined by the specif
 #### Returns
 
 The MV object if it was created successfully. Returns an [error](./?doc=reference-manual#errors) if the firstName, lastName or memberId is not provided or if the member could not be validated for the given loyalty program.
+
+
 
 
 

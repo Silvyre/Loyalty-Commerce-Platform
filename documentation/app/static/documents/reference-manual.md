@@ -268,8 +268,8 @@ Here is an example of using the HMAC-SHA1 algorithm to generate the signature in
 
 HTTP status codes are used to indicate success or failure. Status codes in the
 `200s` indicate the request was successful. Status codes in the `400s` indicate
-failure. Details of the success or failure are contained in the body of the
-response.
+client errors. Status codes in the `500s` indicate server errors. Details of
+the success or failure are contained in the body of the response.
 
 <table>
   <thead>
@@ -310,6 +310,10 @@ response.
     <tr>
       <td>422 Unprocessable Entity</td>
       <td>The data provided in the request for valid, but the request could not be completed for another reason. Check the JSON error response for details.</td>
+    </tr>
+    <tr>
+      <td>502 Bad Gateway</td>
+      <td>An external upstream service issued an invalid response.</td>
     </tr>
   </tbody>
 </table>
@@ -382,6 +386,10 @@ Here is a list of possible error codes that the LCP may return:
     <tr>
       <td>INCORRECT_TYPE</td>
       <td>The value provided is of incorrect type. For example, a string was provided when an integer is required.</td>
+    </tr>
+    <tr>
+      <td>INVALID_UPSTREAM_RESPONSE</td>
+      <td>An external upstream service issued an invalid response.</td>
     </tr>
     <tr>
       <td>INVALID_VALUE</td>
@@ -471,6 +479,8 @@ Each link has an href property that contains the link. For example:
         }
       }
     }
+
+
 
 
 
