@@ -3,12 +3,14 @@ define [
   'prettify'
   'jquery.fixto'
   'modules/scrollspy'
+  'modules/responsive-tables'
   'nprogress'
 ], (
   $
   __prettify
   __fixTo
   Scrollspy
+  responsiveTables
   __nprogress
 ) ->
   class ProcessDocumentation
@@ -16,10 +18,6 @@ define [
       {@elements} = options
 
     isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-
-    initPrettyPrint: ->
-      $('pre').addClass 'prettyprint'
-      prettyPrint()
 
     initFixTo: ->
       el = @elements
@@ -61,23 +59,32 @@ define [
 
           if imgLoaded is imgLength
             initOrRefresh()
-            @scrollToHash(hash, 50)
+            @scrollToHash(hash, 30)
 
-    addTableWrapper: ->
+    processHtml: ->
+      $('pre').addClass 'prettyprint'
+      prettyPrint()
+
       $(@elements.doc).find('table').wrap '<div class="definitions" />'
 
-    centerImages: ->
-      $(@elements.doc).find('img').parent().addClass('center')
+      title = $('h1').text()
+      $('title').text 'Points - '+title
+
+      if @doc is undefined
+        $('#lcp-nav').find('li:first').addClass 'active'
+      else
+        $('a[href="./?doc='+@doc).parent().addClass 'active'
+
+    bindDocNavEvents: ->
+      $(@elements.nav).find('a').on 'click', (evt) =>
+        evt.preventDefault()
+        hash = $(evt.currentTarget).attr('href')
+        @scrollToHash(hash, 0)
 
     scrollToHash: (hash, time) ->
       if hash
         $('html, body').animate
           scrollTop: $(hash).offset().top, time
-
-    reload: ->
-      @destroyFixTo()
-      @init()
-      @scrollSpyController()
 
     bindHeaderNavEvents: ->
       $(@elements.header).find('a').on 'click', (evt) =>
@@ -117,57 +124,13 @@ define [
 
         @reload()
 
-    bindDocNavEvents: ->
-      $(@elements.nav).find('a').on 'click', (evt) =>
-        evt.preventDefault()
-        hash = $(evt.currentTarget).attr('href')
-        @scrollToHash(hash, 0)
-
-    activateTopNav: ->
-      if @doc is undefined
-        $('#lcp-nav').find('li:first').addClass 'active'
-      else
-        $('a[href="index.html?doc='+@doc).parent().addClass 'active'
-
-    responsiveTables: ->
-      $('table').each (table_id, table) ->
-        $table = $(table)
-        $th = $table.find('thead').find('th')
-        $tr = $table.find('tbody').find('tr')
-        labels = []
-        entries = []
-        entry = {}
-
-        $th.each (i, th) ->
-          labels[i] = $(th).text()
-
-        $tr.each (row, tr) ->
-          $(tr).find('td').each (i, td) ->
-            value = $(td).html()
-            entry['"'+labels[i]+'"'] = value
-
-          entries.push entry
-          entry = {}
-
-        ul = '<ul id="table-list-id-'+table_id+'" class="list-from-table" />'
-        $table.after(ul)
-
-        $.each entries, (entry_id, entry) ->
-          li = '<li><dl id="entry-id-'+entry_id+'"></dl></li>'
-
-          $('#table-list-id-'+table_id).append(li)
-
-          $.each labels, (i, label) ->
-            dt = '<dt>'+label+'</dt>'
-            dd = '<dd>'+entry['"'+label+'"']+'</dd>'
-
-            $('#table-list-id-'+table_id).find('#entry-id-'+entry_id).append(dt + dd)
+    reload: ->
+      @destroyFixTo()
+      @init()
+      @scrollSpyController()
 
     initProcess: ->
-      @addTableWrapper()
-      @centerImages()
-      @responsiveTables()
-      @initPrettyPrint()
+      @processHtml()
+      responsiveTables 'table'
       @initFixTo()
-      @activateTopNav()
       @bindDocNavEvents()
