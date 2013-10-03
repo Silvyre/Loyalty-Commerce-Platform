@@ -7,12 +7,11 @@ The purpose of this document is to provide a beginner’s guide to the Points
 Loyalty Commerce Platform (LCP). You will find below an introduction to the LCP,
 things you need to know before you get started and a step-by-step guide on how
 to use the APIs to check member balances. To accomplish this, this document will
-introduce you to the `/accounts`, `/apps` and `/lps` resources that are exposed in the
-API. The sample code provided uses [cURL](http://en.wikipedia.org/wiki/CURL) to
-communicate with the LCP. For a more detailed description of the LCP and its
-capabilities see the [LCP Reference
-Manual](./?doc=reference-manual)
-and the [LCP API
+introduce you to the `/accounts`, `/apps` and `/lps` resources that are exposed
+in the API. The sample code provided uses
+[cURL](http://en.wikipedia.org/wiki/CURL) to communicate with the LCP. For a
+more detailed description of the LCP and its capabilities see the [LCP Reference
+Manual](./?doc=reference-manual) and the [LCP API
 Reference](./?doc=api-reference).
 
 ## Introducing the Loyalty Commerce Platform API
@@ -26,8 +25,8 @@ HTTP methods. The top-level resources in the LCP are accounts, apps, and lps.
 under `/accounts`. Once you create your account you can access it at
 `/accounts/<account-id>`
 
-**Apps** - Your apps are stored under the `/apps` endpoint. Each app will be given
-a unique ID under `/apps`.
+**Apps** - Your apps are stored under the `/apps` endpoint. Each app will be
+given a unique ID under `/apps`.
 
 **LPs** - Loyalty programs (LPs) are stored under `/lps`. Each LP will have it’s
 own ID under `/lps`.
@@ -49,8 +48,8 @@ successful, returns a `200 (OK)` status code with the resource content.
 **PUT** - Used to update an existing resource. This operation is
 [idempotent](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.1.2) and
 has no side effects from submitting the same request multiple times. If
-successful, returns a `200 (OK)` status code with the resource content. All method
-parameters must be passed as part of request body using JSON.
+successful, returns a `200 (OK)` status code with the resource content. All
+method parameters must be passed as part of request body using JSON.
 
 **DELETE** - Used to delete a resource. This operation is
 [idempotent](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.7) and
@@ -63,10 +62,10 @@ encoded [JSON](http://en.wikipedia.org/wiki/JSON).
 secure communication. When consuming APIs in the LCP, developers must use [OAuth
 2.0 Message Authentication Code (MAC) Tokens (draft
 02)](http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02) to authenticate
-themselves. [Utilities](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util)
-are available to simplify the request signing process.
-See the [Security](#security) section of this document for more
-details.
+themselves.
+[Utilities](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util)
+are available to simplify the request signing process.  See the
+[Security](#security) section of this document for more details.
 
 ## Things You Should Know About Using the LCP
 
@@ -86,13 +85,11 @@ the LCP never communicates with the loyalty program. All operations are
 simulated. When you're ready to deploy your application, Points will promote
 your application to live mode.
 
-Sandbox mode is accessed through
-`https://sandbox.lcp.points.com` while live
-mode through `https://lcp.points.com`. Each app has two
-sets of credentials to access the LCP: one set for sandbox mode and another set
-for live mode. When accessing the LCP in sandbox mode, the sandbox credentials
-must be used. When your app is promoted to live mode, Points will provide you
-with live mode credentials.
+Sandbox mode is accessed through https://sandbox.lcp.points.com while live mode
+through https://lcp.points.com. Each app has two sets of credentials to access
+the LCP: one set for sandbox mode and another set for live mode. When accessing
+the LCP in sandbox mode, the sandbox credentials must be used. When your app is
+promoted to live mode, Points will provide you with live mode credentials.
 
 ### Security
 
@@ -422,7 +419,10 @@ you can use the demo loyalty program at:
     https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57
 
 For example, to perform a member validation for Southwest in sandbox mode, POST
-to `https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/`
+to:
+
+    https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/
+
 with the member’s first name, last name, and member ID and sign the request
 using your app’s sandbox credentials:
 

@@ -72,9 +72,9 @@ define [
       $('title').text 'Points - '+title
 
       if @doc is undefined
-        $('#lcp-nav').find('li:first').addClass 'active'
+        $(@elements.header).find('li:first').addClass 'active'
       else
-        $('a[href="./?doc='+@doc).parent().addClass 'active'
+        $(@elements.header).find('a:contains("'+title+'")').parent().addClass 'active'
 
     bindDocNavEvents: ->
       $(@elements.nav).find('a').on 'click', (evt) =>
