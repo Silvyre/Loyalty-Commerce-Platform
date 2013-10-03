@@ -13,9 +13,9 @@ into HTML.
 Download this repo and from the `documentation` folder:
 
 1. Install [nodejs](http://nodejs.org/)
-1. Install Grunt: `npm install -g grunt-cli`
+1. Install [Grunt](http://gruntjs.com/): `npm install -g grunt-cli`
 1. Install dependencies: `npm install`
-1. Install [bower](http://bower.io/): `npm install -g bower`
+1. Install [Bower](http://bower.io/): `npm install -g bower`
 1. Install client side dependencies: `bower install`
 1. Download a copy of the `gh-pages` branch into the `documentation` folder
    (this is where the build of the static files go into):
