@@ -2,7 +2,11 @@
 
     POST https://lcp.points.com/v1/accounts/
     {
-      "email": "youremail@yourcompany.com"
+      "email": "youremail@yourcompany.com",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "organizationName": "Company",
+      "phone": "416-555-1234"
     }
 
 #### Example Response
@@ -23,6 +27,8 @@
         }
       ],
       "email": "youremail@yourcompany.com",
+      "firstName": "First Name",
+      "lastName": "Last Name",
       "links": {
         "self": {
           "href": "https://lcp.points.com/v1/accounts/"
@@ -30,6 +36,10 @@
         "friendly": {
           "href": "https://lcp.points.com/v1/accounts/youremail%40yourcompany.com"
         }
-      }
+      },
+      "organizationName": "Company",
+      "phone": "416-555-1234"
     }
+
+
 

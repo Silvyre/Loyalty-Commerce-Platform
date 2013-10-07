@@ -20,8 +20,26 @@ An account is your own personal developer account on the LCP system. It is tied 
             <td>email</td>
             <td>The email address of the account owner.</td>
         </tr>
+        <tr>
+            <td>firstName</td>
+            <td>The first name of the account owner.</td>
+        </tr>
+        <tr>
+            <td>lastName</td>
+            <td>The last name of the account owner.</td>
+        </tr>
+        <tr>
+            <td>organizationName</td>
+            <td>The organization of the account owner.</td>
+        </tr>
+        <tr>
+            <td>phone</td>
+            <td>The phone number of the account owner.</td>
+        </tr>
     </tbody>
 </table>
+
+
 
 
 
