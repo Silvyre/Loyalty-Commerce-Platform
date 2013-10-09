@@ -14,11 +14,11 @@ To create a new application, POST the application name and description to `/apps
     <tbody>
         <tr>
             <td>name</td>
-            <td>The name of your app.</td>
+            <td>The name of your app (required). Provide a short name for your app, up to 50 characters.</td>
         </tr>
         <tr>
             <td>description</td>
-            <td>A description for your app.</td>
+            <td>A description for your app (required). Provide a detailed description of your app, up to 4000 characters.</td>
         </tr>
     </tbody>
 </table>
@@ -26,6 +26,8 @@ To create a new application, POST the application name and description to `/apps
 #### Returns
 
 The app object if it was created successfully. Returns an [error](./?doc=reference-manual#errors) if the name or description is not provided.
+
+
 
 
 
