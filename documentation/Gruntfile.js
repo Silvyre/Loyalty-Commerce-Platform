@@ -23,12 +23,16 @@ module.exports = function (grunt) {
     points: pointsConfig,
     watch: {
       coffee: {
-        files: ['<%= points.static %>/scripts/{,*/}*.coffee'],
+        files: ['<%= points.static %>/scripts/**/*.coffee'],
         tasks: ['coffee:dev']
       },
       styles: {
         files: ['<%= points.static %>/styles/**/*.less'],
         tasks: ['less:dev']
+      },
+      test: {
+        files: ['test/**/*.coffee'],
+        tasks: ['coffee:test']
       },
       livereload: {
         options: {
@@ -102,6 +106,15 @@ module.exports = function (grunt) {
           ext: '.js'
         }]
       },
+      test: {
+        files: [{
+          expand: true,
+          cwd: 'test',
+          src: ['{,*/}*.coffee'],
+          dest: 'test',
+          ext: '.js'
+        }]
+      },
       dist: {
         files: [{
           expand: true,
@@ -110,6 +123,12 @@ module.exports = function (grunt) {
           dest: '<%= points.static %>/scripts',
           ext: '.js'
         }]
+      }
+    },
+    karma: {
+      unit: {
+        configFile: 'karma.conf.js',
+        background: true
       }
     },
     imagemin: {
@@ -125,6 +144,7 @@ module.exports = function (grunt) {
     concurrent: {
       server: [
         'coffee:dev',
+        'coffee:test',
         'less:dev'
       ]
     },

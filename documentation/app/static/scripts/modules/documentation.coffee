@@ -31,10 +31,10 @@ define [
       else
         $set.wrapAll '<article class="document" id="'+id+'">'
 
-    urlQueryResult = (name) ->
-      name = name.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]')
-      regex = new RegExp '[\\?&]' + name + '=([^&#]*)'
-      results = regex.exec location.search
+    urlQueryResult: (query_string, parameter) ->
+      parameter = parameter.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]')
+      regex = new RegExp '[\\?&]' + parameter + '=([^&#]*)'
+      results = regex.exec query_string
 
       decodeURIComponent(results[1].replace(/\+/g, " ")) if results isnt null
 
@@ -79,7 +79,7 @@ define [
       @initProcess()
 
     init: ->
-      @doc = urlQueryResult 'doc'
+      @doc = @urlQueryResult location.search, 'doc'
 
       if @doc is 'api-reference'
         @loadApiDocs()

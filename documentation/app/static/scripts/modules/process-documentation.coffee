@@ -15,7 +15,7 @@ define [
 ) ->
   class ProcessDocumentation
     constructor: (@options) ->
-      {@elements} = options
+      if @options then {@elements} = options
 
     isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
