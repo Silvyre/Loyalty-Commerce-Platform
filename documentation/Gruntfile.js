@@ -24,7 +24,7 @@ module.exports = function (grunt) {
     watch: {
       coffee: {
         files: ['<%= points.static %>/scripts/**/*.coffee'],
-        tasks: ['coffee:dev']
+        tasks: ['coffee:dev', 'karma:unit:run']
       },
       styles: {
         files: ['<%= points.static %>/styles/**/*.less'],
@@ -32,7 +32,7 @@ module.exports = function (grunt) {
       },
       test: {
         files: ['test/**/*.coffee'],
-        tasks: ['coffee:test']
+        tasks: ['coffee:test', 'karma:unit:run']
       },
       livereload: {
         options: {
@@ -128,6 +128,7 @@ module.exports = function (grunt) {
     karma: {
       unit: {
         configFile: 'karma.conf.js',
+        autoWatch: false,
         background: true
       }
     },
@@ -318,6 +319,7 @@ module.exports = function (grunt) {
 
   grunt.registerTask('server', function (target) {
     grunt.task.run([
+      'karma:unit',
       'concurrent:server',
       'connect:livereload',
       'open',
