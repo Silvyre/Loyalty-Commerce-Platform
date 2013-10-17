@@ -435,6 +435,14 @@ Here is a list of possible error codes that the LCP may return:
       <td>VALUE_OUT_OF_RANGE</td>
       <td>The number provided is outside of the range of valid input for the field. For example, a negative integer was provided when the number must be positive.</td>
     </tr>
+    <tr>
+      <td>VALUE_TOO_LONG</td>
+      <td>A string in the JSON document exceeds the maximum length supported for this field.</td>
+    </tr>
+    <tr>
+      <td>VALUE_TOO_SHORT</td>
+      <td>A string in the JSON document does not meet the minimum length requirement for this field.</td>
+    </tr>
   </tbody>
 </table>
 
@@ -479,6 +487,8 @@ Each link has an href property that contains the link. For example:
         }
       }
     }
+
+
 
 
 
