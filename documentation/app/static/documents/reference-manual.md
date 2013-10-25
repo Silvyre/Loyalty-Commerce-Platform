@@ -380,6 +380,10 @@ Here is a list of possible error codes that the LCP may return:
       <td>The browser (or proxy) sent a request that this server could not understand.</td>
     </tr>
     <tr>
+      <td>ELEMENTS_NOT_UNIQUE</td>
+      <td>The array requires that all elements are unique and it had duplicate items.</td>
+    </tr>
+    <tr>
       <td>FORBIDDEN_LAST_CREDENTIALS</td>
       <td>Unable to delete last set of credentials.</td>
     </tr>
@@ -412,8 +416,16 @@ Here is a list of possible error codes that the LCP may return:
       <td>The requested URL was not found on the server.  If you entered the URL manually please check your spelling and try again.</td>
     </tr>
     <tr>
+      <td>NO_ENUM_MATCH</td>
+      <td>The enum field did not match any of the possible values.</td>
+    </tr>
+    <tr>
       <td>NO_MATCH</td>
       <td>A field provided in the request did not match the regular expression used to validate the field. The field name and regular expression is provided in the description of the error message.</td>
+    </tr>
+    <tr>
+      <td>TOO_FEW_ITEMS</td>
+      <td>The array did not have the minimum number of items.</td>
     </tr>
     <tr>
       <td>UNAUTHORIZED</td>
@@ -487,6 +499,10 @@ Each link has an href property that contains the link. For example:
         }
       }
     }
+
+
+
+
 
 
 
