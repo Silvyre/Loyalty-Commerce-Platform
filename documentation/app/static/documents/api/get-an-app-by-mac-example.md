@@ -1,6 +1,6 @@
 #### Example Request
 
-    GET https://lcp.points.com/v1/apps?macKeyIdentifier=<mac-key-id>
+    GET https://lcp.points.com/v1/apps/?macKeyIdentifier=<mac-key-id>
     Authorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."
 
 #### Example Response
@@ -19,3 +19,5 @@
         }
       ]
     }
+
+
