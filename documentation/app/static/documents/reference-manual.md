@@ -432,6 +432,10 @@ Here is a list of possible error codes that the LCP may return:
       <td>The server could not verify that you are authorized to access the URL requested.  You either supplied the wrong credentials (e.g. a bad password), or your browser doesn't understand how to supply the credentials required.</td>
     </tr>
     <tr>
+      <td>UNEXPECTED_PROPERTY</td>
+      <td>A JSON field was provided in the body of the request that is not supported. The “field” property of the returned error object contains the field that is not supported.</td>
+    </tr>
+    <tr>
       <td>UNKNOWN_MEMBER</td>
       <td>The loyalty program couldn't find a member with the given credentials.</td>
     </tr>
@@ -499,6 +503,8 @@ Each link has an href property that contains the link. For example:
         }
       }
     }
+
+
 
 
 
