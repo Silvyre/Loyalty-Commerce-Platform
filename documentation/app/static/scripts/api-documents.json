@@ -7,6 +7,12 @@
       "parent": ""
     },
     {
+      "title": "Release Notes",
+      "id": "release-notes",
+      "exampleId": "",
+      "parent": ""
+    },
+    {
       "title": "Accounts",
       "id": "accounts",
       "exampleId": "accounts-example",
@@ -176,5 +182,7 @@
     }
   ]
 }
+
+
 
 

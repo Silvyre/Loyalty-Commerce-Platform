@@ -22,7 +22,7 @@ A debit is a transaction that takes points out of a loyalty program member’s a
         </tr>
         <tr>
             <td>status</td>
-            <td>The status of the debit. Must be either success or failure.</td>
+            <td>The status of the debit. The status can be success, failure, or pending. Pending indicates the transaction is being held for fraud review. Retrieve the debit later to determine whether it succeeded or failed.</td>
         </tr>
         <tr>
             <td>transactionId</td>
@@ -30,6 +30,8 @@ A debit is a transaction that takes points out of a loyalty program member’s a
         </tr>
     </tbody>
 </table>
+
+
 
 
 

@@ -53,6 +53,7 @@ define [
   "mdown!../../documents/api/loyalty-programs.md"
   "mdown!../../documents/api/member-validations-example.md"
   "mdown!../../documents/api/member-validations.md"
+  "mdown!../../documents/api/release-notes.md"
   "mdown!../../documents/api/sandbox-credentials-example.md"
   "mdown!../../documents/api/sandbox-credentials.md"
   "mdown!../../documents/getting-started.md"
@@ -112,6 +113,7 @@ define [
   loyalty_programs
   member_validations_example
   member_validations
+  release_notes
   sandbox_credentials_example
   sandbox_credentials
   getting_started
@@ -172,6 +174,7 @@ define [
     loyalty_programs: loyalty_programs
     member_validations_example: member_validations_example
     member_validations: member_validations
+    release_notes: release_notes
     sandbox_credentials_example: sandbox_credentials_example
     sandbox_credentials: sandbox_credentials
     getting_started: getting_started

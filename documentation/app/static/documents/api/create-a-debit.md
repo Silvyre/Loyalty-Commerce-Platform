@@ -21,7 +21,18 @@ In sandbox mode, the LCP never communicates with the loyalty program. All operat
         <tr>
             <td>amount</td>
             <td><p>The number of points to deduct from the member's account. Must be a positive integer less than the member's balance obtained from the member validation.</p>
-            <p><strong>Sandbox mode</strong>: To simulate a failed credit, set the amount to 99.</p></td>
+                <p><strong>Sandbox mode</strong>: Set amount to these values to simulate different cases:
+                    <ul>
+                        <li>94: hold for fraud review, then fail at LP</li>
+                        <li>95: hold for fraud review, then succeed</li>
+                        <li>96: hold for fraud review, then decline</li>
+                        <li>97: fail during fraud review</li>
+                        <li>98: fraud review declines transaction</li>
+                        <li>99: fail at loyalty program</li>
+                        <li>Other: success</li>
+                    </ul>
+                </p>
+            </td>
         </tr>
         <tr>
             <td>memberValidation</td>
@@ -33,6 +44,10 @@ In sandbox mode, the LCP never communicates with the loyalty program. All operat
 #### Returns
 
 The debit object if it was created successfully. Returns an [error](./?doc=reference-manual#errors) if the member validation is not valid or if the amount is greater than the balance in the member validation.
+
+
+
+
 
 
 
