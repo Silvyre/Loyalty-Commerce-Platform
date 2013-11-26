@@ -40,10 +40,16 @@ define [
   "mdown!../../documents/api/get-an-app.md"
   "mdown!../../documents/api/get-live-credentials-example.md"
   "mdown!../../documents/api/get-live-credentials.md"
+  "mdown!../../documents/api/get-live-permissions-example.md"
+  "mdown!../../documents/api/get-live-permissions.md"
   "mdown!../../documents/api/get-sandbox-credentials-example.md"
   "mdown!../../documents/api/get-sandbox-credentials.md"
+  "mdown!../../documents/api/list-all-live-permissions-example.md"
+  "mdown!../../documents/api/list-all-live-permissions.md"
   "mdown!../../documents/api/live-credentials-example.md"
   "mdown!../../documents/api/live-credentials.md"
+  "mdown!../../documents/api/live-permissions-example.md"
+  "mdown!../../documents/api/live-permissions.md"
   "mdown!../../documents/api/loyalty-programs.md"
   "mdown!../../documents/api/member-validations-example.md"
   "mdown!../../documents/api/member-validations.md"
@@ -93,10 +99,16 @@ define [
   get_an_app
   get_live_credentials_example
   get_live_credentials
+  get_live_permissions_example
+  get_live_permissions
   get_sandbox_credentials_example
   get_sandbox_credentials
+  list_all_live_permissions_example
+  list_all_live_permissions
   live_credentials_example
   live_credentials
+  live_permissions_example
+  live_permissions
   loyalty_programs
   member_validations_example
   member_validations
@@ -147,10 +159,16 @@ define [
     get_an_app: get_an_app
     get_live_credentials_example: get_live_credentials_example
     get_live_credentials: get_live_credentials
+    get_live_permissions_example: get_live_permissions_example
+    get_live_permissions: get_live_permissions
     get_sandbox_credentials_example: get_sandbox_credentials_example
     get_sandbox_credentials: get_sandbox_credentials
+    list_all_live_permissions_example: list_all_live_permissions_example
+    list_all_live_permissions: list_all_live_permissions
     live_credentials_example: live_credentials_example
     live_credentials: live_credentials
+    live_permissions_example: live_permissions_example
+    live_permissions: live_permissions
     loyalty_programs: loyalty_programs
     member_validations_example: member_validations_example
     member_validations: member_validations

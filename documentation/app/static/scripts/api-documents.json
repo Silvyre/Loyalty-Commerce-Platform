@@ -121,6 +121,24 @@
       "parent": "live-credentials"
     },
     {
+      "title": "Live Permissions",
+      "id": "live-permissions",
+      "exampleId": "live-permissions-example",
+      "parent": ""
+    },
+    {
+      "title": "Get Live Permissions",
+      "id": "get-live-permissions",
+      "exampleId": "get-live-permissions-example",
+      "parent": "live-permissions"
+    },
+    {
+      "title": "List all Live Permissions",
+      "id": "list-all-live-permissions",
+      "exampleId": "list-all-live-permissions-example",
+      "parent": "live-permissions"
+    },
+    {
       "title": "Loyalty Programs (LPs)",
       "id": "loyalty-programs",
       "exampleId": "",
@@ -158,3 +176,5 @@
     }
   ]
 }
+
+
