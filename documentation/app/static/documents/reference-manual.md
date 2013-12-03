@@ -462,6 +462,14 @@ Here is a list of possible error codes that the LCP may return:
   </tbody>
 </table>
 
+## Whitespace
+
+The LCP does not accept leading or trailing whitespace in any field in a JSON
+document. For example, if a user enters their first name as “John “ and your
+application passes this onto the LCP in a member validation, the LCP will reject
+this request. To avoid this type of error, always remove leading and trailing
+whitespace from user input before passing it onto the LCP.
+
 ## Links
 
 JSON response documents that are returned by the LCP contain a “links” property.
@@ -503,6 +511,8 @@ Each link has an href property that contains the link. For example:
         }
       }
     }
+
+
 
 
 
