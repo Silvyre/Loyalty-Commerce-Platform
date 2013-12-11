@@ -56,6 +56,10 @@ method parameters must be passed as part of request body using JSON.
 has no side effects from submitting same request multiple times. If successful,
 returns a `204 (No Content)` status code with an empty response body.
 
+**OPTIONS** - Used to determine which of the above operations are permitted for
+a given resource. If the resource exists, returns a `200 (OK)` status code with the
+list of permitted HTTP methods in the Allow header.
+
 All request and response payloads are [UTF8](http://en.wikipedia.org/wiki/UTF8)
 encoded [JSON](http://en.wikipedia.org/wiki/JSON).
 [HTTPS](http://en.wikipedia.org/wiki/Https) is used for all requests to ensure
@@ -681,3 +685,5 @@ your own module to sign requests.
 
         # Step 8: Build Authorization header
         return 'MAC id="{0}", ts="{1}", nonce="{2}", ext="{3}", mac="{4}"'.format(mac_key_identifier, ts, nonce, ext, mac)
+
+
