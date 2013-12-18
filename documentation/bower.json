@@ -6,7 +6,7 @@
         "bootstrap": "3.0.x",
         "requirejs": "2.1.x",
         "requirejs-plugins": "*",
-        "handlebars.js": "*",
+        "handlebars.js": "1.0.12",
         "requirejs-handlebars": "git://github.com/jfparadis/requirejs-handlebars",
         "fixto": "git://github.com/bbarakaci/fixto",
         "google-code-prettify": "git://github.com/teddyhwang/google-code-prettify",
