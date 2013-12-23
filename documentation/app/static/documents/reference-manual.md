@@ -312,6 +312,10 @@ the success or failure are contained in the body of the response.
       <td>The data provided in the request for valid, but the request could not be completed for another reason. Check the JSON error response for details.</td>
     </tr>
     <tr>
+      <td>500 Internal Server Error</td>
+      <td>The server encountered an unexpected error.</td>
+    </tr>
+    <tr>
       <td>502 Bad Gateway</td>
       <td>An external upstream service issued an invalid response.</td>
     </tr>
@@ -392,6 +396,10 @@ Here is a list of possible error codes that the LCP may return:
       <td>The value provided is of incorrect type. For example, a string was provided when an integer is required.</td>
     </tr>
     <tr>
+      <td>INTERNAL_SERVER_ERROR</td>
+      <td>The server encountered an unexpected error.</td>
+    </tr>
+    <tr>
       <td>INVALID_UPSTREAM_RESPONSE</td>
       <td>An external upstream service issued an invalid response.</td>
     </tr>
@@ -410,6 +418,10 @@ Here is a list of possible error codes that the LCP may return:
     <tr>
       <td>MV_ALREADY_USED</td>
       <td>The member validation has already been used with another transaction. Member validations can only be used for one transaction.</td>
+    </tr>
+    <tr>
+      <td>MV_LP_MISMATCH</td>
+      <td>The member validation provided was created for a different loyalty program.</td>
     </tr>
     <tr>
       <td>NOT_FOUND</td>
@@ -511,6 +523,8 @@ Each link has an href property that contains the link. For example:
         }
       }
     }
+
+
 
 
 

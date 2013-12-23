@@ -412,17 +412,14 @@ member validation or MV. An MV authenticates a member of a loyalty program and
 retrieves their balance. Authenticating a member requires a specific set of
 fields, defined by the specific loyalty program you wish to communicate with.
 For example, some loyalty programs may require a member ID and password, while
-others require a member ID, last name, and password. To keep things simple for
-now, the LCP currently only interacts with loyalty programs that require first
-name, last name, and member ID or first name, last name, member ID, and
-password.
+others require a member ID, last name, and password.
 
 Contact Points to discuss which loyalty programs are supported. To get started,
 you can use the demo loyalty program at:
 
     https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57
 
-For example, to perform a member validation for Southwest in sandbox mode, POST
+For example, to perform a member validation for the demo loyalty program in sandbox mode, POST
 to:
 
     https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/
@@ -685,5 +682,9 @@ your own module to sign requests.
 
         # Step 8: Build Authorization header
         return 'MAC id="{0}", ts="{1}", nonce="{2}", ext="{3}", mac="{4}"'.format(mac_key_identifier, ts, nonce, ext, mac)
+
+
+
+
 
 

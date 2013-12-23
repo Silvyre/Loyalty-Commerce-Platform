@@ -32,7 +32,13 @@ A member validation (MV) authenticates a member of a loyalty program and retriev
             <td>password</td>
             <td>The password for the member's account (if required). For security reasons, the password is masked when retrieving MVs.</td>
         </tr>
+        <tr>
+            <td>zip</td>
+            <td>The zip code or postal code for the member’s account (if required).</td>
+        </tr>
     </tbody>
 </table>
+
+
 
 

@@ -2,7 +2,7 @@
 
 To create a new MV, POST the loyalty program member's account details to the loyalty program's MV service and sign the request with your app credentials. In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a MV.
 
-Authenticating a member requires a specific set of fields, defined by the specific loyalty program you wish to communicate with. For example, some loyalty programs may require a member ID and password, while others require a member ID, last name, and password. To keep things simple for now, the LCP currently only interacts with loyalty programs that require first name, last name, and member ID or first name, last name, member ID, and password.
+Authenticating a member requires a specific set of fields, defined by the specific loyalty program you wish to communicate with. For example, some loyalty programs may require a member ID and password, while others require a member ID, last name, and password.
 
 #### Parameters
 
@@ -36,7 +36,11 @@ Authenticating a member requires a specific set of fields, defined by the specif
         </tr>
         <tr>
             <td>password</td>
-            <td>The password for the member's account. Only required for Delta.</td>
+            <td>The password for the member's account. Not required for the demo loyalty program.</td>
+        </tr>
+        <tr>
+            <td>zip</td>
+            <td>The zip code or postal code for the member’s account. Not required for the demo loyalty program.</td>
         </tr>
     </tbody>
 </table>
@@ -44,6 +48,8 @@ Authenticating a member requires a specific set of fields, defined by the specif
 #### Returns
 
 The MV object if it was created successfully. Returns an [error](./?doc=reference-manual#errors) if the firstName, lastName or memberId is not provided or if the member could not be validated for the given loyalty program.
+
+
 
 
 
