@@ -9,6 +9,11 @@
     </thead>
     <tbody>
         <tr>
+            <td>2013-12-20</td>
+            <td>Added billingInfo fields to debits and credits
+            </td>
+        </tr>
+        <tr>
             <td>2013-12-11</td>
             <td>Added support for OPTIONS HTTP method
             </td>
@@ -21,6 +26,8 @@
         </tr>
     </tbody>
 </table>
+
+
 
 
 

@@ -17,6 +17,18 @@ A debit is a transaction that takes points out of a loyalty program member’s a
             <td>The number of points deducted from the member's account. Must be a positive integer.</td>
         </tr>
         <tr>
+            <td>billingInfo</td>
+            <td>The billing info of the user who initiated the transaction.</td>
+        </tr>
+        <tr>
+            <td>clientIpAddress</td>
+            <td>The IP address of the user who initiated the transaction.</td>
+        </tr>
+        <tr>
+            <td>clientUserAgent</td>
+            <td>The user agent string of the browser that initiated the transaction.</td>
+        </tr>
+        <tr>
             <td>memberValidation</td>
             <td>Link to a member validation that identifies the member's account that was debited.</td>
         </tr>
@@ -30,6 +42,10 @@ A debit is a transaction that takes points out of a loyalty program member’s a
         </tr>
     </tbody>
 </table>
+
+
+
+
 
 
 

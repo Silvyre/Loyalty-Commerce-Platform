@@ -4,6 +4,8 @@ Create a debit object to attempt to deduct points from a loyalty program member'
 
 In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a debit.
 
+Many parameters are optional. Providing more fields increases the accuracy of the fraud screen.
+
 #### Parameters
 
 <table>
@@ -38,12 +40,67 @@ In sandbox mode, the LCP never communicates with the loyalty program. All operat
             <td>memberValidation</td>
             <td>Link to a member validation that identifies the member's account to be debited. The member validation cannot have been used with another transaction.</td>
         </tr>
+        <tr>
+            <td>firstName</td>
+            <td>The first name of the user who initiated the transaction (optional).</td>
+        </tr>
+        <tr>
+            <td>lastName</td>
+            <td>The last name of the user who initiated the transaction (optional).</td>
+        </tr>
+        <tr>
+            <td>email</td>
+            <td>Email address of the user who initiated the transaction (optional).</td>
+        </tr>
+        <tr>
+            <td>street1</td>
+            <td>The first line of the user’s address (optional).</td>
+        </tr>
+        <tr>
+            <td>street2</td>
+            <td>The second line of the user’s address (optional).</td>
+        </tr>
+        <tr>
+            <td>city</td>
+            <td>The city of the user’s address (optional).</td>
+        </tr>
+        <tr>
+            <td>state</td>
+            <td>The state of the user’s address (optional). Use <a href="http://en.wikipedia.org/wiki/ISO_3166-2">ISO 3166-2</a> region codes (a 2 character string).</td>
+        </tr>
+        <tr>
+            <td>country</td>
+            <td>The country of the user’s address (optional). Use <a href="http://en.wikipedia.org/wiki/ISO_3166-1">ISO 3166-1</a> country codes (a 2 character string).</td>
+        </tr>
+        <tr>
+            <td>zip</td>
+            <td>The zip or postal code of the user’s address (optional). Valid formats:
+                <ul>
+                    <li>US: NNNNN or NNNNN-NNNN</li>
+                    <li>CA: ANA NAN</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>phone</td>
+            <td>The phone number of the user (optional). Numbers only.</td>
+        </tr>
+        <tr>
+            <td>clientIpAddress</td>
+            <td>The IP address of the user who initiated the transaction (optional).</td>
+        </tr>
+        <tr>
+            <td>clientUserAgent</td>
+            <td>The user agent string of the browser that initiated the transaction (optional).</td>
+        </tr>
     </tbody>
 </table>
 
 #### Returns
 
 The debit object if it was created successfully. Returns an [error](./?doc=reference-manual#errors) if the member validation is not valid or if the amount is greater than the balance in the member validation.
+
+
 
 
 
