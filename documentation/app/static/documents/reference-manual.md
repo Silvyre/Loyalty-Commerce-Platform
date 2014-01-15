@@ -309,7 +309,7 @@ the success or failure are contained in the body of the response.
     </tr>
     <tr>
       <td>422 Unprocessable Entity</td>
-      <td>The data provided in the request for valid, but the request could not be completed for another reason. Check the JSON error response for details.</td>
+      <td>The data provided in the request is valid, but the request could not be completed for another reason. Check the JSON error response for details.</td>
     </tr>
     <tr>
       <td>500 Internal Server Error</td>
@@ -523,6 +523,8 @@ Each link has an href property that contains the link. For example:
         }
       }
     }
+
+
 
 
 
