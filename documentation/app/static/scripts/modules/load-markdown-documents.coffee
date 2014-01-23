@@ -9,6 +9,8 @@ define [
   "mdown!../../documents/api/create-a-credit.md"
   "mdown!../../documents/api/create-a-debit-example.md"
   "mdown!../../documents/api/create-a-debit.md"
+  "mdown!../../documents/api/create-a-mv-delegate-example.md"
+  "mdown!../../documents/api/create-a-mv-delegate.md"
   "mdown!../../documents/api/create-a-mv-example.md"
   "mdown!../../documents/api/create-a-mv.md"
   "mdown!../../documents/api/create-account-credentials-example.md"
@@ -28,6 +30,8 @@ define [
   "mdown!../../documents/api/get-a-credit.md"
   "mdown!../../documents/api/get-a-debit-example.md"
   "mdown!../../documents/api/get-a-debit.md"
+  "mdown!../../documents/api/get-a-mv-delegate-example.md"
+  "mdown!../../documents/api/get-a-mv-delegate.md"
   "mdown!../../documents/api/get-a-mv-example.md"
   "mdown!../../documents/api/get-a-mv.md"
   "mdown!../../documents/api/get-account-credentials-example.md"
@@ -53,6 +57,8 @@ define [
   "mdown!../../documents/api/loyalty-programs.md"
   "mdown!../../documents/api/member-validations-example.md"
   "mdown!../../documents/api/member-validations.md"
+  "mdown!../../documents/api/mv-delegates-example.md"
+  "mdown!../../documents/api/mv-delegates.md"
   "mdown!../../documents/api/release-notes.md"
   "mdown!../../documents/api/sandbox-credentials-example.md"
   "mdown!../../documents/api/sandbox-credentials.md"
@@ -69,6 +75,8 @@ define [
   create_a_credit
   create_a_debit_example
   create_a_debit
+  create_a_mv_delegate_example
+  create_a_mv_delegate
   create_a_mv_example
   create_a_mv
   create_account_credentials_example
@@ -88,6 +96,8 @@ define [
   get_a_credit
   get_a_debit_example
   get_a_debit
+  get_a_mv_delegate_example
+  get_a_mv_delegate
   get_a_mv_example
   get_a_mv
   get_account_credentials_example
@@ -113,6 +123,8 @@ define [
   loyalty_programs
   member_validations_example
   member_validations
+  mv_delegates_example
+  mv_delegates
   release_notes
   sandbox_credentials_example
   sandbox_credentials
@@ -130,6 +142,8 @@ define [
     create_a_credit: create_a_credit
     create_a_debit_example: create_a_debit_example
     create_a_debit: create_a_debit
+    create_a_mv_delegate_example: create_a_mv_delegate_example
+    create_a_mv_delegate: create_a_mv_delegate
     create_a_mv_example: create_a_mv_example
     create_a_mv: create_a_mv
     create_account_credentials_example: create_account_credentials_example
@@ -149,6 +163,8 @@ define [
     get_a_credit: get_a_credit
     get_a_debit_example: get_a_debit_example
     get_a_debit: get_a_debit
+    get_a_mv_delegate_example: get_a_mv_delegate_example
+    get_a_mv_delegate: get_a_mv_delegate
     get_a_mv_example: get_a_mv_example
     get_a_mv: get_a_mv
     get_account_credentials_example: get_account_credentials_example
@@ -174,6 +190,8 @@ define [
     loyalty_programs: loyalty_programs
     member_validations_example: member_validations_example
     member_validations: member_validations
+    mv_delegates_example: mv_delegates_example
+    mv_delegates: mv_delegates
     release_notes: release_notes
     sandbox_credentials_example: sandbox_credentials_example
     sandbox_credentials: sandbox_credentials

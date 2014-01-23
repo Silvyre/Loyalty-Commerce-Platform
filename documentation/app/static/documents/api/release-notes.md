@@ -9,6 +9,11 @@
     </thead>
     <tbody>
         <tr>
+            <td>2014-01-23</td>
+            <td>Added MV delegates
+            </td>
+        </tr>
+        <tr>
             <td>2013-12-20</td>
             <td>Added billingInfo fields to debits and credits
             </td>
@@ -26,6 +31,8 @@
         </tr>
     </tbody>
 </table>
+
+
 
 
 

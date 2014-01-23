@@ -157,16 +157,34 @@
       "parent": ""
     },
     {
-      "title": "Create a MV",
+      "title": "Create an MV",
       "id": "create-a-mv",
       "exampleId": "create-a-mv-example",
       "parent": "member-validations"
     },
     {
-      "title": "Get a MV",
+      "title": "Get an MV",
       "id": "get-a-mv",
       "exampleId": "get-a-mv-example",
       "parent": "member-validations"
+    },
+    {
+      "title": "MV Delegates",
+      "id": "mv-delegates",
+      "exampleId": "mv-delegates-example",
+      "parent": ""
+    },
+    {
+      "title": "Create an MV Delegate",
+      "id": "create-a-mv-delegate",
+      "exampleId": "create-a-mv-delegate-example",
+      "parent": "mv-delegates"
+    },
+    {
+      "title": "Get an MV Delegate",
+      "id": "get-a-mv-delegate",
+      "exampleId": "get-a-mv-delegate-example",
+      "parent": "mv-delegates"
     },
     {
       "title": "Sandbox Credentials",
@@ -182,6 +200,8 @@
     }
   ]
 }
+
+
 
 
 
