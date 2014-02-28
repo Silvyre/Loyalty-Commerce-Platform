@@ -5,10 +5,12 @@
     {
       "application": "https://sandbox.lcp.points.com/v1/apps/<app-id>",
       "memberValidation": {
-        "balance": 2000,
         "firstName": "John",
         "lastName": "Doe",
         "memberId": "1234"
+      },
+      "memberValidationResponse": {
+        "balance": 2000
       }
     }
 
@@ -23,4 +25,6 @@
         "self": "https://sandbox.lcp.points.com/v1/lps/<lp-id>/mv-delegates/<id>"
       }
     }
+
+
 
