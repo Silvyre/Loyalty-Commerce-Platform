@@ -14,7 +14,7 @@ Apps allow you to communicate with one or more loyalty programs. Apps are stored
     <tbody>
         <tr>
             <td>description</td>
-            <td>The identifier of the account to add credentials to.</td>
+            <td>The description of the app.</td>
         </tr>
         <tr>
             <td>liveCredentials</td>
@@ -30,6 +30,8 @@ Apps allow you to communicate with one or more loyalty programs. Apps are stored
         </tr>
     </tbody>
 </table>
+
+
 
 
 
