@@ -58,6 +58,8 @@ define [
   "mdown!../../documents/api/get-report-instance-data.md"
   "mdown!../../documents/api/get-sandbox-credentials-example.md"
   "mdown!../../documents/api/get-sandbox-credentials.md"
+  "mdown!../../documents/api/list-all-apps-example.md"
+  "mdown!../../documents/api/list-all-apps.md"
   "mdown!../../documents/api/list-all-live-permissions-example.md"
   "mdown!../../documents/api/list-all-live-permissions.md"
   "mdown!../../documents/api/list-all-report-instances-example.md"
@@ -144,6 +146,8 @@ define [
   get_report_instance_data
   get_sandbox_credentials_example
   get_sandbox_credentials
+  list_all_apps_example
+  list_all_apps
   list_all_live_permissions_example
   list_all_live_permissions
   list_all_report_instances_example
@@ -231,6 +235,8 @@ define [
     get_report_instance_data: get_report_instance_data
     get_sandbox_credentials_example: get_sandbox_credentials_example
     get_sandbox_credentials: get_sandbox_credentials
+    list_all_apps_example: list_all_apps_example
+    list_all_apps: list_all_apps
     list_all_live_permissions_example: list_all_live_permissions_example
     list_all_live_permissions: list_all_live_permissions
     list_all_report_instances_example: list_all_report_instances_example

@@ -9,6 +9,11 @@
     </thead>
     <tbody>
         <tr>
+            <td>2014-04-23</td>
+            <td>Added list of apps
+            </td>
+        </tr>
+        <tr>
             <td>2014-04-03</td>
             <td>Added reports and report instances
             </td>
@@ -41,6 +46,8 @@
         </tr>
     </tbody>
 </table>
+
+
 
 
 

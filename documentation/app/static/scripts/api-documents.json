@@ -79,6 +79,12 @@
       "parent": "apps"
     },
     {
+      "title": "List all Apps",
+      "id": "list-all-apps",
+      "exampleId": "list-all-apps-example",
+      "parent": "apps"
+    },
+    {
       "title": "Credits",
       "id": "credits",
       "exampleId": "credits-example",
@@ -260,6 +266,8 @@
     }
   ]
 }
+
+
 
 
 
