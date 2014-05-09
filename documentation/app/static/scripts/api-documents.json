@@ -193,66 +193,6 @@
       "parent": "mv-delegates"
     },
     {
-      "title": "Reports",
-      "id": "reports",
-      "exampleId": "reports-example",
-      "parent": ""
-    },
-    {
-      "title": "Create a Report",
-      "id": "create-a-report",
-      "exampleId": "create-a-report-example",
-      "parent": "reports"
-    },
-    {
-      "title": "Get a Report",
-      "id": "get-a-report",
-      "exampleId": "get-a-report-example",
-      "parent": "reports"
-    },
-    {
-      "title": "List all Reports",
-      "id": "list-all-reports",
-      "exampleId": "list-all-reports-example",
-      "parent": "reports"
-    },
-    {
-      "title": "Update a Report",
-      "id": "update-a-report",
-      "exampleId": "update-a-report-example",
-      "parent": "reports"
-    },
-    {
-      "title": "Report Instances",
-      "id": "report-instances",
-      "exampleId": "report-instances-example",
-      "parent": ""
-    },
-    {
-      "title": "Create a Report Instance",
-      "id": "create-a-report-instance",
-      "exampleId": "create-a-report-instance-example",
-      "parent": "report-instances"
-    },
-    {
-      "title": "Get a Report Instance",
-      "id": "get-a-report-instance",
-      "exampleId": "get-a-report-instance-example",
-      "parent": "report-instances"
-    },
-    {
-      "title": "List all Report Instances",
-      "id": "list-all-report-instances",
-      "exampleId": "list-all-report-instances-example",
-      "parent": "report-instances"
-    },
-    {
-      "title": "Get Report Instance Data",
-      "id": "get-report-instance-data",
-      "exampleId": "get-report-instance-data-example",
-      "parent": "report-instances"
-    },
-    {
       "title": "Sandbox Credentials",
       "id": "sandbox-credentials",
       "exampleId": "sandbox-credentials-example",
@@ -266,6 +206,8 @@
     }
   ]
 }
+
+
 
 
 
