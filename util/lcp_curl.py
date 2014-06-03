@@ -37,7 +37,7 @@ if __name__ == '__main__':
         exit("Usage: %s -u <macKeyIdentifier>:<macKey> [curl options...] <url>" % os.path.basename(__file__))
 
     method = get_http_method(sys.argv)
-    if method in ['POST', 'PUT']:
+    if method in ['POST', 'PUT', 'PATCH']:
         content_type = "application/json"
     else:
         content_type = ''
