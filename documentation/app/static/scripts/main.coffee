@@ -39,7 +39,7 @@ require.config
     # Global Mediator
     'global'              : 'mediators/global'
 
-require ['nprogress'], (__nprogress) ->
+require ['nprogress'], (NProgress) ->
   if /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) isnt true
     NProgress.configure showSpinner: false
     NProgress.start()
