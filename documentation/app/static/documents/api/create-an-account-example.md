@@ -12,18 +12,18 @@
 #### Example Response
 
     201 CREATED
-    location: https://lcp.points.com/v1/accounts/
+    location: https://lcp.points.com/v1/accounts/<id>
     {
       "accountCredentials": [
         {
           "links": {
             "self": {
-              "href": "https://lcp.points.com/v1/accounts//account-credentials/"
+              "href": "https://lcp.points.com/v1/accounts/<id>/account-credentials/<ac-id>"
             }
           },
-          "macAlgorithm":"HMAC-SHA1",
-          "macKey":"",
-          "macKeyIdentifier":""
+          "macAlgorithm": "HMAC-SHA1",
+          "macKey": "<macKey>",
+          "macKeyIdentifier": "<macKeyIdentifier>"
         }
       ],
       "email": "youremail@yourcompany.com",
@@ -31,7 +31,7 @@
       "lastName": "Last Name",
       "links": {
         "self": {
-          "href": "https://lcp.points.com/v1/accounts/"
+          "href": "https://lcp.points.com/v1/accounts/<id>"
         },
         "friendly": {
           "href": "https://lcp.points.com/v1/accounts/youremail%40yourcompany.com"

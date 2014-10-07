@@ -8,16 +8,16 @@
 #### Example Request
 
     201 CREATED
-    location: https://lcp.points.com/v1/accounts//account-credentials/
+    location: https://lcp.points.com/v1/accounts/<account-id>/account-credentials/<id>
     {
       "links": {
         "self": {
-          "href": "https://lcp.points.com/v1/accounts//account-credentials/"
+          "href": "https://lcp.points.com/v1/accounts/<account-id>/account-credentials/<id>"
         }
       },
-      "macAlgorithm":"HMAC-SHA1",
-      "macKey":"",
-      "macKeyIdentifier":""
+      "macAlgorithm": "HMAC-SHA1",
+      "macKey": "<macKey>",
+      "macKeyIdentifier": "<macKeyIdentifier>"
     }
 
 
