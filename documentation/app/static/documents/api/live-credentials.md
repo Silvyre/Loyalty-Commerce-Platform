@@ -24,6 +24,10 @@ Live credentials authenticate your app to perform actions on the LCP in live mod
             <td>macKeyIdentifier</td>
             <td>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier is sent with each request to tell the server which MAC key was used to sign the request.</td>
         </tr>
+        <tr>
+            <td>type</td>
+            <td>The type of resource.</td>
+        </tr>
     </tbody>
 </table>
 

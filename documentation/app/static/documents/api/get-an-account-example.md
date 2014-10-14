@@ -19,6 +19,7 @@
           "macKeyIdentifier": "<macKeyIdentifier>"
         }
       ],
+      "createdAt": "2014-04-19T07:56:08.482556Z",
       "email": "<email>",
       "firstName": "<firstName>",
       "lastName": "<lastName>",
@@ -31,6 +32,8 @@
           }
       },
       "organizationName": "<organizationName>",
-      "phone": "<phone>"
+      "phone": "<phone>",
+      "type": "account",
+      "updatedAt": "2014-05-08T17:55:34.511304Z"
     }
 

@@ -13,7 +13,9 @@
     201 CREATED
     location: https://sandbox.lcp.points.com/v1/lps/<lp-id>/mvs/<id>
     {
+      "application": "https://lcp.points.com/v1/apps/<app-id>",
       "balance": 2000,
+      "createdAt": "2014-04-19T07:56:08.482556Z",
       "firstName": "John",
       "lastName": "Doe",
       "links": {
@@ -21,5 +23,9 @@
           "href": "https://sandbox.lcp.points.com/v1/lps/<lp-id>/mvs/<id>"
         }
       },
-      "memberId": "1234"
+      "loyaltyProgram": "https://lcp.points.com/v1/lps/<lp-id>",
+      "memberId": "1234",
+      "status": "success",
+      "type": "memberValidation",
+      "updatedAt": "2014-04-19T07:56:08.482556Z"
     }

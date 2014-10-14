@@ -13,6 +13,10 @@ Apps allow you to communicate with one or more loyalty programs. Apps are stored
     </thead>
     <tbody>
         <tr>
+            <td>createdAt</td>
+            <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was created.</td>
+        </tr>
+        <tr>
             <td>description</td>
             <td>The description of the app.</td>
         </tr>
@@ -27,6 +31,14 @@ Apps allow you to communicate with one or more loyalty programs. Apps are stored
         <tr>
             <td>sandboxCredentials</td>
             <td>An array of <a href="#sandbox-credentials">sandbox credential</a> objects that the app can use to access the sandbox environment.</td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td>The type of resource.</td>
+        </tr>
+        <tr>
+            <td>updatedAt</td>
+            <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was last updated.</td>
         </tr>
     </tbody>
 </table>

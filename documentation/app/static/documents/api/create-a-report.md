@@ -17,12 +17,12 @@ Applications can publish reports that can be accessed by other users of the LCP.
             <td>The identifier of the application.</td>
         </tr>
         <tr>
-            <td>name</td>
-            <td>The name of the report.</td>
-        </tr>
-        <tr>
             <td>description</td>
             <td>The description of the report (optional).</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>The name of the report.</td>
         </tr>
         <tr>
             <td>url</td>

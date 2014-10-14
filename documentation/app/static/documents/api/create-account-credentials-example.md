@@ -17,7 +17,8 @@
       },
       "macAlgorithm": "HMAC-SHA1",
       "macKey": "<macKey>",
-      "macKeyIdentifier": "<macKeyIdentifier>"
+      "macKeyIdentifier": "<macKeyIdentifier>",
+      "type": "accountCredential"
     }
 
 

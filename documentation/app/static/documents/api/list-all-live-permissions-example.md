@@ -15,7 +15,8 @@
             }
           },
           "loyaltyProgram": "https://lcp.points.com/v1/lps/<lp-id>",
-          "operations": ["mvs", "debits", "credits"]
+          "operations": ["mvs", "debits", "credits"],
+          "type": "livePermission"
         },
         ...
       ]

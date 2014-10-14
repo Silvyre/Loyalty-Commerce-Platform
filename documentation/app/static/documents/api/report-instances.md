@@ -18,11 +18,19 @@ A report instance is a record of a request to generate a copy of an application 
         </tr>
         <tr>
             <td>createdAt</td>
-            <td>The timestamp when the report instance was created. The timestamp is in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> format.</td>
+            <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was created.</td>
         </tr>
         <tr>
             <td>status</td>
             <td>The status of the request to generate a report instance. The status can be success or failure.</td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td>The type of resource.</td>
+        </tr>
+        <tr>
+            <td>updatedAt</td>
+            <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was last updated.</td>
         </tr>
     </tbody>
 </table>

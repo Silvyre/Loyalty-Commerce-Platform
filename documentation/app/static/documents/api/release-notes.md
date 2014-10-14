@@ -9,6 +9,26 @@
     </thead>
     <tbody>
         <tr>
+            <td>2014-10-15</td>
+            <td>Removed billingInfo fields from debits and credits
+            </td>
+        </tr>
+        <tr>
+            <td>2014-06-25</td>
+            <td>Added status to member validations
+            </td>
+        </tr>
+        <tr>
+            <td>2014-06-06</td>
+            <td>Added application and loyaltyProgram to transactions
+            </td>
+        </tr>
+        <tr>
+            <td>2014-05-14</td>
+            <td>Added type, updatedAt, createdAt to all resources
+            </td>
+        </tr>
+        <tr>
             <td>2014-04-23</td>
             <td>Added list of apps
             </td>

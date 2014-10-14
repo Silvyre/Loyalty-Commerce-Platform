@@ -17,16 +17,16 @@ A credit is a transaction that adds points to a loyalty program member's account
             <td>The number of points added to the member's account. Must be a positive integer.</td>
         </tr>
         <tr>
-            <td>billingInfo</td>
-            <td>The billing info of the user who initiated the transaction.</td>
+            <td>application</td>
+            <td>The application that created the transaction.</td>
         </tr>
         <tr>
-            <td>clientIpAddress</td>
-            <td>The IP address of the user who initiated the transaction.</td>
+            <td>createdAt</td>
+            <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was created.</td>
         </tr>
         <tr>
-            <td>clientUserAgent</td>
-            <td>The user agent string of the browser that initiated the transaction.</td>
+            <td>loyaltyProgram</td>
+            <td>The loyalty program involved in the transaction.</td>
         </tr>
         <tr>
             <td>memberValidation</td>
@@ -34,11 +34,19 @@ A credit is a transaction that adds points to a loyalty program member's account
         </tr>
         <tr>
             <td>status</td>
-            <td>The status of the credit. The status can be success, failure, or pending. Pending indicates the transaction is being held for fraud review. Retrieve the credit later to determine whether it succeeded or failed.</td>
+            <td>The status of the credit. The status can be success, failure, or pending. Pending indicates the transaction is waiting for a response from the loyalty program. Retrieve the credit later to determine whether it succeeded or failed.</td>
         </tr>
         <tr>
             <td>transactionId</td>
             <td>A transaction ID that can be used to reconcile the credit against the loyalty partner's records.</td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td>The type of resource.</td>
+        </tr>
+        <tr>
+            <td>updatedAt</td>
+            <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was last updated.</td>
         </tr>
     </tbody>
 </table>

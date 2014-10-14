@@ -13,12 +13,24 @@ Reports allow applications to publish data that is accessible by other users of 
     </thead>
     <tbody>
         <tr>
-            <td>name</td>
-            <td>The name of the report.</td>
+            <td>createdAt</td>
+            <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was created.</td>
         </tr>
         <tr>
             <td>description</td>
             <td>The description of the report.</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>The name of the report.</td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td>The type of resource.</td>
+        </tr>
+        <tr>
+            <td>updatedAt</td>
+            <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was last updated.</td>
         </tr>
         <tr>
             <td>url</td>

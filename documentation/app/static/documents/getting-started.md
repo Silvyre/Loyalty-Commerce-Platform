@@ -251,6 +251,7 @@ If the above request is successful, the LCP will respond with the following:
           "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b"
         }
       ],
+      "createdAt": "2014-04-19T07:56:08.482556Z",
       "email": "youremail@yourcompany.com",
       "links": {
         "friendly": {
@@ -259,7 +260,9 @@ If the above request is successful, the LCP will respond with the following:
         "self": {
           "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5"
         }
-      }
+      },
+      "type": "account",
+      "updatedAt": "2014-04-19T07:56:08.482556Z"
     }
 
 From this response data, it’s important to record the "accountCredentials"
@@ -330,6 +333,7 @@ Now the account resource is returned in full:
           "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b",
         }
       ],
+      "createdAt": "2014-04-19T07:56:08.482556Z",
       "email": "youremail@yourcompany.com",
       "links": {
         "friendly": {
@@ -338,7 +342,9 @@ Now the account resource is returned in full:
         "self": {
           "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5"
         },
-      }
+      },
+      "type": "account",
+      "updatedAt": "2014-04-19T07:56:08.482556Z"
     }
 
 If you still received 401 unauthorized, check that your computer’s time is
@@ -363,6 +369,7 @@ app name and description you provided.
 
     HTTP/1.1 201 CREATED
     {
+      "createdAt": "2014-04-19T07:56:08.482556Z",
       "description": "Universal balance checker",
       "links": {
         "self": {
@@ -373,7 +380,9 @@ app name and description you provided.
       "name": "UBC",
       "sandboxCredentials": [
     "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"
-      ]
+      ],
+      "type": "app",
+      "updatedAt": "2014-04-19T07:56:08.482556Z"
     }
 
 The created resource also contains the app’s sandbox credentials and a
@@ -401,7 +410,8 @@ This returns the sandbox credentials for the app:
       },
       "macAlgorithm": "HMAC-SHA1",
       "macKey": "iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA",
-      "macKeyIdentifier": "d8b9ca1904a348e491884a9c44843d25"
+      "macKeyIdentifier": "d8b9ca1904a348e491884a9c44843d25",
+      "type": "sandboxCredential"
     }
 
 ### Perform a Member Validation (MV)
@@ -458,7 +468,9 @@ This creates a successful MV:
 
     HTTP/1.1 201 CREATED
     {
+      "application": "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc",
       "balance": 0,
+      "createdAt": "2014-04-19T07:56:08.482556Z",
       "firstName": "John",
       "lastName": "Doe",
       "links": {
@@ -466,7 +478,11 @@ This creates a successful MV:
           "href": "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
         }
       },
-      "memberId": "dVNm"
+      "loyaltyProgram": "https://lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57",
+      "memberId": "dVNm",
+      "status": "success",
+      "type": "memberValidation",
+      "updatedAt": "2014-04-19T07:56:08.482556Z"
     }
 
 The points balance is always zero in sandbox mode since it does not communicate
@@ -482,7 +498,9 @@ The balance is now 2000:
 
     HTTP/1.1 201 CREATED
     {
+      "application": "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc",
       "balance": 2000,
+      "createdAt": "2014-05-08T17:55:34.511304Z",
       "firstName": "John",
       "lastName": "Doe 2000",
       "links": {
@@ -490,7 +508,11 @@ The balance is now 2000:
           "href": "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/1c220489-887f-494e-be88-5687721d0bb9"
         }
       },
-      "memberId": "dVNm"
+      "loyaltyProgram": "https://lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57",
+      "memberId": "dVNm",
+      "status": "success",
+      "type": "memberValidation",
+      "updatedAt": "2014-05-08T17:55:34.511304Z"
     }
 
 You can retrieve a previous MV by performing a GET on the self link. This

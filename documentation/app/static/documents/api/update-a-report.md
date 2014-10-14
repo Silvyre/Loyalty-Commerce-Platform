@@ -21,12 +21,12 @@ Update the name, description or URL of an application report. Provide a name and
             <td>The identifier of the report.</td>
         </tr>
         <tr>
-            <td>name</td>
-            <td>The name of the report.</td>
-        </tr>
-        <tr>
             <td>description</td>
             <td>The description of the report (optional).</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>The name of the report.</td>
         </tr>
         <tr>
             <td>url</td>

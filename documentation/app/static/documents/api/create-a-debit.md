@@ -4,7 +4,7 @@ Create a debit object to attempt to deduct points from a loyalty program member'
 
 In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a debit.
 
-Many parameters are optional. Providing more fields increases the accuracy of the fraud screen.
+Debits can happen in real-time or in batch mode depending on the loyalty program. For real-time debits, the debit will be immediately executed by the loyalty program and the debit status will be either success or failure. For batch mode, the debit will be queued with other transactions and sent to the loyalty program in a batch job typically once a day. Batch debits will initially have a status of pending. Once the loyalty program responds, the debit will be updated to success or failure.
 
 #### Parameters
 
@@ -25,13 +25,10 @@ Many parameters are optional. Providing more fields increases the accuracy of th
             <td><p>The number of points to deduct from the member's account. Must be a positive integer less than the member's balance obtained from the member validation.</p>
                 <p><strong>Sandbox mode</strong>: Set amount to these values to simulate different cases:
                     <ul>
-                        <li>94: hold for fraud review, then fail at LP</li>
-                        <li>95: hold for fraud review, then succeed</li>
-                        <li>96: hold for fraud review, then decline</li>
-                        <li>97: fail during fraud review</li>
-                        <li>98: fraud review declines transaction</li>
-                        <li>99: fail at loyalty program</li>
-                        <li>Other: success</li>
+                        <li>94 or 96: batch failure</li>
+                        <li>95: batch success</li>
+                        <li>97-99: real-time failure</li>
+                        <li>Other: real-time success</li>
                     </ul>
                 </p>
             </td>
@@ -39,59 +36,6 @@ Many parameters are optional. Providing more fields increases the accuracy of th
         <tr>
             <td>memberValidation</td>
             <td>Link to a member validation that identifies the member's account to be debited. The member validation cannot have been used with another transaction.</td>
-        </tr>
-        <tr>
-            <td>firstName</td>
-            <td>The first name of the user who initiated the transaction (optional).</td>
-        </tr>
-        <tr>
-            <td>lastName</td>
-            <td>The last name of the user who initiated the transaction (optional).</td>
-        </tr>
-        <tr>
-            <td>email</td>
-            <td>Email address of the user who initiated the transaction (optional).</td>
-        </tr>
-        <tr>
-            <td>street1</td>
-            <td>The first line of the user’s address (optional).</td>
-        </tr>
-        <tr>
-            <td>street2</td>
-            <td>The second line of the user’s address (optional).</td>
-        </tr>
-        <tr>
-            <td>city</td>
-            <td>The city of the user’s address (optional).</td>
-        </tr>
-        <tr>
-            <td>state</td>
-            <td>The state of the user’s address (optional). Use <a href="http://en.wikipedia.org/wiki/ISO_3166-2">ISO 3166-2</a> region codes (a 2 character string).</td>
-        </tr>
-        <tr>
-            <td>country</td>
-            <td>The country of the user’s address (optional). Use <a href="http://en.wikipedia.org/wiki/ISO_3166-1">ISO 3166-1</a> country codes (a 2 character string).</td>
-        </tr>
-        <tr>
-            <td>zip</td>
-            <td>The zip or postal code of the user’s address (optional). Valid formats:
-                <ul>
-                    <li>US: NNNNN or NNNNN-NNNN</li>
-                    <li>CA: ANA NAN</li>
-                </ul>
-            </td>
-        </tr>
-        <tr>
-            <td>phone</td>
-            <td>The phone number of the user (optional). Numbers only.</td>
-        </tr>
-        <tr>
-            <td>clientIpAddress</td>
-            <td>The IP address of the user who initiated the transaction (optional).</td>
-        </tr>
-        <tr>
-            <td>clientUserAgent</td>
-            <td>The user agent string of the browser that initiated the transaction (optional).</td>
         </tr>
     </tbody>
 </table>

@@ -20,6 +20,10 @@ Live permissions describe what operations an application can do in live mode for
             <td>operations</td>
             <td>An array of operations that the application is permitted to do in live mode for the LP.</td>
         </tr>
+        <tr>
+            <td>type</td>
+            <td>The type of resource.</td>
+        </tr>
     </tbody>
 </table>
 

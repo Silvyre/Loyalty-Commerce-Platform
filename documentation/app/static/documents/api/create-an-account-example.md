@@ -26,6 +26,7 @@
           "macKeyIdentifier": "<macKeyIdentifier>"
         }
       ],
+      "createdAt": "2014-04-19T07:56:08.482556Z",
       "email": "youremail@yourcompany.com",
       "firstName": "First Name",
       "lastName": "Last Name",
@@ -38,7 +39,9 @@
         }
       },
       "organizationName": "Company",
-      "phone": "416-555-1234"
+      "phone": "416-555-1234",
+      "type": "account",
+      "updatedAt": "2014-04-19T07:56:08.482556Z"
     }
 
 

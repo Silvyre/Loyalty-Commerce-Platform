@@ -12,6 +12,7 @@
     201 CREATED
     location: https://lcp.points.com/v1/apps/<id>
     {
+      "createdAt": "2014-04-19T07:56:08.482556Z",
       "description": "Description of my app",
       "links": {
         "self": {
@@ -25,7 +26,9 @@
       "name": "My App",
       "sandboxCredentials": [
         "https://lcp.points.com/v1/apps/<id>/sandbox-credentials/<sc-id>"
-      ]
+      ],
+      "type": "app",
+      "updatedAt": "2014-04-19T07:56:08.482556Z"
     }
 
 

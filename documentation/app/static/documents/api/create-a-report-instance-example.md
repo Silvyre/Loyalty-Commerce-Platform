@@ -11,8 +11,7 @@
     location: https://lcp.points.com/v1/apps/<app-id>/reports/<report-id>/instances/<id>
     {
       "contentType": "application/json",
-      "createdAt": "2014-02-25T16:30:00Z",
-      "status": "success",
+      "createdAt": "2014-04-19T07:56:08.482556Z",
       "links": {
         "self": {
           "href": "https://lcp.points.com/v1/apps/<app-id>/reports/<report-id>/instances/<id>"
@@ -23,7 +22,10 @@
         "report": {
           "href": "https://lcp.points.com/v1/apps/<app-id>/reports/<report-id>"
         }
-      }
+      },
+      "status": "success",
+      "type": "reportInstance",
+      "updatedAt": "2014-04-19T07:56:08.482556Z"
     }
 
 

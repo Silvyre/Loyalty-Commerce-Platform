@@ -17,8 +17,20 @@ An MV delegate is a member validation that a loyalty program created for another
             <td>The application that has permission to access the member validation.</td>
         </tr>
         <tr>
+            <td>createdAt</td>
+            <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was created.</td>
+        </tr>
+        <tr>
             <td>memberValidation</td>
             <td>A link to the member validation that the application can access.</td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td>The type of resource.</td>
+        </tr>
+        <tr>
+            <td>updatedAt</td>
+            <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was last updated.</td>
         </tr>
     </tbody>
 </table>

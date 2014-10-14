@@ -17,6 +17,10 @@ An account is your own personal developer account on the LCP system. It is tied 
             <td>An array of <a href="#account-credentials">account credential</a> objects that can be used to access this account.</td>
         </tr>
         <tr>
+            <td>createdAt</td>
+            <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was created.</td>
+        </tr>
+        <tr>
             <td>email</td>
             <td>The email address of the account owner.</td>
         </tr>
@@ -35,6 +39,14 @@ An account is your own personal developer account on the LCP system. It is tied 
         <tr>
             <td>phone</td>
             <td>The phone number of the account owner.</td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td>The type of resource.</td>
+        </tr>
+        <tr>
+            <td>updatedAt</td>
+            <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was last updated.</td>
         </tr>
     </tbody>
 </table>
