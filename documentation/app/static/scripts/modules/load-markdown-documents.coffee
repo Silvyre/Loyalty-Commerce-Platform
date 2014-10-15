@@ -1,6 +1,8 @@
 define [
   "mdown!../../documents/api/account-credentials-example.md"
   "mdown!../../documents/api/account-credentials.md"
+  "mdown!../../documents/api/account-permissions-example.md"
+  "mdown!../../documents/api/account-permissions.md"
   "mdown!../../documents/api/accounts-example.md"
   "mdown!../../documents/api/accounts.md"
   "mdown!../../documents/api/apps-example.md"
@@ -44,6 +46,8 @@ define [
   "mdown!../../documents/api/get-a-report.md"
   "mdown!../../documents/api/get-account-credentials-example.md"
   "mdown!../../documents/api/get-account-credentials.md"
+  "mdown!../../documents/api/get-account-permissions-example.md"
+  "mdown!../../documents/api/get-account-permissions.md"
   "mdown!../../documents/api/get-an-account-example.md"
   "mdown!../../documents/api/get-an-account.md"
   "mdown!../../documents/api/get-an-app-by-mac-example.md"
@@ -84,11 +88,15 @@ define [
   "mdown!../../documents/api/sandbox-credentials.md"
   "mdown!../../documents/api/update-a-report-example.md"
   "mdown!../../documents/api/update-a-report.md"
+  "mdown!../../documents/api/update-account-permissions-example.md"
+  "mdown!../../documents/api/update-account-permissions.md"
   "mdown!../../documents/getting-started.md"
   "mdown!../../documents/reference-manual.md"
 ], (
   account_credentials_example
   account_credentials
+  account_permissions_example
+  account_permissions
   accounts_example
   accounts
   apps_example
@@ -132,6 +140,8 @@ define [
   get_a_report
   get_account_credentials_example
   get_account_credentials
+  get_account_permissions_example
+  get_account_permissions
   get_an_account_example
   get_an_account
   get_an_app_by_mac_example
@@ -172,12 +182,16 @@ define [
   sandbox_credentials
   update_a_report_example
   update_a_report
+  update_account_permissions_example
+  update_account_permissions
   getting_started
   reference_manual
 ) ->
   Markdown =
     account_credentials_example: account_credentials_example
     account_credentials: account_credentials
+    account_permissions_example: account_permissions_example
+    account_permissions: account_permissions
     accounts_example: accounts_example
     accounts: accounts
     apps_example: apps_example
@@ -221,6 +235,8 @@ define [
     get_a_report: get_a_report
     get_account_credentials_example: get_account_credentials_example
     get_account_credentials: get_account_credentials
+    get_account_permissions_example: get_account_permissions_example
+    get_account_permissions: get_account_permissions
     get_an_account_example: get_an_account_example
     get_an_account: get_an_account
     get_an_app_by_mac_example: get_an_app_by_mac_example
@@ -261,6 +277,8 @@ define [
     sandbox_credentials: sandbox_credentials
     update_a_report_example: update_a_report_example
     update_a_report: update_a_report
+    update_account_permissions_example: update_account_permissions_example
+    update_account_permissions: update_account_permissions
     getting_started: getting_started
     reference_manual: reference_manual
 

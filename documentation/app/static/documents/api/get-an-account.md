@@ -1,6 +1,6 @@
 ### Get an Account
 
-Retrieves the account details for an existing account. Requires account credentials for the account being accessed.
+Retrieves the account details for an existing account.
 
 #### Parameters
 

@@ -55,6 +55,24 @@
       "parent": "account-credentials"
     },
     {
+      "title": "Account Permissions",
+      "id": "account-permissions",
+      "exampleId": "account-permissions-example",
+      "parent": ""
+    },
+    {
+      "title": "Get Account Permissions",
+      "id": "get-account-permissions",
+      "exampleId": "get-account-permissions-example",
+      "parent": "account-permissions"
+    },
+    {
+      "title": "Update Account Permissions",
+      "id": "update-account-permissions",
+      "exampleId": "update-account-permissions-example",
+      "parent": "account-permissions"
+    },
+    {
       "title": "Apps",
       "id": "apps",
       "exampleId": "apps-example",

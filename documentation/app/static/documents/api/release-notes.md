@@ -24,6 +24,11 @@
             </td>
         </tr>
         <tr>
+            <td>2014-05-28</td>
+            <td>Added account permissions
+            </td>
+        </tr>
+        <tr>
             <td>2014-05-14</td>
             <td>Added type, updatedAt, createdAt to all resources
             </td>
