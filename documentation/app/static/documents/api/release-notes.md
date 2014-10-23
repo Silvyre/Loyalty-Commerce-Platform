@@ -9,8 +9,9 @@
     </thead>
     <tbody>
         <tr>
-            <td>2014-10-15</td>
+            <td>2014-10-16</td>
             <td>Removed billingInfo fields from debits and credits
+            <br>Added optional pic field to debits and credits
             </td>
         </tr>
         <tr>

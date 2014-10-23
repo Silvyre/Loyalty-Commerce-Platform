@@ -37,6 +37,10 @@ Credits can happen in real-time or in batch mode depending on the loyalty progra
             <td>memberValidation</td>
             <td>Link to a member validation that identifies the member's account to be credited. The member validation cannot have been used with another transaction.</td>
         </tr>
+        <tr>
+            <td>pic</td>
+            <td>Product Identification Code (optional). Only set this field if directed to by the loyalty program.</td>
+        </tr>
     </tbody>
 </table>
 
