@@ -15,6 +15,7 @@ define [
   class Documentation extends ApiDocumentation
     groupHtml = (obj, el) ->
       id = $(obj).text().replace(/[\. ,#():-]+/g, '-').toLowerCase()
+      id = id.replace('\'','')
       $set = $()
       $set.push obj
       next = obj.nextSibling
@@ -58,6 +59,7 @@ define [
 
       @regularArticle.find('h2, h3').each (i, obj) =>
         id = $(obj).text().replace(/[\. ,#():-]+/g, '-').toLowerCase()
+        id = id.replace('\'','')
         title = $(obj).text()
         parent = $(obj).parents('section').attr('id').replace('section-', '')
 
