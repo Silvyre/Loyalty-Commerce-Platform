@@ -209,79 +209,92 @@ user-friendly and readable URL to consume a particular resource.
 
 ## Getting Started
 
-Now that you’ve read through some of the background information and familiarized
-yourself with some of the key principles, you’re ready to dive in. In this
-section you’ll find a set of steps needed to start working with the Loyalty
-Commerce Platform (LCP). By following these steps, you’ll have everything you’d
-need to to build a universal balance checker to retrieve member balances across
-multiple loyalty programs. The steps needed are:
+Now that you've read through some of the background information and familiarized
+yourself with some of the key principles, you're ready to dive in. In this section
+you'll find a set of steps needed to start working with the Loyalty Commerce Platform
+(LCP). By following these steps, you'll have everything you need to to build a
+universal balance checker to retrieve member balances across multiple loyalty
+programs. The steps needed are:
 
 1. Create an account
-1. Sign requests
 1. Create an app
+1. Get your app's sandbox credentials
 1. Perform a member validation (MV)
 
 ### Create an Account
 
-In order to create a universal balance checker, your first step is to create an
-account. An account is your own personal developer account on the LCP system. It
-is tied to your email address and gives you access credentials to the LCP. It
-also enables you to create one or more applications that interface with the LCP.
+To create a universal balance checker, your first step is to create an LCP developer
+account. A developer account allows you to create one or more applications that
+interface with the LCP.
 
-To create your developer account, `POST` to the `/accounts` resource with your email
-address:
+To create your developer account, go to the [LCP
+Admin](https://admin.lcp.points.com/) and select "Sign Up". Follow the instructions
+to create your account.
 
-    curl -v -X POST -H "Content-Type: application/json" \
-    -d '{"email": "youremail@yourcompany.com"}' \
-    https://lcp.points.com/v1/accounts/
+### Create an App
 
-If the above request is successful, the LCP will respond with the following:
+Once logged into your account, click on "Apps" in the left-hand navigation to see
+your list of apps.
 
-    HTTP/1.1 201 CREATED
-    {
-      "accountCredentials": [
-        {
-          "links": {
-            "self": {
-              "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5/account-credentials/63ac7619-0073-4aa7-a996-0acae9f9bfb9"
-            }
-          },
-          "macAlgorithm": "HMAC-SHA1",
-          "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",
-          "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b"
-        }
-      ],
-      "createdAt": "2014-04-19T07:56:08.482556Z",
-      "email": "youremail@yourcompany.com",
-      "links": {
-        "friendly": {
-          "href": "https://lcp.points.com/v1/accounts/youremail%40yourcompany.com"
-        },
-        "self": {
-          "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5"
-        }
-      },
-      "type": "account",
-      "updatedAt": "2014-04-19T07:56:08.482556Z"
-    }
+![Empty App List](static/images/empty-app-list.png)
 
-From this response data, it’s important to record the "accountCredentials"
-resource that is returned. These are your credentials for accessing your account
-and apps on the LCP. The macKey is a shared secret key between you and the
-platform. Keep it safe as you would for a private cryptographic key. It should
-never be shared with anyone or sent to the LCP.
+There are no apps so far, so create one by clicking the "Create a new App" button.
+Fill in the name and description of your app and click "Create App".
 
-### Sign Requests
+![Create An App](static/images/create-an-app.png)
 
-Now that you have an account and its credentials, all future requests to the LCP
-need to be signed with your MAC key. For example, let’s see what happens if we
-try to get the account created above:
+You've now created your first app.
 
-    curl -v \
-    https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5
+![Example App](static/images/example-app.png)
 
-The server returns a 401 status code indicating you are not authorized to access
-this resource:
+### Get your App's Sandbox Credentials
+
+To access the LCP API, your app needs credentials to authenticate with the LCP. There
+are two types of application credentials: sandbox credentials and live credentials.
+When developing your application, you will use sandbox credentials to make requests
+in sandbox mode. Sandbox mode simulates all transactions with the loyalty programs.
+Once you're ready to promote your application to live mode, Points will issue you
+live credentials. For now, your app only has sandbox credentials.
+
+Click "Show Key" to view your sandbox credentials. You need to re-enter your password
+to confirm your identity.
+
+![Sandbox Credentials](static/images/sandbox-credentials.png)
+
+The MAC key identifier tells the LCP which MAC key you are using. The MAC key is a
+shared secret key between you and the platform that you will use to sign requests.
+Keep it safe as you would a private cryptographic key. It should never be shared with
+anyone or sent directly to the LCP.
+
+### Perform a Member Validation (MV)
+
+Now you're ready to make API requests. A universal balance checker needs to retrieve
+the balance in a loyalty program member’s account. This is done by performing a
+member validation or MV. An MV authenticates a member of a loyalty program and
+retrieves their balance. Authenticating a member requires a set of member credentials
+that vary for each loyalty program. For example, some loyalty programs may require a
+member ID and password, while others may require a first name, last name, and member
+ID.
+
+Contact Points to discuss which loyalty programs are supported. To get started, you
+can use the demo loyalty program that is available through the API at:
+
+    https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57
+
+For example, to perform a member validation for the demo loyalty program in sandbox
+mode, POST to:
+
+    https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/
+
+and provide the member’s first name, last name, and member ID in the body of the
+request. Here’s an example using curl:
+
+    curl -v -X POST \
+    -d '{"firstName": "John", "lastName": "Doe", "memberId": "1234"}' \
+    "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
+
+The server returns a 401 status code indicating you are not authorized to POST to the
+MV collection:
 
     HTTP/1.1 401 UNAUTHORIZED
     {
@@ -293,157 +306,37 @@ this resource:
         }
       ]
     }
+    
+This error is because we sent an unauthenticated request to the LCP. To authenticate,
+you need to include an authorization header in your request. The LCP uses [OAuth 2.0
+MAC](http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02) for authentication.
+The `lcp_curl.py` Python script provided in [LCP
+Utilities](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util)
+makes this easy. For more details building the authorization header for OAuth 2.0
+MAC, see [Appendix A: Signing Requests](#appendix-a-signing-requests). 
 
-To sign requests, you need to include an authorization header in your request.
-Building this header for OAuth 2.0 MAC is described in [Appendix A: Signing
-Requests](#appendix-a-signing-requests). To get started faster, you can use the
-`lcp_curl.py` Python script provided in the
-[utilities](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util).
-
-`lcp_curl.py` is a wrapper around curl to add the MAC authorization header. It
-requires a -u parameter with your macKeyIdentifier and macKey, which it uses to
-generate the MAC signature and the authorization header. It passes all other
-arguments on to curl. Let’s try to get the account resource again using
+`lcp_curl.py` is a wrapper around curl to add the authorization header. It requires a
+-u parameter and your MAC key identifier and MAC key obtained in the previous step.
+It passes all other arguments on to curl. Let’s try to create an MV again using
 `lcp_curl.py`:
 
-    python lcp_curl.py -v -u \
-    97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \
-    https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5
-
-`lcp_curl.py` generates the MAC signature, builds the authorization header, and
-includes it in a call to curl:
-
-    curl -v -H \
-    'Authorization: MAC id="97ee420faaa343d4a04b7378b319b48b", ts="1379541939", nonce="OK3HY80lkQ0=", ext="", mac="EmYShgBbKjp7XB3gbZq9e0zZy+8="' \
-    https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5
-
-Now the account resource is returned in full:
-
-    HTTP/1.1 200 OK
-    {
-      "accountCredentials": [
-        {
-          "links": {
-            "self": {
-              "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5/account-credentials/63ac7619-0073-4aa7-a996-0acae9f9bfb9"
-            }
-          },
-          "macAlgorithm": "HMAC-SHA1",
-          "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",
-          "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b",
-        }
-      ],
-      "createdAt": "2014-04-19T07:56:08.482556Z",
-      "email": "youremail@yourcompany.com",
-      "links": {
-        "friendly": {
-          "href": "https://lcp.points.com/v1/accounts/youremail%40yourcompany.com"
-        },
-        "self": {
-          "href": "https://lcp.points.com/v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5"
-        },
-      },
-      "type": "account",
-      "updatedAt": "2014-04-19T07:56:08.482556Z"
-    }
-
-If you still received 401 unauthorized, check that your computer’s time is
-accurate or is synced with an internet time server. `lcp_curl.py` adds a timestamp
-to each request and the LCP verifies that the timestamp is within 30 seconds of
-the server’s time to prevent replay attacks.
-
-### Create an App
-
-Now that we can sign requests, the next step in creating a universal balance
-checker is to create an application on the LCP. Apps are stored under the `/apps`
-endpoint. To create the application, `POST` the application name and description
-to `/apps` and sign the request with your account credentials.
-
-    python lcp_curl.py -v -u \
-    97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \
-    -X POST -d '{"name": "UBC", "description": "Universal balance checker"}' \
-    https://lcp.points.com/v1/apps/
-
-This creates the app and returns the following JSON response that contains the
-app name and description you provided.
-
-    HTTP/1.1 201 CREATED
-    {
-      "createdAt": "2014-04-19T07:56:08.482556Z",
-      "description": "Universal balance checker",
-      "links": {
-        "self": {
-          "href": "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc"
-        }
-      },
-      "liveCredentials": [],
-      "name": "UBC",
-      "sandboxCredentials": [
-    "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"
-      ],
-      "type": "app",
-      "updatedAt": "2014-04-19T07:56:08.482556Z"
-    }
-
-The created resource also contains the app’s sandbox credentials and a
-placeholder for the app’s live credentials. The app credentials are different
-from your account credentials. The sandbox credentials are used whenever the app
-makes requests in the sandbox environment. The live credentials must be used for
-requests to the live environment. Right now, the app only has sandbox
-credentials. When you’re ready to deploy the app, you can request live
-credentials from Points.
-
-We’re going to need the app’s sandbox credentials, so let’s get them now:
-
-    python lcp_curl.py -v -u \
-    97ee420faaa343d4a04b7378b319b48b:NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4 \
-    "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"
-
-This returns the sandbox credentials for the app:
-
-    HTTP/1.1 200 OK
-    {
-      "links": {
-        "self": {
-          "href": "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc/sandbox-credentials/98d8fc94-29cb-4de3-91b7-7c4e0bdd9f06"
-        }
-      },
-      "macAlgorithm": "HMAC-SHA1",
-      "macKey": "iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA",
-      "macKeyIdentifier": "d8b9ca1904a348e491884a9c44843d25",
-      "type": "sandboxCredential"
-    }
-
-### Perform a Member Validation (MV)
-
-The final step in creating a universal balance checker is to retrieve the
-balance in a loyalty program member’s account. This is done by performing a
-member validation or MV. An MV authenticates a member of a loyalty program and
-retrieves their balance. Authenticating a member requires a specific set of
-fields, defined by the specific loyalty program you wish to communicate with.
-For example, some loyalty programs may require a member ID and password, while
-others require a member ID, last name, and password.
-
-Contact Points to discuss which loyalty programs are supported. To get started,
-you can use the demo loyalty program at:
-
-    https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57
-
-For example, to perform a member validation for the demo loyalty program in sandbox mode, POST
-to:
-
-    https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/
-
-with the member’s first name, last name, and member ID and sign the request
-using your app’s sandbox credentials:
-
-    python lcp_curl.py -v -X POST -u \
-    d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \
+    lcp_curl.py -v -X POST \
+    -u ee83b9af340741e3bec0ad96cb976142:RrvufcCh3Kb3bsqG-wfh8JrQXF8tZG4q3H-_gTACfjM \
     -d '{"firstName": "John", "lastName": "Doe", "memberId": "1234"}' \
     "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
 
-Since there is no member named John Doe with member ID 1234 in the sandbox, the
-LCP returns an error:
+Behind the scenes, `lcp_curl.py` generates the MAC signature, builds the authorization header, and
+includes it in a call to curl like so:
+
+    curl -v -X POST \
+    -H 'Authorization: MAC id="ee83b9af340741e3bec0ad96cb976142", ts="1415648488", 
+    nonce="uMeiZRU22Ns=", ext="eda7a7bd11e16cbd89f39433909d20d01dc3e3ba", 
+    mac="M5E3a7S5HSgK4iJ25ix18rZugJc="' \
+    -d '{"firstName": "John", "lastName": "Doe", "memberId": "1234"}' \
+    "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
+
+Now the request is authenticated but we get a different error indicating there is no
+member named John Doe with member ID 1234 in the sandbox:
 
     HTTP/1.1 422 UNPROCESSABLE ENTITY
     {
@@ -454,13 +347,18 @@ LCP returns an error:
         }
       ]
     }
+    
+If you still received 401 unauthorized, check that your computer's time is accurate
+or is synced with an internet time server. `lcp_curl.py` adds a timestamp to each
+request and the LCP verifies that the timestamp is within 30 seconds of the server's
+time to prevent replay attacks.
 
-Since the sandbox environment doesn’t communicate directly with the loyalty
-program, we have provided a way to simulate a successful member validation. To
-simulate a successful member validation, provide a member ID of "dVNm":
+To perform a successful MV, you need credentials for a member that exists in the
+sandbox. For the demo loyalty program, use a member ID of "dVNm" with any first name
+and last name to simulate a successful member validation in sandbox mode:
 
-    python lcp_curl.py -v -X POST -u \
-    d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \
+    lcp_curl.py -v -X POST \
+    -u ee83b9af340741e3bec0ad96cb976142:RrvufcCh3Kb3bsqG-wfh8JrQXF8tZG4q3H-_gTACfjM \
     -d '{"firstName": "John", "lastName": "Doe", "memberId": "dVNm"}' \
     "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
 
@@ -485,12 +383,12 @@ This creates a successful MV:
       "updatedAt": "2014-04-19T07:56:08.482556Z"
     }
 
-The points balance is always zero in sandbox mode since it does not communicate
-with the loyalty program. To simulate a non-zero balance, add the desired
-balance to the lastName field:
+The points balance is always zero in sandbox mode since it does not communicate with
+the loyalty program. To simulate a non-zero balance, add the desired balance to the
+lastName field:
 
-    python lcp_curl.py -v -X POST -u \
-    d8b9ca1904a348e491884a9c44843d25:iCmY36C0_CLkg3R1-7p1z5Wz2BEBInAcQEh5A0yTzkA \
+    lcp_curl.py -v -X POST \
+    -u ee83b9af340741e3bec0ad96cb976142:RrvufcCh3Kb3bsqG-wfh8JrQXF8tZG4q3H-_gTACfjM \
     -d '{"firstName": "John", "lastName": "Doe 2000", "memberId": "dVNm"}' \
     "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
 
