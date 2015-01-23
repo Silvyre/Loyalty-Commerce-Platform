@@ -1,6 +1,6 @@
 ## Accounts
 
-An account is your own personal developer account on the LCP system. It is tied to your email address and gives you access credentials to the LCP. It also enables you to create one or more applications that interface with the LCP.
+An account is your own personal developer account on the LCP system. It is tied to your email address and gives you access credentials to the LCP. It also enables you to create one or more applications that interface with the LCP. Create an account in the [LCP Admin](https://admin.lcp.points.com/).
 
 #### Properties
 

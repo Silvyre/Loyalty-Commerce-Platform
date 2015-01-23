@@ -19,12 +19,6 @@
       "parent": ""
     },
     {
-      "title": "Create an Account",
-      "id": "create-an-account",
-      "exampleId": "create-an-account-example",
-      "parent": "accounts"
-    },
-    {
       "title": "Get an Account",
       "id": "get-an-account",
       "exampleId": "get-an-account-example",

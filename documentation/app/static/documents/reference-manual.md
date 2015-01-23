@@ -396,6 +396,10 @@ Here is a list of possible error codes that the LCP may return:
       <td>The value provided is of incorrect type. For example, a string was provided when an integer is required.</td>
     </tr>
     <tr>
+      <td>INELIGIBLE</td>
+      <td>The member is not eligible to perform this transaction.</td>
+    </tr>
+    <tr>
       <td>INTERNAL_SERVER_ERROR</td>
       <td>The server encountered an unexpected error.</td>
     </tr>
@@ -406,6 +410,10 @@ Here is a list of possible error codes that the LCP may return:
     <tr>
       <td>INVALID_VALUE</td>
       <td>The value provided is not allowed. For example, the requested debit amount is greater than the balance on the member validation.</td>
+    </tr>
+    <tr>
+      <td>MAXIMUM_ATTEMPTS_EXCEEDED</td>
+      <td>The maximum number of incorrect MV attempts has been exceeded for this user.</td>
     </tr>
     <tr>
       <td>MISSING_FIELD</td>

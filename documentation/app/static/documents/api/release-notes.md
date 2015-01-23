@@ -9,6 +9,13 @@
     </thead>
     <tbody>
         <tr>
+            <td>2015-01-21</td>
+            <td>Removed ability to create an account via the API
+            <br>Added additional MV error codes
+            <br>Added systemError status for debits and credits
+            </td>
+        </tr>
+        <tr>
             <td>2014-10-16</td>
             <td>Removed billingInfo fields from debits and credits
             <br>Added optional pic field to debits and credits

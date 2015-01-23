@@ -21,8 +21,6 @@ define [
   "mdown!../../documents/api/create-a-report.md"
   "mdown!../../documents/api/create-account-credentials-example.md"
   "mdown!../../documents/api/create-account-credentials.md"
-  "mdown!../../documents/api/create-an-account-example.md"
-  "mdown!../../documents/api/create-an-account.md"
   "mdown!../../documents/api/create-an-app-example.md"
   "mdown!../../documents/api/create-an-app.md"
   "mdown!../../documents/api/credits-example.md"
@@ -115,8 +113,6 @@ define [
   create_a_report
   create_account_credentials_example
   create_account_credentials
-  create_an_account_example
-  create_an_account
   create_an_app_example
   create_an_app
   credits_example
@@ -210,8 +206,6 @@ define [
     create_a_report: create_a_report
     create_account_credentials_example: create_account_credentials_example
     create_account_credentials: create_account_credentials
-    create_an_account_example: create_an_account_example
-    create_an_account: create_an_account
     create_an_app_example: create_an_app_example
     create_an_app: create_an_app
     credits_example: credits_example

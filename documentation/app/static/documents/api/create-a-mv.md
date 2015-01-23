@@ -47,9 +47,39 @@ Authenticating a member requires a specific set of fields, defined by the specif
 
 #### Returns
 
-The MV object if it was created successfully. Returns an [error](./?doc=reference-manual#errors) if the firstName, lastName or memberId is not provided or if the member could not be validated for the given loyalty program.
+The MV object if it was created successfully. Returns an [error](./?doc=reference-manual#errors) if the required credentials are not provided or if the member could not be validated for the given loyalty program.
 
-
+<table>
+    <thead>
+        <tr>
+            <th>HTTP Status Code</th>
+            <th>Error Code</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>422 Unprocessable Entity</td>
+            <td>INELIGIBLE</td>
+            <td>The member is not eligible to perform this transaction.</td>
+        </tr>
+        <tr>
+            <td>422 Unprocessable Entity</td>
+            <td>MAXIMUM_ATTEMPTS_EXCEEDED</td>
+            <td>The maximum number of incorrect MV attempts has been exceeded for this user.</td>
+        </tr>
+        <tr>
+            <td>422 Unprocessable Entity</td>
+            <td>UNKNOWN_MEMBER</td>
+            <td>The loyalty program couldn't find a member with the given credentials.</td>
+        </tr>
+        <tr>
+            <td>502 Bad Gateway</td>
+            <td>INVALID_UPSTREAM_RESPONSE</td>
+            <td>An external upstream service issued an invalid response.</td>
+        </tr>
+    </tbody>
+</table>
 
 
 
