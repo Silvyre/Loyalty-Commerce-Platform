@@ -23,6 +23,8 @@ define [
   "mdown!../../documents/api/create-account-credentials.md"
   "mdown!../../documents/api/create-an-app-example.md"
   "mdown!../../documents/api/create-an-app.md"
+  "mdown!../../documents/api/create-an-order-example.md"
+  "mdown!../../documents/api/create-an-order.md"
   "mdown!../../documents/api/credits-example.md"
   "mdown!../../documents/api/credits.md"
   "mdown!../../documents/api/debits-example.md"
@@ -52,6 +54,8 @@ define [
   "mdown!../../documents/api/get-an-app-by-mac.md"
   "mdown!../../documents/api/get-an-app-example.md"
   "mdown!../../documents/api/get-an-app.md"
+  "mdown!../../documents/api/get-an-order-example.md"
+  "mdown!../../documents/api/get-an-order.md"
   "mdown!../../documents/api/get-live-credentials-example.md"
   "mdown!../../documents/api/get-live-credentials.md"
   "mdown!../../documents/api/get-live-permissions-example.md"
@@ -64,6 +68,8 @@ define [
   "mdown!../../documents/api/list-all-apps.md"
   "mdown!../../documents/api/list-all-live-permissions-example.md"
   "mdown!../../documents/api/list-all-live-permissions.md"
+  "mdown!../../documents/api/list-all-orders-example.md"
+  "mdown!../../documents/api/list-all-orders.md"
   "mdown!../../documents/api/list-all-report-instances-example.md"
   "mdown!../../documents/api/list-all-report-instances.md"
   "mdown!../../documents/api/list-all-reports-example.md"
@@ -77,6 +83,8 @@ define [
   "mdown!../../documents/api/member-validations.md"
   "mdown!../../documents/api/mv-delegates-example.md"
   "mdown!../../documents/api/mv-delegates.md"
+  "mdown!../../documents/api/orders-example.md"
+  "mdown!../../documents/api/orders.md"
   "mdown!../../documents/api/release-notes.md"
   "mdown!../../documents/api/report-instances-example.md"
   "mdown!../../documents/api/report-instances.md"
@@ -84,6 +92,8 @@ define [
   "mdown!../../documents/api/reports.md"
   "mdown!../../documents/api/sandbox-credentials-example.md"
   "mdown!../../documents/api/sandbox-credentials.md"
+  "mdown!../../documents/api/update-a-mv-example.md"
+  "mdown!../../documents/api/update-a-mv.md"
   "mdown!../../documents/api/update-a-report-example.md"
   "mdown!../../documents/api/update-a-report.md"
   "mdown!../../documents/api/update-account-permissions-example.md"
@@ -115,6 +125,8 @@ define [
   create_account_credentials
   create_an_app_example
   create_an_app
+  create_an_order_example
+  create_an_order
   credits_example
   credits
   debits_example
@@ -144,6 +156,8 @@ define [
   get_an_app_by_mac
   get_an_app_example
   get_an_app
+  get_an_order_example
+  get_an_order
   get_live_credentials_example
   get_live_credentials
   get_live_permissions_example
@@ -156,6 +170,8 @@ define [
   list_all_apps
   list_all_live_permissions_example
   list_all_live_permissions
+  list_all_orders_example
+  list_all_orders
   list_all_report_instances_example
   list_all_report_instances
   list_all_reports_example
@@ -169,6 +185,8 @@ define [
   member_validations
   mv_delegates_example
   mv_delegates
+  orders_example
+  orders
   release_notes
   report_instances_example
   report_instances
@@ -176,6 +194,8 @@ define [
   reports
   sandbox_credentials_example
   sandbox_credentials
+  update_a_mv_example
+  update_a_mv
   update_a_report_example
   update_a_report
   update_account_permissions_example
@@ -208,6 +228,8 @@ define [
     create_account_credentials: create_account_credentials
     create_an_app_example: create_an_app_example
     create_an_app: create_an_app
+    create_an_order_example: create_an_order_example
+    create_an_order: create_an_order
     credits_example: credits_example
     credits: credits
     debits_example: debits_example
@@ -237,6 +259,8 @@ define [
     get_an_app_by_mac: get_an_app_by_mac
     get_an_app_example: get_an_app_example
     get_an_app: get_an_app
+    get_an_order_example: get_an_order_example
+    get_an_order: get_an_order
     get_live_credentials_example: get_live_credentials_example
     get_live_credentials: get_live_credentials
     get_live_permissions_example: get_live_permissions_example
@@ -249,6 +273,8 @@ define [
     list_all_apps: list_all_apps
     list_all_live_permissions_example: list_all_live_permissions_example
     list_all_live_permissions: list_all_live_permissions
+    list_all_orders_example: list_all_orders_example
+    list_all_orders: list_all_orders
     list_all_report_instances_example: list_all_report_instances_example
     list_all_report_instances: list_all_report_instances
     list_all_reports_example: list_all_reports_example
@@ -262,6 +288,8 @@ define [
     member_validations: member_validations
     mv_delegates_example: mv_delegates_example
     mv_delegates: mv_delegates
+    orders_example: orders_example
+    orders: orders
     release_notes: release_notes
     report_instances_example: report_instances_example
     report_instances: report_instances
@@ -269,6 +297,8 @@ define [
     reports: reports
     sandbox_credentials_example: sandbox_credentials_example
     sandbox_credentials: sandbox_credentials
+    update_a_mv_example: update_a_mv_example
+    update_a_mv: update_a_mv
     update_a_report_example: update_a_report_example
     update_a_report: update_a_report
     update_account_permissions_example: update_account_permissions_example

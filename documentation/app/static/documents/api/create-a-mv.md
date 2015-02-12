@@ -35,6 +35,10 @@ Authenticating a member requires a specific set of fields, defined by the specif
             </td>
         </tr>
         <tr>
+            <td>order</td>
+            <td>Link to the order that this member validation belongs to (optional).</td>
+        </tr>
+        <tr>
             <td>password</td>
             <td>The password for the member's account. Not required for the demo loyalty program.</td>
         </tr>

@@ -9,6 +9,11 @@
     </thead>
     <tbody>
         <tr>
+            <td>2015-02-10</td>
+            <td>Added orders
+            </td>
+        </tr>
+        <tr>
             <td>2015-01-21</td>
             <td>Removed ability to create an account via the API
             <br>Added additional MV error codes

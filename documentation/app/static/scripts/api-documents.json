@@ -187,6 +187,12 @@
       "parent": "member-validations"
     },
     {
+      "title": "Update an MV",
+      "id": "update-a-mv",
+      "exampleId": "update-a-mv-example",
+      "parent": "member-validations"
+    },
+    {
       "title": "MV Delegates",
       "id": "mv-delegates",
       "exampleId": "mv-delegates-example",
@@ -203,6 +209,30 @@
       "id": "get-a-mv-delegate",
       "exampleId": "get-a-mv-delegate-example",
       "parent": "mv-delegates"
+    },
+    {
+      "title": "Orders",
+      "id": "orders",
+      "exampleId": "orders-example",
+      "parent": ""
+    },
+    {
+      "title": "Create an Order",
+      "id": "create-an-order",
+      "exampleId": "create-an-order-example",
+      "parent": "orders"
+    },
+    {
+      "title": "Get an order",
+      "id": "get-an-order",
+      "exampleId": "get-an-order-example",
+      "parent": "orders"
+    },
+    {
+      "title": "List all orders",
+      "id": "list-all-orders",
+      "exampleId": "list-all-orders-example",
+      "parent": "orders"
     },
     {
       "title": "Sandbox Credentials",

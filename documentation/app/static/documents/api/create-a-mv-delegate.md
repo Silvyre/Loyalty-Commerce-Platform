@@ -38,6 +38,10 @@ The MV delegate response contains a link to the created MV. The loyalty program 
             <td>memberId</td>
             <td><p>The member ID of the loyalty program member.</td>
         </tr>
+        <tr>
+            <td>order</td>
+            <td>Link to the order that this member validation belongs to (optional).</td>
+        </tr>
     </tbody>
 </table>
 

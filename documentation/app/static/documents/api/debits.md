@@ -33,6 +33,10 @@ A debit is a transaction that takes points out of a loyalty program member’s a
             <td>Link to a member validation that identifies the member's account that was debited.</td>
         </tr>
         <tr>
+            <td>order</td>
+            <td>Link to the order that this debit belongs to.</td>
+        </tr>
+        <tr>
             <td>status</td>
             <td>The status of the debit. The status can be success, failure, systemError, or pending. Pending indicates the transaction is waiting for a response from the loyalty program. Retrieve the debit later to determine whether it succeeded or failed.</td>
         </tr>

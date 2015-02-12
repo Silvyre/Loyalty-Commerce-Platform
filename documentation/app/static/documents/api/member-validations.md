@@ -41,6 +41,10 @@ A member validation (MV) authenticates a member of a loyalty program and retriev
             <td>The member ID of the loyalty program member.</td>
         </tr>
         <tr>
+            <td>order</td>
+            <td>Link to the order that this member validation belongs to.</td>
+        </tr>
+        <tr>
             <td>password</td>
             <td>The password for the member's account (if required). For security reasons, the password is masked when retrieving MVs.</td>
         </tr>
