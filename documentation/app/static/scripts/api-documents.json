@@ -235,6 +235,12 @@
       "parent": "orders"
     },
     {
+      "title": "Update an order",
+      "id": "update-an-order",
+      "exampleId": "update-an-order-example",
+      "parent": "orders"
+    },
+    {
       "title": "Sandbox Credentials",
       "id": "sandbox-credentials",
       "exampleId": "sandbox-credentials-example",

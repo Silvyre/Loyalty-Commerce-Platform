@@ -9,6 +9,11 @@
     </thead>
     <tbody>
         <tr>
+            <td>2015-03-11</td>
+            <td>Added ability to update order status
+            </td>
+        </tr>
+        <tr>
             <td>2015-02-10</td>
             <td>Added orders
             </td>
