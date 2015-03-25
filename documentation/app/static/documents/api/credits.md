@@ -25,6 +25,10 @@ A credit is a transaction that adds points to a loyalty program member's account
             <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was created.</td>
         </tr>
         <tr>
+            <td>creditType</td>
+            <td>Indicates whether the credit is for base or bonus points or both.</td>
+        </tr>
+        <tr>
             <td>loyaltyProgram</td>
             <td>The loyalty program involved in the transaction.</td>
         </tr>
@@ -35,6 +39,10 @@ A credit is a transaction that adds points to a loyalty program member's account
         <tr>
             <td>order</td>
             <td>Link to the order that this credit belongs to.</td>
+        </tr>
+        <tr>
+            <td>pic</td>
+            <td>Product Identification Code.</td>
         </tr>
         <tr>
             <td>status</td>

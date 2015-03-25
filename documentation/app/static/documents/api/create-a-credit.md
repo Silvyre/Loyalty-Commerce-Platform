@@ -23,15 +23,24 @@ Credits can happen in real-time or in batch mode depending on the loyalty progra
         <tr>
             <td>amount</td>
             <td><p>The number of points to add to the member's account. Must be a positive integer.</p>
-                <p><strong>Sandbox mode</strong>: Set amount to these values to simulate different cases:
+                <p><strong>Sandbox mode</strong>: Set "amount" to these values to simulate different values for "status" in the response:
                     <ul>
-                        <li>94 or 96: batch failure</li>
-                        <li>95: batch success</li>
-                        <li>97-99: real-time failure</li>
-                        <li>Other: real-time success</li>
+                        <li>92: "systemError"</li>
+                        <li>93: "failure"</li>
+                        <li>94: "pending"</li>
+                        <li>95: "pending" that changes to "success"</li>
+                        <li>96: "pending" that changes to "failure"</li>
+                        <li>97: "systemError"</li>
+                        <li>98: "failure"</li>
+                        <li>99: "failure"</li>
+                        <li>Other: "success"</li>
                     </ul>
                 </p>
             </td>
+        </tr>
+        <tr>
+            <td>creditType</td>
+            <td>Indicates whether the credit is for base or bonus points or both (optional). Can be one of "base", "bonus" or "combinedBaseBonus".</td>
         </tr>
         <tr>
             <td>memberValidation</td>

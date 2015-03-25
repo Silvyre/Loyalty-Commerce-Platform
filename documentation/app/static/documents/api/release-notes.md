@@ -9,6 +9,12 @@
     </thead>
     <tbody>
         <tr>
+            <td>2015-03-24</td>
+            <td>Added creditType to credits
+            <br>Added new sandbox mode behaviour for debits and credits
+            </td>
+        </tr>
+        <tr>
             <td>2015-03-11</td>
             <td>Added ability to update order status
             </td>
