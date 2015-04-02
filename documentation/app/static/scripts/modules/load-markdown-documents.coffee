@@ -66,6 +66,10 @@ define [
   "mdown!../../documents/api/get-sandbox-credentials.md"
   "mdown!../../documents/api/list-all-apps-example.md"
   "mdown!../../documents/api/list-all-apps.md"
+  "mdown!../../documents/api/list-all-credits-example.md"
+  "mdown!../../documents/api/list-all-credits.md"
+  "mdown!../../documents/api/list-all-debits-example.md"
+  "mdown!../../documents/api/list-all-debits.md"
   "mdown!../../documents/api/list-all-live-permissions-example.md"
   "mdown!../../documents/api/list-all-live-permissions.md"
   "mdown!../../documents/api/list-all-orders-example.md"
@@ -92,6 +96,10 @@ define [
   "mdown!../../documents/api/reports.md"
   "mdown!../../documents/api/sandbox-credentials-example.md"
   "mdown!../../documents/api/sandbox-credentials.md"
+  "mdown!../../documents/api/update-a-credit-example.md"
+  "mdown!../../documents/api/update-a-credit.md"
+  "mdown!../../documents/api/update-a-debit-example.md"
+  "mdown!../../documents/api/update-a-debit.md"
   "mdown!../../documents/api/update-a-mv-example.md"
   "mdown!../../documents/api/update-a-mv.md"
   "mdown!../../documents/api/update-a-report-example.md"
@@ -170,6 +178,10 @@ define [
   get_sandbox_credentials
   list_all_apps_example
   list_all_apps
+  list_all_credits_example
+  list_all_credits
+  list_all_debits_example
+  list_all_debits
   list_all_live_permissions_example
   list_all_live_permissions
   list_all_orders_example
@@ -196,6 +208,10 @@ define [
   reports
   sandbox_credentials_example
   sandbox_credentials
+  update_a_credit_example
+  update_a_credit
+  update_a_debit_example
+  update_a_debit
   update_a_mv_example
   update_a_mv
   update_a_report_example
@@ -275,6 +291,10 @@ define [
     get_sandbox_credentials: get_sandbox_credentials
     list_all_apps_example: list_all_apps_example
     list_all_apps: list_all_apps
+    list_all_credits_example: list_all_credits_example
+    list_all_credits: list_all_credits
+    list_all_debits_example: list_all_debits_example
+    list_all_debits: list_all_debits
     list_all_live_permissions_example: list_all_live_permissions_example
     list_all_live_permissions: list_all_live_permissions
     list_all_orders_example: list_all_orders_example
@@ -301,6 +321,10 @@ define [
     reports: reports
     sandbox_credentials_example: sandbox_credentials_example
     sandbox_credentials: sandbox_credentials
+    update_a_credit_example: update_a_credit_example
+    update_a_credit: update_a_credit
+    update_a_debit_example: update_a_debit_example
+    update_a_debit: update_a_debit
     update_a_mv_example: update_a_mv_example
     update_a_mv: update_a_mv
     update_a_report_example: update_a_report_example
