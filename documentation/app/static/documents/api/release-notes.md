@@ -9,6 +9,11 @@
     </thead>
     <tbody>
         <tr>
+            <td>2015-04-29</td>
+            <td>Added ability to get loyalty programs (LPs)
+            </td>
+        </tr>
+        <tr>
             <td>2015-04-02</td>
             <td>Added ability to get lists of debits and credits and update them
             </td>

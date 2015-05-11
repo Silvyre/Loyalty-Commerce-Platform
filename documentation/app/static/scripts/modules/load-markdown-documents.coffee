@@ -54,6 +54,8 @@ define [
   "mdown!../../documents/api/get-an-app-by-mac.md"
   "mdown!../../documents/api/get-an-app-example.md"
   "mdown!../../documents/api/get-an-app.md"
+  "mdown!../../documents/api/get-an-lp-example.md"
+  "mdown!../../documents/api/get-an-lp.md"
   "mdown!../../documents/api/get-an-order-example.md"
   "mdown!../../documents/api/get-an-order.md"
   "mdown!../../documents/api/get-live-credentials-example.md"
@@ -72,6 +74,8 @@ define [
   "mdown!../../documents/api/list-all-debits.md"
   "mdown!../../documents/api/list-all-live-permissions-example.md"
   "mdown!../../documents/api/list-all-live-permissions.md"
+  "mdown!../../documents/api/list-all-lps-example.md"
+  "mdown!../../documents/api/list-all-lps.md"
   "mdown!../../documents/api/list-all-orders-example.md"
   "mdown!../../documents/api/list-all-orders.md"
   "mdown!../../documents/api/list-all-report-instances-example.md"
@@ -83,6 +87,8 @@ define [
   "mdown!../../documents/api/live-permissions-example.md"
   "mdown!../../documents/api/live-permissions.md"
   "mdown!../../documents/api/loyalty-programs.md"
+  "mdown!../../documents/api/lps-example.md"
+  "mdown!../../documents/api/lps.md"
   "mdown!../../documents/api/member-validations-example.md"
   "mdown!../../documents/api/member-validations.md"
   "mdown!../../documents/api/mv-delegates-example.md"
@@ -166,6 +172,8 @@ define [
   get_an_app_by_mac
   get_an_app_example
   get_an_app
+  get_an_lp_example
+  get_an_lp
   get_an_order_example
   get_an_order
   get_live_credentials_example
@@ -184,6 +192,8 @@ define [
   list_all_debits
   list_all_live_permissions_example
   list_all_live_permissions
+  list_all_lps_example
+  list_all_lps
   list_all_orders_example
   list_all_orders
   list_all_report_instances_example
@@ -195,6 +205,8 @@ define [
   live_permissions_example
   live_permissions
   loyalty_programs
+  lps_example
+  lps
   member_validations_example
   member_validations
   mv_delegates_example
@@ -279,6 +291,8 @@ define [
     get_an_app_by_mac: get_an_app_by_mac
     get_an_app_example: get_an_app_example
     get_an_app: get_an_app
+    get_an_lp_example: get_an_lp_example
+    get_an_lp: get_an_lp
     get_an_order_example: get_an_order_example
     get_an_order: get_an_order
     get_live_credentials_example: get_live_credentials_example
@@ -297,6 +311,8 @@ define [
     list_all_debits: list_all_debits
     list_all_live_permissions_example: list_all_live_permissions_example
     list_all_live_permissions: list_all_live_permissions
+    list_all_lps_example: list_all_lps_example
+    list_all_lps: list_all_lps
     list_all_orders_example: list_all_orders_example
     list_all_orders: list_all_orders
     list_all_report_instances_example: list_all_report_instances_example
@@ -308,6 +324,8 @@ define [
     live_permissions_example: live_permissions_example
     live_permissions: live_permissions
     loyalty_programs: loyalty_programs
+    lps_example: lps_example
+    lps: lps
     member_validations_example: member_validations_example
     member_validations: member_validations
     mv_delegates_example: mv_delegates_example
