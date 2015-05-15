@@ -9,6 +9,17 @@
     </thead>
     <tbody>
         <tr>
+            <td>2015-05-14</td>
+            <td>Added ability to localize LPs
+            <br>Added MV request schema
+            </td>
+        </tr>
+        <tr>
+            <td>2015-05-14</td>
+            <td>Added ability to localize LPs
+            </td>
+        </tr>
+        <tr>
             <td>2015-04-29</td>
             <td>Added ability to get loyalty programs (LPs)
             </td>

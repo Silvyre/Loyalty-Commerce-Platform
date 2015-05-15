@@ -247,6 +247,18 @@
       "parent": "mv-delegates"
     },
     {
+      "title": "MV Request Schema",
+      "id": "mv-request-schema",
+      "exampleId": "mv-request-schema-example",
+      "parent": ""
+    },
+    {
+      "title": "Get an MV Request Schema",
+      "id": "get-an-mv-request-schema",
+      "exampleId": "get-an-mv-request-schema-example",
+      "parent": "mv-request-schema"
+    },
+    {
       "title": "Orders",
       "id": "orders",
       "exampleId": "orders-example",

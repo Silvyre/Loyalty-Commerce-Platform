@@ -21,6 +21,10 @@ A loyalty program (LP) allows Mano to perform member validations, debits, and cr
             <td>Indicates whether the LP requires base and bonus points to be fulfilled as one credit or as two separate credits.</td>
         </tr>
         <tr>
+            <td>defaultLanguage</td>
+            <td>The default language of the loyalty program. The name, partnerName, and rewardCurrency properties are in this language. <a href="http://en.wikipedia.org/wiki/IETF_language_tag">IETF language tags</a> are used.</td>
+        </tr>
+        <tr>
             <td>name</td>
             <td>The name of the loyalty program.</td>
         </tr>
@@ -30,11 +34,15 @@ A loyalty program (LP) allows Mano to perform member validations, debits, and cr
         </tr>
         <tr>
             <td>partnerName</td>
-            <td>The partner associated with the loyalty program localized for each supported language.</td>
+            <td>The partner associated with the loyalty program.</td>
         </tr>
         <tr>
             <td>rewardCurrency</td>
             <td>The name of the reward currency (e.g. points or miles).</td>
+        </tr>
+        <tr>
+            <td>translations</td>
+            <td>A set of language translations for the name, partnerName, and rewardCurrency properties. <a href="http://en.wikipedia.org/wiki/IETF_language_tag">IETF language tags</a> are used.</td>
         </tr>
         <tr>
             <td>type</td>

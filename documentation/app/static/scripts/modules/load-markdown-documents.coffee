@@ -56,6 +56,8 @@ define [
   "mdown!../../documents/api/get-an-app.md"
   "mdown!../../documents/api/get-an-lp-example.md"
   "mdown!../../documents/api/get-an-lp.md"
+  "mdown!../../documents/api/get-an-mv-request-schema-example.md"
+  "mdown!../../documents/api/get-an-mv-request-schema.md"
   "mdown!../../documents/api/get-an-order-example.md"
   "mdown!../../documents/api/get-an-order.md"
   "mdown!../../documents/api/get-live-credentials-example.md"
@@ -93,6 +95,8 @@ define [
   "mdown!../../documents/api/member-validations.md"
   "mdown!../../documents/api/mv-delegates-example.md"
   "mdown!../../documents/api/mv-delegates.md"
+  "mdown!../../documents/api/mv-request-schema-example.md"
+  "mdown!../../documents/api/mv-request-schema.md"
   "mdown!../../documents/api/orders-example.md"
   "mdown!../../documents/api/orders.md"
   "mdown!../../documents/api/release-notes.md"
@@ -174,6 +178,8 @@ define [
   get_an_app
   get_an_lp_example
   get_an_lp
+  get_an_mv_request_schema_example
+  get_an_mv_request_schema
   get_an_order_example
   get_an_order
   get_live_credentials_example
@@ -211,6 +217,8 @@ define [
   member_validations
   mv_delegates_example
   mv_delegates
+  mv_request_schema_example
+  mv_request_schema
   orders_example
   orders
   release_notes
@@ -293,6 +301,8 @@ define [
     get_an_app: get_an_app
     get_an_lp_example: get_an_lp_example
     get_an_lp: get_an_lp
+    get_an_mv_request_schema_example: get_an_mv_request_schema_example
+    get_an_mv_request_schema: get_an_mv_request_schema
     get_an_order_example: get_an_order_example
     get_an_order: get_an_order
     get_live_credentials_example: get_live_credentials_example
@@ -330,6 +340,8 @@ define [
     member_validations: member_validations
     mv_delegates_example: mv_delegates_example
     mv_delegates: mv_delegates
+    mv_request_schema_example: mv_request_schema_example
+    mv_request_schema: mv_request_schema
     orders_example: orders_example
     orders: orders
     release_notes: release_notes
