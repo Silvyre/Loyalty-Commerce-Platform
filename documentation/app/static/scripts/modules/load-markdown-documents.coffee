@@ -88,9 +88,8 @@ define [
   "mdown!../../documents/api/live-credentials.md"
   "mdown!../../documents/api/live-permissions-example.md"
   "mdown!../../documents/api/live-permissions.md"
+  "mdown!../../documents/api/loyalty-programs-example.md"
   "mdown!../../documents/api/loyalty-programs.md"
-  "mdown!../../documents/api/lps-example.md"
-  "mdown!../../documents/api/lps.md"
   "mdown!../../documents/api/member-validations-example.md"
   "mdown!../../documents/api/member-validations.md"
   "mdown!../../documents/api/mv-delegates-example.md"
@@ -210,9 +209,8 @@ define [
   live_credentials
   live_permissions_example
   live_permissions
+  loyalty_programs_example
   loyalty_programs
-  lps_example
-  lps
   member_validations_example
   member_validations
   mv_delegates_example
@@ -333,9 +331,8 @@ define [
     live_credentials: live_credentials
     live_permissions_example: live_permissions_example
     live_permissions: live_permissions
+    loyalty_programs_example: loyalty_programs_example
     loyalty_programs: loyalty_programs
-    lps_example: lps_example
-    lps: lps
     member_validations_example: member_validations_example
     member_validations: member_validations
     mv_delegates_example: mv_delegates_example

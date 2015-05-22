@@ -188,21 +188,21 @@
     },
     {
       "title": "Loyalty Programs (LPs)",
-      "id": "lps",
-      "exampleId": "lps-example",
+      "id": "loyalty-programs",
+      "exampleId": "loyalty-programs-example",
       "parent": ""
     },
     {
       "title": "Get an LP",
       "id": "get-an-lp",
       "exampleId": "get-an-lp-example",
-      "parent": "lps"
+      "parent": "loyalty-programs"
     },
     {
       "title": "List all LPs",
       "id": "list-all-lps",
       "exampleId": "list-all-lps-example",
-      "parent": "lps"
+      "parent": "loyalty-programs"
     },
     {
       "title": "Member Validations (MVs)",

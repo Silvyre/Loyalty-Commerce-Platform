@@ -14,7 +14,6 @@
       "loyaltyProgram": "https://lcp.points.com/v1/lps/<lp-id>",
       "memberId": "1234",
       "order": "https://sandbox.lcp.points.com/v1/orders/<order-id>",
-      "password": "********",
       "status": "success",
       "type": "memberValidation",
       "updatedAt": "2014-05-08T17:55:34.511304Z"

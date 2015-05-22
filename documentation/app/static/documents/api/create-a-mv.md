@@ -2,7 +2,7 @@
 
 To create a new MV, POST the loyalty program member's account details to the loyalty program's MV service and sign the request with your app credentials. In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a MV.
 
-Authenticating a member requires a specific set of fields, defined by the specific loyalty program you wish to communicate with. For example, some loyalty programs may require a member ID and password, while others require a member ID, last name, and password.
+Authenticating a member requires a specific set of fields, defined by the specific loyalty program you wish to communicate with. For example, some loyalty programs may require a member ID and password, while others require a member ID, last name, and password. To determine which fields are required for a particular loyalty program, [get its MV request schema](#get-an-mv-request-schema).
 
 #### Parameters
 
@@ -31,20 +31,12 @@ Authenticating a member requires a specific set of fields, defined by the specif
         <tr>
             <td>memberId</td>
             <td><p>The member ID of the loyalty program member.</p>
-                <p><strong>Sandbox mode</strong>: To simulate a successful MV, set the memberId field to "dVNm" when using the <a href="#loyalty-programs">demo loyalty program</a>.
+                <p><strong>Sandbox mode</strong>: To simulate a successful MV, set the memberId field to the partnerId field of the <a href="#loyalty-programs">loyalty program</a>.
             </td>
         </tr>
         <tr>
             <td>order</td>
             <td>Link to the order that this member validation belongs to (optional).</td>
-        </tr>
-        <tr>
-            <td>password</td>
-            <td>The password for the member's account. Not required for the demo loyalty program.</td>
-        </tr>
-        <tr>
-            <td>zip</td>
-            <td>The zip code or postal code for the member’s account. Not required for the demo loyalty program.</td>
         </tr>
     </tbody>
 </table>
