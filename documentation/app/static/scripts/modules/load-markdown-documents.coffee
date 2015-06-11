@@ -54,6 +54,10 @@ define [
   "mdown!../../documents/api/get-an-app-by-mac.md"
   "mdown!../../documents/api/get-an-app-example.md"
   "mdown!../../documents/api/get-an-app.md"
+  "mdown!../../documents/api/get-an-lp-example.md"
+  "mdown!../../documents/api/get-an-lp.md"
+  "mdown!../../documents/api/get-an-mv-request-schema-example.md"
+  "mdown!../../documents/api/get-an-mv-request-schema.md"
   "mdown!../../documents/api/get-an-order-example.md"
   "mdown!../../documents/api/get-an-order.md"
   "mdown!../../documents/api/get-live-credentials-example.md"
@@ -66,8 +70,14 @@ define [
   "mdown!../../documents/api/get-sandbox-credentials.md"
   "mdown!../../documents/api/list-all-apps-example.md"
   "mdown!../../documents/api/list-all-apps.md"
+  "mdown!../../documents/api/list-all-credits-example.md"
+  "mdown!../../documents/api/list-all-credits.md"
+  "mdown!../../documents/api/list-all-debits-example.md"
+  "mdown!../../documents/api/list-all-debits.md"
   "mdown!../../documents/api/list-all-live-permissions-example.md"
   "mdown!../../documents/api/list-all-live-permissions.md"
+  "mdown!../../documents/api/list-all-lps-example.md"
+  "mdown!../../documents/api/list-all-lps.md"
   "mdown!../../documents/api/list-all-orders-example.md"
   "mdown!../../documents/api/list-all-orders.md"
   "mdown!../../documents/api/list-all-report-instances-example.md"
@@ -78,11 +88,14 @@ define [
   "mdown!../../documents/api/live-credentials.md"
   "mdown!../../documents/api/live-permissions-example.md"
   "mdown!../../documents/api/live-permissions.md"
+  "mdown!../../documents/api/loyalty-programs-example.md"
   "mdown!../../documents/api/loyalty-programs.md"
   "mdown!../../documents/api/member-validations-example.md"
   "mdown!../../documents/api/member-validations.md"
   "mdown!../../documents/api/mv-delegates-example.md"
   "mdown!../../documents/api/mv-delegates.md"
+  "mdown!../../documents/api/mv-request-schema-example.md"
+  "mdown!../../documents/api/mv-request-schema.md"
   "mdown!../../documents/api/orders-example.md"
   "mdown!../../documents/api/orders.md"
   "mdown!../../documents/api/release-notes.md"
@@ -92,12 +105,18 @@ define [
   "mdown!../../documents/api/reports.md"
   "mdown!../../documents/api/sandbox-credentials-example.md"
   "mdown!../../documents/api/sandbox-credentials.md"
+  "mdown!../../documents/api/update-a-credit-example.md"
+  "mdown!../../documents/api/update-a-credit.md"
+  "mdown!../../documents/api/update-a-debit-example.md"
+  "mdown!../../documents/api/update-a-debit.md"
   "mdown!../../documents/api/update-a-mv-example.md"
   "mdown!../../documents/api/update-a-mv.md"
   "mdown!../../documents/api/update-a-report-example.md"
   "mdown!../../documents/api/update-a-report.md"
   "mdown!../../documents/api/update-account-permissions-example.md"
   "mdown!../../documents/api/update-account-permissions.md"
+  "mdown!../../documents/api/update-an-order-example.md"
+  "mdown!../../documents/api/update-an-order.md"
   "mdown!../../documents/getting-started.md"
   "mdown!../../documents/reference-manual.md"
 ], (
@@ -156,6 +175,10 @@ define [
   get_an_app_by_mac
   get_an_app_example
   get_an_app
+  get_an_lp_example
+  get_an_lp
+  get_an_mv_request_schema_example
+  get_an_mv_request_schema
   get_an_order_example
   get_an_order
   get_live_credentials_example
@@ -168,8 +191,14 @@ define [
   get_sandbox_credentials
   list_all_apps_example
   list_all_apps
+  list_all_credits_example
+  list_all_credits
+  list_all_debits_example
+  list_all_debits
   list_all_live_permissions_example
   list_all_live_permissions
+  list_all_lps_example
+  list_all_lps
   list_all_orders_example
   list_all_orders
   list_all_report_instances_example
@@ -180,11 +209,14 @@ define [
   live_credentials
   live_permissions_example
   live_permissions
+  loyalty_programs_example
   loyalty_programs
   member_validations_example
   member_validations
   mv_delegates_example
   mv_delegates
+  mv_request_schema_example
+  mv_request_schema
   orders_example
   orders
   release_notes
@@ -194,12 +226,18 @@ define [
   reports
   sandbox_credentials_example
   sandbox_credentials
+  update_a_credit_example
+  update_a_credit
+  update_a_debit_example
+  update_a_debit
   update_a_mv_example
   update_a_mv
   update_a_report_example
   update_a_report
   update_account_permissions_example
   update_account_permissions
+  update_an_order_example
+  update_an_order
   getting_started
   reference_manual
 ) ->
@@ -259,6 +297,10 @@ define [
     get_an_app_by_mac: get_an_app_by_mac
     get_an_app_example: get_an_app_example
     get_an_app: get_an_app
+    get_an_lp_example: get_an_lp_example
+    get_an_lp: get_an_lp
+    get_an_mv_request_schema_example: get_an_mv_request_schema_example
+    get_an_mv_request_schema: get_an_mv_request_schema
     get_an_order_example: get_an_order_example
     get_an_order: get_an_order
     get_live_credentials_example: get_live_credentials_example
@@ -271,8 +313,14 @@ define [
     get_sandbox_credentials: get_sandbox_credentials
     list_all_apps_example: list_all_apps_example
     list_all_apps: list_all_apps
+    list_all_credits_example: list_all_credits_example
+    list_all_credits: list_all_credits
+    list_all_debits_example: list_all_debits_example
+    list_all_debits: list_all_debits
     list_all_live_permissions_example: list_all_live_permissions_example
     list_all_live_permissions: list_all_live_permissions
+    list_all_lps_example: list_all_lps_example
+    list_all_lps: list_all_lps
     list_all_orders_example: list_all_orders_example
     list_all_orders: list_all_orders
     list_all_report_instances_example: list_all_report_instances_example
@@ -283,11 +331,14 @@ define [
     live_credentials: live_credentials
     live_permissions_example: live_permissions_example
     live_permissions: live_permissions
+    loyalty_programs_example: loyalty_programs_example
     loyalty_programs: loyalty_programs
     member_validations_example: member_validations_example
     member_validations: member_validations
     mv_delegates_example: mv_delegates_example
     mv_delegates: mv_delegates
+    mv_request_schema_example: mv_request_schema_example
+    mv_request_schema: mv_request_schema
     orders_example: orders_example
     orders: orders
     release_notes: release_notes
@@ -297,12 +348,18 @@ define [
     reports: reports
     sandbox_credentials_example: sandbox_credentials_example
     sandbox_credentials: sandbox_credentials
+    update_a_credit_example: update_a_credit_example
+    update_a_credit: update_a_credit
+    update_a_debit_example: update_a_debit_example
+    update_a_debit: update_a_debit
     update_a_mv_example: update_a_mv_example
     update_a_mv: update_a_mv
     update_a_report_example: update_a_report_example
     update_a_report: update_a_report
     update_account_permissions_example: update_account_permissions_example
     update_account_permissions: update_account_permissions
+    update_an_order_example: update_an_order_example
+    update_an_order: update_an_order
     getting_started: getting_started
     reference_manual: reference_manual
 

@@ -45,10 +45,6 @@ A member validation (MV) authenticates a member of a loyalty program and retriev
             <td>Link to the order that this member validation belongs to.</td>
         </tr>
         <tr>
-            <td>password</td>
-            <td>The password for the member's account (if required). For security reasons, the password is masked when retrieving MVs.</td>
-        </tr>
-        <tr>
             <td>status</td>
             <td>The status of the member validation. The status is always success.</td>
         </tr>
@@ -59,10 +55,6 @@ A member validation (MV) authenticates a member of a loyalty program and retriev
         <tr>
             <td>updatedAt</td>
             <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was last updated.</td>
-        </tr>
-        <tr>
-            <td>zip</td>
-            <td>The zip code or postal code for the member’s account (if required).</td>
         </tr>
     </tbody>
 </table>

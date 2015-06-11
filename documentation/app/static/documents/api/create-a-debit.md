@@ -23,12 +23,16 @@ Debits can happen in real-time or in batch mode depending on the loyalty program
         <tr>
             <td>amount</td>
             <td><p>The number of points to deduct from the member's account. Must be a positive integer less than the member's balance obtained from the member validation.</p>
-                <p><strong>Sandbox mode</strong>: Set amount to these values to simulate different cases:
+                <p><strong>Sandbox mode</strong>: Set "amount" to these values to simulate different values for "status" in the response:
                     <ul>
-                        <li>94 or 96: batch failure</li>
-                        <li>95: batch success</li>
-                        <li>97-99: real-time failure</li>
-                        <li>Other: real-time success</li>
+                        <li>91: "systemError"</li>
+                        <li>94: "pending"</li>
+                        <li>95: "pending" that changes to "success"</li>
+                        <li>96: "pending" that changes to "failure"</li>
+                        <li>97: "systemError"</li>
+                        <li>98: "systemError"</li>
+                        <li>99: "failure"</li>
+                        <li>Other: "success"</li>
                     </ul>
                 </p>
             </td>

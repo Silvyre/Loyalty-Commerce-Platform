@@ -276,13 +276,17 @@ that vary for each loyalty program. For example, some loyalty programs may requi
 member ID and password, while others may require a first name, last name, and member
 ID.
 
-Contact Points to discuss which loyalty programs are supported. To get started, you
-can use the demo loyalty program that is available through the API at:
+Click on "Loyalty Programs" in the left-hand navigation to see the list of loyalty
+programs that are supported. You can also get the list of loyalty programs through
+the [API](./?doc=api-reference#list-all-lps). Let's start with Southwest. Click on
+"Southwest". The LP URL provides the base URL for the loyalty program. Operations
+against the loyalty program are under this URL. The LP URL is for live mode. Instead,
+let's use the LP URL for sandbox mode by changing the server from "lcp.points.com" to
+"sandbox.lcp.points.com":
 
     https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57
 
-For example, to perform a member validation for the demo loyalty program in sandbox
-mode, POST to:
+To perform a member validation for Southwest in sandbox mode, POST to:
 
     https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/
 
@@ -353,9 +357,10 @@ or is synced with an internet time server. `lcp_curl.py` adds a timestamp to eac
 request and the LCP verifies that the timestamp is within 30 seconds of the server's
 time to prevent replay attacks.
 
-To perform a successful MV, you need credentials for a member that exists in the
-sandbox. For the demo loyalty program, use a member ID of "dVNm" with any first name
-and last name to simulate a successful member validation in sandbox mode:
+To simulate a successful MV in sandbox mode, set the member ID to the Partner ID of
+the loyalty program. You can find the Partner ID on the Southwest page in the LCP
+Admin. The Partner ID for Southwest is "dVNm". Let's do the MV again using "dVNm" as
+the member ID:
 
     lcp_curl.py -v -X POST \
     -u ee83b9af340741e3bec0ad96cb976142:RrvufcCh3Kb3bsqG-wfh8JrQXF8tZG4q3H-_gTACfjM \

@@ -115,6 +115,18 @@
       "parent": "credits"
     },
     {
+      "title": "List all Credits",
+      "id": "list-all-credits",
+      "exampleId": "list-all-credits-example",
+      "parent": "credits"
+    },
+    {
+      "title": "Update a Credit",
+      "id": "update-a-credit",
+      "exampleId": "update-a-credit-example",
+      "parent": "credits"
+    },
+    {
       "title": "Debits",
       "id": "debits",
       "exampleId": "debits-example",
@@ -130,6 +142,18 @@
       "title": "Get a Debit",
       "id": "get-a-debit",
       "exampleId": "get-a-debit-example",
+      "parent": "debits"
+    },
+    {
+      "title": "List all Debits",
+      "id": "list-all-debits",
+      "exampleId": "list-all-debits-example",
+      "parent": "debits"
+    },
+    {
+      "title": "Update a Debit",
+      "id": "update-a-debit",
+      "exampleId": "update-a-debit-example",
       "parent": "debits"
     },
     {
@@ -165,8 +189,20 @@
     {
       "title": "Loyalty Programs (LPs)",
       "id": "loyalty-programs",
-      "exampleId": "",
+      "exampleId": "loyalty-programs-example",
       "parent": ""
+    },
+    {
+      "title": "Get an LP",
+      "id": "get-an-lp",
+      "exampleId": "get-an-lp-example",
+      "parent": "loyalty-programs"
+    },
+    {
+      "title": "List all LPs",
+      "id": "list-all-lps",
+      "exampleId": "list-all-lps-example",
+      "parent": "loyalty-programs"
     },
     {
       "title": "Member Validations (MVs)",
@@ -211,6 +247,18 @@
       "parent": "mv-delegates"
     },
     {
+      "title": "MV Request Schema",
+      "id": "mv-request-schema",
+      "exampleId": "mv-request-schema-example",
+      "parent": ""
+    },
+    {
+      "title": "Get an MV Request Schema",
+      "id": "get-an-mv-request-schema",
+      "exampleId": "get-an-mv-request-schema-example",
+      "parent": "mv-request-schema"
+    },
+    {
       "title": "Orders",
       "id": "orders",
       "exampleId": "orders-example",
@@ -232,6 +280,12 @@
       "title": "List all orders",
       "id": "list-all-orders",
       "exampleId": "list-all-orders-example",
+      "parent": "orders"
+    },
+    {
+      "title": "Update an order",
+      "id": "update-an-order",
+      "exampleId": "update-an-order-example",
       "parent": "orders"
     },
     {

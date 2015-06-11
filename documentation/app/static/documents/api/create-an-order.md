@@ -18,7 +18,7 @@ Create an order to store details of a transaction. Requests must be signed with 
         </tr>
         <tr>
             <td>orderType</td>
-            <td>The type of order. Can be BUY, GIFT, or TRANSFER.</td>
+            <td>The type of order.</td>
         </tr>
     </tbody>
 </table>

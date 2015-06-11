@@ -1,6 +1,6 @@
 ### Get a Credit
 
-Retrieves the details of a previous credit. This retrieves a historical record of the credit transaction when it was created, including whether the transaction succeeded or failed. Requests must be signed with your app's credentials.
+Retrieves the details of a previous credit. This retrieves a historical record of the credit transaction when it was created, including whether the transaction succeeded or failed.
 
 #### Parameters
 

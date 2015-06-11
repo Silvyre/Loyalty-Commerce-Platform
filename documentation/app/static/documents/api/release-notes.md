@@ -9,6 +9,38 @@
     </thead>
     <tbody>
         <tr>
+            <td>2015-05-14</td>
+            <td>Added ability to localize LPs
+            <br>Added MV request schema
+            </td>
+        </tr>
+        <tr>
+            <td>2015-05-14</td>
+            <td>Added ability to localize LPs
+            </td>
+        </tr>
+        <tr>
+            <td>2015-04-29</td>
+            <td>Added ability to get loyalty programs (LPs)
+            </td>
+        </tr>
+        <tr>
+            <td>2015-04-02</td>
+            <td>Added ability to get lists of debits and credits and update them
+            </td>
+        </tr>
+        <tr>
+            <td>2015-03-24</td>
+            <td>Added creditType to credits
+            <br>Added new sandbox mode behaviour for debits and credits
+            </td>
+        </tr>
+        <tr>
+            <td>2015-03-11</td>
+            <td>Added ability to update order status
+            </td>
+        </tr>
+        <tr>
             <td>2015-02-10</td>
             <td>Added orders
             </td>

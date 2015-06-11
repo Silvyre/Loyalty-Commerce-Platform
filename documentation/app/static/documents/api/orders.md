@@ -26,7 +26,7 @@ An order is a composite transaction that associates multiple primitive transacti
         </tr>
         <tr>
             <td>orderType</td>
-            <td>The type of order. Can be BUY, GIFT, or TRANSFER.</td>
+            <td>The type of order.</td>
         </tr>
         <tr>
             <td>status</td>
@@ -43,6 +43,7 @@ An order is a composite transaction that associates multiple primitive transacti
                         <li>"captureFailed" if the capture failed</li>
                         <li>"complete" if the capture succeeded</li>
                         <li>"refunded" if the payment was refunded</li>
+                        <li>"statusPending" if the order has been updated and needs its status to be recalculated</li>
                         <li>"unknown" otherwise</li>
                     </ul>
                 </p>

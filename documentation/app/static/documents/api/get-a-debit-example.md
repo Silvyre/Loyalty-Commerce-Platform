@@ -18,6 +18,7 @@
       "loyaltyProgram": "https://lcp.points.com/v1/lps/<lp-id>",
       "memberValidation": "https://sandbox.lcp.points.com/v1/lps/<lp-id>/mvs/<mv-id>",
       "order": "https://sandbox.lcp.points.com/v1/orders/<order-id>",
+      "pic": "ABC",
       "status": "success",
       "transactionId": "<transaction-id>",
       "type": "debit",
