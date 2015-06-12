@@ -1,6 +1,6 @@
 #### Example Request
 
-    GET https://lcp.points.com/v1/lps/?limit=10&offset=0&partnerName=Southwest
+    GET https://lcp.points.com/v1/lps/?limit=10&offset=0&partnerName=Southwest&type=loyaltyProgram
     Authorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."
 
 #### Example Response

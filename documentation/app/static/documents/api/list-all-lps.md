@@ -22,7 +22,11 @@ Retrieves the list of all LPs in the platform. Requests using live or sandbox cr
         </tr>
         <tr>
             <td>partnerName</td>
-            <td>Filters the list by the partner associated with the loyalty program (optional). Includes results for all languages.</td>
+            <td>Filters the list by the partner associated with the loyalty program (optional).</td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td>The type of resource (optional). Can be either "loyaltyProgram" or "giftCard".</td>
         </tr>
     </tbody>
 </table>

@@ -9,6 +9,12 @@
     </thead>
     <tbody>
         <tr>
+            <td>2015-06-10</td>
+            <td>Added ability to filter LPs by type
+            <br>Added claimCode to credits
+            </td>
+        </tr>
+        <tr>
             <td>2015-05-14</td>
             <td>Added ability to localize LPs
             <br>Added MV request schema

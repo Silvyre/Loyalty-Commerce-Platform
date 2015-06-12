@@ -21,6 +21,10 @@ A credit is a transaction that adds points to a loyalty program member's account
             <td>The application that created the transaction.</td>
         </tr>
         <tr>
+            <td>claimCode</td>
+            <td>The claim code for Amazon gift cards.</td>
+        </tr>
+        <tr>
             <td>createdAt</td>
             <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was created.</td>
         </tr>

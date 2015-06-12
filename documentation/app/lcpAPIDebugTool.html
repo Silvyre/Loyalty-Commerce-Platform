@@ -17,7 +17,6 @@ function randomString(len, charSet) {
     }
     return randomString;
 }
-
 function getLCPAuthHeader(macId, macKey, method, server,path,data) {
 	var d = new Date();
 	var n = d.getTime()+"";
@@ -34,7 +33,6 @@ function getLCPAuthHeader(macId, macKey, method, server,path,data) {
 	var header="MAC id=\""+macId+"\", ts=\""+ts+"\", nonce=\""+nonce+"\", ext=\""+ext+"\", mac=\""+mac+"\"";
 	return header;
 }
-
 function updateCurl() {
 	var data = "";
     if ($('#method').val() != "GET" && $('#data').val().length > 0) {
@@ -118,6 +116,7 @@ function updateCurl() {
                     		<option value="POST">POST</option>
                     		<option value="PUT">PUT</option>
                     		<option value="DELETE">DELETE</option>
+                    		<option value="PATCH">PATCH</option>
                     	</select>
                     </td>
                 </tr>

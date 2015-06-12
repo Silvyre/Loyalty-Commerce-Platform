@@ -12,6 +12,7 @@
     {
       "amount": 2000,
       "application": "https://lcp.points.com/v1/apps/<app-id>",
+      "claimCode": "TZ9E-9YHMHU-PDEE",
       "createdAt": "2014-04-19T07:56:08.482556Z",
       "creditType": "base",
       "links": {
