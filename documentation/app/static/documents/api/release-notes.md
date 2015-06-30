@@ -9,6 +9,11 @@
     </thead>
     <tbody>
         <tr>
+            <td>2015-06-19</td>
+            <td>Added hidden flag to LPs
+            </td>
+        </tr>
+        <tr>
             <td>2015-06-10</td>
             <td>Added ability to filter LPs by type
             <br>Added claimCode to credits

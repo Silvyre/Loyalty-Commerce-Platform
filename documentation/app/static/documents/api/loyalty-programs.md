@@ -25,6 +25,10 @@ A loyalty program (LP) allows Mano to perform member validations, debits, and cr
             <td>The default language of the loyalty program. The name, partnerName, and rewardCurrency properties are in this language. <a href="http://en.wikipedia.org/wiki/IETF_language_tag">IETF language tags</a> are used.</td>
         </tr>
         <tr>
+            <td>hidden</td>
+            <td>Flag indicating whether the LP is shown in the list of LPs.</td>
+        </tr>
+        <tr>
             <td>name</td>
             <td>The name of the loyalty program.</td>
         </tr>

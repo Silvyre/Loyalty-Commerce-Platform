@@ -4,6 +4,7 @@
       "createdAt": "2014-04-19T07:56:08.482556Z",
       "creditType": "combinedBaseBonus",
       "defaultLanguage": "en",
+      "hidden": false,
       "links": {
         "credits": {
           "href": "https://lcp.points.com/v1/lps/<id>/credits/"
