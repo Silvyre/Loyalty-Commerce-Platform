@@ -9,6 +9,11 @@
     </thead>
     <tbody>
         <tr>
+            <td>2015-06-30</td>
+            <td>Added roles to accounts
+            </td>
+        </tr>
+        <tr>
             <td>2015-06-19</td>
             <td>Added hidden flag to LPs
             </td>

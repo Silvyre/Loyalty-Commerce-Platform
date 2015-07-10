@@ -41,6 +41,10 @@ An account is your own personal developer account on the LCP system. It is tied 
             <td>The phone number of the account owner.</td>
         </tr>
         <tr>
+            <td>roles</td>
+            <td>List of roles the account belongs to.</td>
+        </tr>
+        <tr>
             <td>type</td>
             <td>The type of resource.</td>
         </tr>

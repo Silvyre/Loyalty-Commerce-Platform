@@ -27,6 +27,9 @@
       },
       "organizationName": "<organizationName>",
       "phone": "<phone>",
+      "roles": [
+        "appDeveloper"
+      ],
       "type": "account",
       "updatedAt": "2014-05-08T17:55:34.511304Z"
     }
