@@ -27,6 +27,7 @@ function getLCPAuthHeader(macId, macKey, method, server,path,data) {
 		ext = CryptoJS.SHA1("application/json"+data);
 	}
 	macKey = macKey.replace(new RegExp("-", 'g'), "+").replace(new RegExp("_", 'g'), "/");
+	path = path.split("?")[0];
 	var normalizedRequestString = ts+"\n"+nonce+"\n"+method+"\n"+path+"\n"+server+"\n443\n"+ext+"\n";
 	var secret = CryptoJS.enc.Base64.parse(macKey);
 	var mac=CryptoJS.HmacSHA1(normalizedRequestString, secret).toString(CryptoJS.enc.Base64);
