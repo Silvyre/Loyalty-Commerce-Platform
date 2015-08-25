@@ -9,6 +9,12 @@
     </thead>
     <tbody>
         <tr>
+            <td>2015-07-28</td>
+            <td>Added sandbox MVs
+            <br>Added identifying and authenticating factors for MVs
+            </td>
+        </tr>
+        <tr>
             <td>2015-06-30</td>
             <td>Added roles to accounts
             </td>

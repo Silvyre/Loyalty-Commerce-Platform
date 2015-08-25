@@ -17,6 +17,10 @@ A member validation (MV) authenticates a member of a loyalty program and retriev
             <td>The application that created the transaction.</td>
         </tr>
         <tr>
+            <td>authenticatingFactors</td>
+            <td>Dictionary of fields that authenticate the loyalty program member (e.g., password, pin). These fields are not displayed. Varies based on the LP’s <a href="#mv-request-schema">MV request schema</a>.</td>
+        </tr>
+        <tr>
             <td>balance</td>
             <td>The balance in the loyalty program member's account.</td>
         </tr>
@@ -25,20 +29,12 @@ A member validation (MV) authenticates a member of a loyalty program and retriev
             <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was created.</td>
         </tr>
         <tr>
-            <td>firstName</td>
-            <td>The first name of the loyalty program member.</td>
-        </tr>
-        <tr>
-            <td>lastName</td>
-            <td>The last name of the loyalty program member.</td>
+            <td>identifyingFactors</td>
+            <td>Dictionary of fields that identify the loyalty program member (e.g., firstName, lastName, memberId). Varies based on the LP’s <a href="#mv-request-schema">MV request schema</a>.</td>
         </tr>
         <tr>
             <td>loyaltyProgram</td>
             <td>The loyalty program involved in the transaction.</td>
-        </tr>
-        <tr>
-            <td>memberId</td>
-            <td>The member ID of the loyalty program member.</td>
         </tr>
         <tr>
             <td>order</td>

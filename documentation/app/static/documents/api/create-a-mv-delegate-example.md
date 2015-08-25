@@ -5,9 +5,14 @@
     {
       "application": "https://sandbox.lcp.points.com/v1/apps/<app-id>",
       "memberValidation": {
-        "firstName": "John",
-        "lastName": "Doe",
-        "memberId": "1234"
+        "identifyingFactors": {
+          "firstName": "John",
+          "lastName": "Doe",
+          "memberId": "1234"
+        },
+        "authenticatingFactors": {
+          "password": "ABCD"
+        }
       },
       "memberValidationResponse": {
         "balance": 2000

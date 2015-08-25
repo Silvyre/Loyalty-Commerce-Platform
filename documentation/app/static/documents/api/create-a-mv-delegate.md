@@ -23,20 +23,16 @@ The MV delegate response contains a link to the created MV. The loyalty program 
             <td>The application that will have permission to access the member validation.</td>
         </tr>
         <tr>
+            <td>identifyingFactors</td>
+            <td>Dictionary of fields that identify the loyalty program member (e.g., firstName, lastName, memberId). Varies based on the LP’s <a href="#mv-request-schema">MV request schema</a>.</td>
+        </tr>
+        <tr>
+            <td>authenticatingFactors</td>
+            <td>Dictionary of fields that authenticate the loyalty program member (e.g., password, pin). These fields are not displayed. Varies based on the LP’s <a href="#mv-request-schema">MV request schema</a>.</td>
+        </tr>
+        <tr>
             <td>balance</td>
             <td>The balance in the loyalty program member’s account.</td>
-        </tr>
-        <tr>
-            <td>firstName</td>
-            <td>The first name of the loyalty program member.</td>
-        </tr>
-        <tr>
-            <td>lastName</td>
-            <td><p>The last name of the loyalty program member.</td>
-        </tr>
-        <tr>
-            <td>memberId</td>
-            <td><p>The member ID of the loyalty program member.</td>
         </tr>
         <tr>
             <td>order</td>
@@ -44,8 +40,6 @@ The MV delegate response contains a link to the created MV. The loyalty program 
         </tr>
     </tbody>
 </table>
-
-The loyalty program may provide other member information fields based on the MV request and response schemas they have defined.
 
 #### Returns
 

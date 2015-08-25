@@ -22,7 +22,7 @@ Each LP has an MV request schema that defines the JSON document applications mus
         </tr>
         <tr>
             <td>schema</td>
-            <td>A JSON schema that conforms to <a href="http://tools.ietf.org/html/draft-zyp-json-schema-04">JSON schema draft 4</a>.</td>
+            <td>A JSON schema that defines the format for MV requests. The preferred format is two top-level properties: identifyingFactors and authenticatingFactors. Identifying factors include fields like first name, last name, and member ID. Authenticating factors include fields like password and pin that should not be displayed to users.</td>
         </tr>
         <tr>
             <td>type</td>

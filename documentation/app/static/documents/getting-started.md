@@ -271,31 +271,33 @@ anyone or sent directly to the LCP.
 Now you're ready to make API requests. A universal balance checker needs to retrieve
 the balance in a loyalty program member’s account. This is done by performing a
 member validation or MV. An MV authenticates a member of a loyalty program and
-retrieves their balance. Authenticating a member requires a set of member credentials
-that vary for each loyalty program. For example, some loyalty programs may require a
-member ID and password, while others may require a first name, last name, and member
-ID.
+retrieves their balance.
 
 Click on "Loyalty Programs" in the left-hand navigation to see the list of loyalty
 programs that are supported. You can also get the list of loyalty programs through
-the [API](./?doc=api-reference#list-all-lps). Let's start with Southwest. Click on
-"Southwest". The LP URL provides the base URL for the loyalty program. Operations
-against the loyalty program are under this URL. The LP URL is for live mode. Instead,
-let's use the LP URL for sandbox mode by changing the server from "lcp.points.com" to
-"sandbox.lcp.points.com":
+the [API](./?doc=api-reference#list-all-lps). Let's start with the Flying Blue program
+from Air France KLM. Click on "FlyingBlue". The LP URL provides the base URL for the
+loyalty program. Operations against the loyalty program are under this URL. The LP URL is
+for live mode. Instead, let's use the LP URL for sandbox mode by changing the server from
+"lcp.points.com" to "sandbox.lcp.points.com":
 
-    https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57
+    https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6
 
-To perform a member validation for Southwest in sandbox mode, POST to:
+To perform a member validation for Flying Blue in sandbox mode, POST to:
 
-    https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/
+    https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/
 
-and provide the member’s first name, last name, and member ID in the body of the
-request. Here’s an example using curl:
+and provide the member’s credentials in the body of the request as a JSON object. The
+member credentials required for an MV vary for each loyalty program. For example, some
+loyalty programs may require a member ID and password, while others may require a first
+name, last name, and member ID. To determine which fields are required for a particular
+loyalty program, you can get its [MV request schema](./?doc=api-reference#mv-request-schema),
+which defines the JSON schema for the MV request. Flying Blue requires a member ID and
+password. Let’s create an MV using curl:
 
-    curl -v -X POST \
-    -d '{"firstName": "John", "lastName": "Doe", "memberId": "1234"}' \
-    "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
+    curl -v -X POST -H "Content-Type: application/json" \
+    -d '{"identifyingFactors": {"memberId": "1234"}, "authenticatingFactors": {"password": "ABCD"}}' \
+    "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/"
 
 The server returns a 401 status code indicating you are not authorized to POST to the
 MV collection:
@@ -305,7 +307,7 @@ MV collection:
       "errors": [
         {
           "code": "UNAUTHORIZED",
-          "description": "The server could not verify that you are authorized to access the URL requested.  You either supplied the wrong credentials (e.g. a bad password), or your browser doesn't understand how to supply the credentials required.",
+          "description": "The server could not verify that you are authorized to access the URL requested.",
           "field": null
         }
       ]
@@ -321,33 +323,33 @@ MAC, see [Appendix A: Signing Requests](#appendix-a-signing-requests).
 
 `lcp_curl.py` is a wrapper around curl to add the authorization header. It requires a
 -u parameter and your MAC key identifier and MAC key obtained in the previous step.
-It passes all other arguments on to curl. Let’s try to create an MV again using
-`lcp_curl.py`:
+It passes all other arguments on to curl. It also adds the "Content-Type: application/json"
+header so we don’t need to provide that. Let’s try to create an MV again using `lcp_curl.py`:
 
     lcp_curl.py -v -X POST \
     -u ee83b9af340741e3bec0ad96cb976142:RrvufcCh3Kb3bsqG-wfh8JrQXF8tZG4q3H-_gTACfjM \
-    -d '{"firstName": "John", "lastName": "Doe", "memberId": "1234"}' \
-    "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
+    -d '{"identifyingFactors": {"memberId": "1234"}, "authenticatingFactors": {"password": "ABCD"}}' \
+    "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/"
 
 Behind the scenes, `lcp_curl.py` generates the MAC signature, builds the authorization header, and
 includes it in a call to curl like so:
 
     curl -v -X POST \
-    -H 'Authorization: MAC id="ee83b9af340741e3bec0ad96cb976142", ts="1415648488", 
-    nonce="uMeiZRU22Ns=", ext="eda7a7bd11e16cbd89f39433909d20d01dc3e3ba", 
-    mac="M5E3a7S5HSgK4iJ25ix18rZugJc="' \
-    -d '{"firstName": "John", "lastName": "Doe", "memberId": "1234"}' \
-    "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
+    -H 'Authorization: MAC id="ee83b9af340741e3bec0ad96cb976142", ts="1438107842",
+    nonce="11SChlLd7+w=", ext="c2e5a99d639f902217f2322d4c4d1374ceda3a71",
+    mac="2U8yq4PQ3IXw86zAaxEF3fw4YkI="' \
+    -d '{"identifyingFactors": {"memberId": "1234"}, "authenticatingFactors": {"password": "ABCD"}}' \
+    "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/"
 
 Now the request is authenticated but we get a different error indicating there is no
-member named John Doe with member ID 1234 in the sandbox:
+member with member ID 1234 and password ABCD in the sandbox:
 
     HTTP/1.1 422 UNPROCESSABLE ENTITY
     {
       "errors": [
         {
           "code": "UNKNOWN_MEMBER",
-          "description": "The loyalty program couldn't find a member with the given credentials."
+          "description": "No member could be found with the given credentials."
         }
       ]
     }
@@ -357,65 +359,38 @@ or is synced with an internet time server. `lcp_curl.py` adds a timestamp to eac
 request and the LCP verifies that the timestamp is within 30 seconds of the server's
 time to prevent replay attacks.
 
-To simulate a successful MV in sandbox mode, set the member ID to the Partner ID of
-the loyalty program. You can find the Partner ID on the Southwest page in the LCP
-Admin. The Partner ID for Southwest is "dVNm". Let's do the MV again using "dVNm" as
-the member ID:
+To simulate a successful MV in sandbox mode, we need to use one of the pre-configured
+sandbox MVs. You can get the list of [sandbox MVs](./?doc=api-reference#sandbox-mvs)
+for the loyalty program using the API. For Flying Blue, one of the sandbox MVs has a
+member ID to "2202" and a password of "PASSWORD". Let’s do the MV again using these values:
 
     lcp_curl.py -v -X POST \
     -u ee83b9af340741e3bec0ad96cb976142:RrvufcCh3Kb3bsqG-wfh8JrQXF8tZG4q3H-_gTACfjM \
-    -d '{"firstName": "John", "lastName": "Doe", "memberId": "dVNm"}' \
-    "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
+    -d '{"identifyingFactors": {"memberId": "2202"}, "authenticatingFactors": {"password": "PASSWORD"}}' \
+    "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/"
 
-This creates a successful MV:
+This creates a successful MV with a balance of 100,000 miles as specified in the sandbox MV:
 
     HTTP/1.1 201 CREATED
     {
       "application": "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc",
-      "balance": 0,
+      "authenticatingFactors": {
+        "password": "*****"
+      },
+      "balance": 100000,
       "createdAt": "2014-04-19T07:56:08.482556Z",
-      "firstName": "John",
-      "lastName": "Doe",
+      "identifyingFactors": {
+        "memberId": "2202"
+      },
       "links": {
         "self": {
-          "href": "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
+          "href": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
         }
       },
-      "loyaltyProgram": "https://lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57",
-      "memberId": "dVNm",
+      "loyaltyProgram": "https://lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6",
       "status": "success",
       "type": "memberValidation",
       "updatedAt": "2014-04-19T07:56:08.482556Z"
-    }
-
-The points balance is always zero in sandbox mode since it does not communicate with
-the loyalty program. To simulate a non-zero balance, add the desired balance to the
-lastName field:
-
-    lcp_curl.py -v -X POST \
-    -u ee83b9af340741e3bec0ad96cb976142:RrvufcCh3Kb3bsqG-wfh8JrQXF8tZG4q3H-_gTACfjM \
-    -d '{"firstName": "John", "lastName": "Doe 2000", "memberId": "dVNm"}' \
-    "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/"
-
-The balance is now 2000:
-
-    HTTP/1.1 201 CREATED
-    {
-      "application": "https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc",
-      "balance": 2000,
-      "createdAt": "2014-05-08T17:55:34.511304Z",
-      "firstName": "John",
-      "lastName": "Doe 2000",
-      "links": {
-        "self": {
-          "href": "https://sandbox.lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57/mvs/1c220489-887f-494e-be88-5687721d0bb9"
-        }
-      },
-      "loyaltyProgram": "https://lcp.points.com/v1/lps/966cc451-9350-4d85-a7e4-d31b2c433a57",
-      "memberId": "dVNm",
-      "status": "success",
-      "type": "memberValidation",
-      "updatedAt": "2014-05-08T17:55:34.511304Z"
     }
 
 You can retrieve a previous MV by performing a GET on the self link. This

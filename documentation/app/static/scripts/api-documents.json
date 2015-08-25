@@ -299,6 +299,18 @@
       "id": "get-sandbox-credentials",
       "exampleId": "get-sandbox-credentials-example",
       "parent": "sandbox-credentials"
+    },
+    {
+      "title": "Sandbox MVs",
+      "id": "sandbox-mvs",
+      "exampleId": "sandbox-mvs-example",
+      "parent": ""
+    },
+    {
+      "title": "Get Sandbox MVs",
+      "id": "get-sandbox-mvs",
+      "exampleId": "get-sandbox-mvs-example",
+      "parent": "sandbox-mvs"
     }
   ]
 }

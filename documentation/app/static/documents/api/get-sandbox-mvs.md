@@ -1,6 +1,6 @@
-### Get an MV Request Schema
+### Get Sandbox MVs
 
-Retrieves the MV request schema that defines the JSON document applications must send to do an MV.
+Retrieves the list of sandbox MVs that can be used for testing MVs in sandbox mode. Sandbox MVs are LP-specific.
 
 #### Parameters
 
@@ -21,7 +21,7 @@ Retrieves the MV request schema that defines the JSON document applications must
 
 #### Returns
 
-The MV request schema object if it exists, otherwise returns an [error](./?doc=reference-manual#errors).
+The sandbox MVs for the LP, otherwise returns an [error](./?doc=reference-manual#errors).
 
 
 

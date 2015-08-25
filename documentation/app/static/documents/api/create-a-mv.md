@@ -1,8 +1,8 @@
 ### Create an MV
 
-To create a new MV, POST the loyalty program member's account details to the loyalty program's MV service and sign the request with your app credentials. In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a MV.
+To create a new MV, POST the loyalty program member's account details to the loyalty program's MV service and sign the request with your app credentials. In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a MV. See [Sandbox MVs](#sandbox-mvs) for details.
 
-Authenticating a member requires a specific set of fields, defined by the specific loyalty program you wish to communicate with. For example, some loyalty programs may require a member ID and password, while others require a member ID, last name, and password. To determine which fields are required for a particular loyalty program, [get its MV request schema](#get-an-mv-request-schema).
+Authenticating a member requires a specific set of fields, defined by the specific loyalty program you wish to communicate with. For example, some loyalty programs may require a member ID and password, while others require a member ID, last name, and password. To determine which fields are required for a particular loyalty program, get its [MV request schema](#mv-request-schema).
 
 #### Parameters
 
@@ -19,20 +19,12 @@ Authenticating a member requires a specific set of fields, defined by the specif
             <td>The identifier of the <a href="#loyalty-programs">loyalty program</a> (LP).</td>
         </tr>
         <tr>
-            <td>firstName</td>
-            <td>The first name of the loyalty program member.</p>
-                <p><strong>Sandbox mode</strong>: To simulate an unknown error from the loyalty program, set the firstName field to "Bugs".</p></td>
+            <td>identifyingFactors</td>
+            <td>Dictionary of fields that identify the loyalty program member (e.g., firstName, lastName, memberId). Varies based on the LP’s <a href="#mv-request-schema">MV request schema</a>.</td>
         </tr>
         <tr>
-            <td>lastName</td>
-            <td><p>The last name of the loyalty program member.</p>
-                <p><strong>Sandbox mode</strong>: To simulate a non-zero balance, append a space and a positive integer to the lastName field. For example, to simulate a balance of 2000 for John Doe, set lastName to "Doe 2000".</p></td>
-        </tr>
-        <tr>
-            <td>memberId</td>
-            <td><p>The member ID of the loyalty program member.</p>
-                <p><strong>Sandbox mode</strong>: To simulate a successful MV, set the memberId field to the partnerId field of the <a href="#loyalty-programs">loyalty program</a>.
-            </td>
+            <td>authenticatingFactors</td>
+            <td>Dictionary of fields that authenticate the loyalty program member (e.g., password, pin). These fields are not displayed. Varies based on the LP’s <a href="#mv-request-schema">MV request schema</a>.</td>
         </tr>
         <tr>
             <td>order</td>

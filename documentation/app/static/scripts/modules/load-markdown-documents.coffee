@@ -68,6 +68,8 @@ define [
   "mdown!../../documents/api/get-report-instance-data.md"
   "mdown!../../documents/api/get-sandbox-credentials-example.md"
   "mdown!../../documents/api/get-sandbox-credentials.md"
+  "mdown!../../documents/api/get-sandbox-mvs-example.md"
+  "mdown!../../documents/api/get-sandbox-mvs.md"
   "mdown!../../documents/api/list-all-apps-example.md"
   "mdown!../../documents/api/list-all-apps.md"
   "mdown!../../documents/api/list-all-credits-example.md"
@@ -105,6 +107,8 @@ define [
   "mdown!../../documents/api/reports.md"
   "mdown!../../documents/api/sandbox-credentials-example.md"
   "mdown!../../documents/api/sandbox-credentials.md"
+  "mdown!../../documents/api/sandbox-mvs-example.md"
+  "mdown!../../documents/api/sandbox-mvs.md"
   "mdown!../../documents/api/update-a-credit-example.md"
   "mdown!../../documents/api/update-a-credit.md"
   "mdown!../../documents/api/update-a-debit-example.md"
@@ -189,6 +193,8 @@ define [
   get_report_instance_data
   get_sandbox_credentials_example
   get_sandbox_credentials
+  get_sandbox_mvs_example
+  get_sandbox_mvs
   list_all_apps_example
   list_all_apps
   list_all_credits_example
@@ -226,6 +232,8 @@ define [
   reports
   sandbox_credentials_example
   sandbox_credentials
+  sandbox_mvs_example
+  sandbox_mvs
   update_a_credit_example
   update_a_credit
   update_a_debit_example
@@ -311,6 +319,8 @@ define [
     get_report_instance_data: get_report_instance_data
     get_sandbox_credentials_example: get_sandbox_credentials_example
     get_sandbox_credentials: get_sandbox_credentials
+    get_sandbox_mvs_example: get_sandbox_mvs_example
+    get_sandbox_mvs: get_sandbox_mvs
     list_all_apps_example: list_all_apps_example
     list_all_apps: list_all_apps
     list_all_credits_example: list_all_credits_example
@@ -348,6 +358,8 @@ define [
     reports: reports
     sandbox_credentials_example: sandbox_credentials_example
     sandbox_credentials: sandbox_credentials
+    sandbox_mvs_example: sandbox_mvs_example
+    sandbox_mvs: sandbox_mvs
     update_a_credit_example: update_a_credit_example
     update_a_credit: update_a_credit
     update_a_debit_example: update_a_debit_example
