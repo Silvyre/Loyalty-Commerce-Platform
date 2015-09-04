@@ -1,6 +1,6 @@
 ## Loyalty Programs (LPs)
 
-A loyalty program (LP) allows Mano to perform member validations, debits, and credits against the loyalty program’s member database. Loyalty programs are found under the `/lps` endpoint.
+A loyalty program (LP) allows applications to perform member validations, debits, and credits against the loyalty program’s member database. Loyalty programs are found under the `/lps` endpoint.
 
 #### Properties
 
