@@ -24,7 +24,7 @@
       "memberValidation": "https://sandbox.lcp.points.com/v1/lps/<lp-id>/mvs/<mv-id>",
       "order": "https://sandbox.lcp.points.com/v1/orders/<order-id>",
       "status": "success",
-      "transactionId": "<transaction-id>",
+      "transactionId": "15786561",
       "type": "debit",
       "updatedAt": "2014-04-19T07:56:08.482556Z"
     }

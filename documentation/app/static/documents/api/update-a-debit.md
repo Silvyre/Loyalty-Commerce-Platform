@@ -22,14 +22,18 @@ Points or the loyalty program may update the status of live debits to success or
         </tr>
         <tr>
             <td>status</td>
-            <td>The updated status of the debit. Must be "failure" or "success".</td>
+            <td>The updated status of the debit (optional). Must be "failure" or "success".</td>
+        </tr>
+        <tr>
+            <td>status</td>
+            <td>The updated transaction ID of the debit (optional).</td>
         </tr>
     </tbody>
 </table>
 
 #### Returns
 
-The debit resource if successful. Returns an [error](./?doc=reference-manual#errors) if you do not have permission to change the credit status or if the new status is not valid.
+The debit resource if successful. Returns an [error](./?doc=reference-manual#errors) if you do not have permission to change the debit or if the new status is not valid.
 
 
 

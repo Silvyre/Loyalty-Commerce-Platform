@@ -22,14 +22,18 @@ Points or the loyalty program may update the status of live credits to success o
         </tr>
         <tr>
             <td>status</td>
-            <td>The updated status of the credit. Must be "failure" or "success".</td>
+            <td>The updated status of the credit (optional). Must be "failure" or "success".</td>
+        </tr>
+        <tr>
+            <td>transactionId</td>
+            <td>The updated transaction ID of the credit (optional).</td>
         </tr>
     </tbody>
 </table>
 
 #### Returns
 
-The credit resource if successful. Returns an [error](./?doc=reference-manual#errors) if you do not have permission to change the credit status or if the new status is not valid.
+The credit resource if successful. Returns an [error](./?doc=reference-manual#errors) if you do not have permission to change the credit or if the new status is not valid.
 
 
 
