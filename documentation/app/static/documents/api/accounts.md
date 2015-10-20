@@ -45,6 +45,10 @@ An account is your own personal developer account on the LCP system. It is tied 
             <td>List of roles the account belongs to.</td>
         </tr>
         <tr>
+            <td>timeZone</td>
+            <td>The time zone of the account owner.</td>
+        </tr>
+        <tr>
             <td>type</td>
             <td>The type of resource.</td>
         </tr>

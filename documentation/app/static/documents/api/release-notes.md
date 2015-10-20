@@ -9,6 +9,12 @@
     </thead>
     <tbody>
         <tr>
+            <td>2015-10-14</td>
+            <td>Added time zone to accounts
+            <br>Added ability to update an account
+            </td>
+        </tr>
+        <tr>
             <td>2015-09-16</td>
             <td>Added ability to update transactionId for debits and credits
             </td>

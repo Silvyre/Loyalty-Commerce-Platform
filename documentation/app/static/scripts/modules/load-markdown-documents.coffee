@@ -119,6 +119,8 @@ define [
   "mdown!../../documents/api/update-a-report.md"
   "mdown!../../documents/api/update-account-permissions-example.md"
   "mdown!../../documents/api/update-account-permissions.md"
+  "mdown!../../documents/api/update-an-account-example.md"
+  "mdown!../../documents/api/update-an-account.md"
   "mdown!../../documents/api/update-an-order-example.md"
   "mdown!../../documents/api/update-an-order.md"
   "mdown!../../documents/getting-started.md"
@@ -244,6 +246,8 @@ define [
   update_a_report
   update_account_permissions_example
   update_account_permissions
+  update_an_account_example
+  update_an_account
   update_an_order_example
   update_an_order
   getting_started
@@ -370,6 +374,8 @@ define [
     update_a_report: update_a_report
     update_account_permissions_example: update_account_permissions_example
     update_account_permissions: update_account_permissions
+    update_an_account_example: update_an_account_example
+    update_an_account: update_an_account
     update_an_order_example: update_an_order_example
     update_an_order: update_an_order
     getting_started: getting_started

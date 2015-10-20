@@ -20,22 +20,23 @@
         }
       ],
       "createdAt": "2014-04-19T07:56:08.482556Z",
-      "email": "<email>",
-      "firstName": "<firstName>",
-      "lastName": "<lastName>",
+      "email": "youremail@yourcompany.com",
+      "firstName": "First Name",
+      "lastName": "Last Name",
       "links": {
-          "self": {
-            "href": "https://lcp.points.com/v1/accounts/<id>"
-          },
-          "friendly": {
-            "href": "https://lcp.points.com/v1/accounts/<email>"
-          }
+        "self": {
+          "href": "https://lcp.points.com/v1/accounts/<id>"
+        },
+        "friendly": {
+          "href": "https://lcp.points.com/v1/accounts/youremail%40yourcompany.com"
+        }
       },
-      "organizationName": "<organizationName>",
-      "phone": "<phone>",
+      "organizationName": "Company",
+      "phone": "416-555-1234",
       "roles": [
         "appDeveloper"
       ],
+      "timeZone": "America/Toronto",
       "type": "account",
       "updatedAt": "2014-05-08T17:55:34.511304Z"
     }

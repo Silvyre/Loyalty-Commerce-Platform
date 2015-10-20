@@ -25,6 +25,12 @@
       "parent": "accounts"
     },
     {
+      "title": "Update an Account",
+      "id": "update-an-account",
+      "exampleId": "update-an-account-example",
+      "parent": "accounts"
+    },
+    {
       "title": "Account Credentials",
       "id": "account-credentials",
       "exampleId": "account-credentials-example",
