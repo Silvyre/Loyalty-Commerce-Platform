@@ -317,6 +317,42 @@
       "id": "get-sandbox-mvs",
       "exampleId": "get-sandbox-mvs-example",
       "parent": "sandbox-mvs"
+    },
+	{
+      "title": "Sandbox Permissions",
+      "id": "sandbox-permissions",
+      "exampleId": "sandbox-permissions-example",
+      "parent": ""
+    },
+	{
+      "title": "Create Sandbox Permissions",
+      "id": "create-sandbox-permissions",
+      "exampleId": "create-sandbox-permissions-example",
+      "parent": "sandbox-permissions"
+    },
+	{
+      "title": "Get Sandbox Permissions",
+      "id": "get-sandbox-permissions",
+      "exampleId": "get-sandbox-permissions-example",
+      "parent": "sandbox-permissions"
+    },
+	{
+      "title": "List all Sandbox Permissions",
+      "id": "list-all-sandbox-permissions",
+      "exampleId": "list-all-sandbox-permissions-example",
+      "parent": "sandbox-permissions"
+    },
+	{
+      "title": "Update Sandbox Permissions",
+      "id": "update-sandbox-permissions",
+      "exampleId": "update-sandbox-permissions-example",
+      "parent": "sandbox-permissions"
+    },
+	{
+      "title": "Delete Sandbox Permissions",
+      "id": "delete-sandbox-permissions",
+      "exampleId": "delete-sandbox-permissions-example",
+      "parent": "sandbox-permissions"
     }
   ]
 }

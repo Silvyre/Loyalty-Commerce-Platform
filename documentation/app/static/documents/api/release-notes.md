@@ -9,6 +9,11 @@
     </thead>
     <tbody>
         <tr>
+            <td>2015-10-28</td>
+            <td>Added sandbox permissions
+            </td>
+        </tr>
+        <tr>
             <td>2015-10-14</td>
             <td>Added time zone to accounts
             <br>Added ability to update an account
