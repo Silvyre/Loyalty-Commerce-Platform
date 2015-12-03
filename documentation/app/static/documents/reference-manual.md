@@ -264,6 +264,69 @@ Here is an example of using the HMAC-SHA1 algorithm to generate the signature in
         # Base64 encode the result
         return base64.b64encode(hashed.digest())
 
+## Single Sign-On (SSO)
+
+There are two ways to validate loyalty program member credentials and obtain account
+balances: direct MV and SSO MV.
+
+![SSO](static/images/sso.png)
+
+### Direct MV
+
+Applications perform a member validation against a loyalty program. Applications
+[create an MV](./?doc=api-reference#create-a-mv) and provide the member’s
+credentials. The LCP verifies these credentials with the loyalty program and returns
+the member’s account balance to the application. This is the simplest solution for
+both applications and loyalty programs, but requires the application to collect
+member credentials.
+
+### SSO MV
+
+Single sign-on doesn’t require the application to collect member credentials and
+avoids requiring the member to login with both the loyalty program and the
+application. If the member is already signed in on the loyalty program’s website and
+the loyalty program’s website links to the application, the loyalty program can
+provide the member’s info to the LCP and allow the application to retrieve it without
+sharing any confidential information about the member through the web browser. SSO is
+a three step process:
+
+1. The loyalty program [creates an MV delegate](./?doc=api-reference#create-a-mv-delegate)
+   on the LCP. The loyalty program provides the member info needed to create an MV and
+   "delegates" the MV to the application so that the application has permission to access
+   the MV. The LCP creates the MV and returns the MV URL to the loyalty program.
+1. The loyalty program redirects the user to the application and provides the
+   application with the MV URL. No member information is passed in the redirect. It is
+   securely stored in the LCP.
+1. The application [gets the MV](./?doc=api-reference#get-a-mv) from the LCP using the MV
+   URL to securely obtain information about the member and perform transactions.
+   Authenticating factors like the member’s password are not shared with the application.
+   
+## Real-time vs Batch
+
+Moving points in or out of loyalty accounts can happen either in real-time or in a
+periodic batch process. The process used depends on the loyalty program. Applications
+should be built to handle both cases so they can work with any loyalty program. Even
+when using a single loyalty program, applications should test both processes in
+sandbox mode in case the loyalty program changes their process in the future.
+
+![Batch](static/images/batch.png)
+
+### Real-time
+
+Most loyalty programs process debits and credits in real-time. When applications
+create debits or credits, the LCP forwards the request to the loyalty program and the
+loyalty program processes the request immediately. The LCP tells the application
+whether the debit or credit succeeded.
+
+### Batch
+
+A few loyalty programs process debits and/or credits in a batch process. When the LCP
+receives a request, it returns a status of pending and queues the request.
+Periodically, the LCP sends the queued requests to the loyalty program for processing
+(this happens once a day for most LPs). Some time later (typically within 24 hours),
+the LP returns the result of all the debits and credits in the batch. The application
+should periodically poll pending debits or credits to determine their result.
+
 ## HTTP Status Codes
 
 HTTP status codes are used to indicate success or failure. Status codes in the
