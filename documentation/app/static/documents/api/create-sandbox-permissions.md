@@ -22,7 +22,7 @@ Gives an application permission to perform operations in sandbox mode on an LP. 
         </tr>
         <tr>
             <td>operations</td>
-            <td>An array of operations that the applications is permitted to do in sandbox mode for the LP. Must be one or more of "mvs", "mv-delegates", "debits", "credits", "credit-delegates".</td>
+            <td>An array of operations that the applications is permitted to do in sandbox mode for the LP. Must be one or more of "mvs", "member-details", "mv-delegates", "debits", "credits", "credit-delegates".</td>
         </tr>
     </tbody>
 </table>

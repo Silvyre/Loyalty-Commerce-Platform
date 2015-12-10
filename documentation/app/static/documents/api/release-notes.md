@@ -9,6 +9,11 @@
     </thead>
     <tbody>
         <tr>
+            <td>2015-12-08</td>
+            <td>Added member-details to sandbox permissions
+            </td>
+        </tr>
+        <tr>
             <td>2015-10-28</td>
             <td>Added sandbox permissions
             </td>

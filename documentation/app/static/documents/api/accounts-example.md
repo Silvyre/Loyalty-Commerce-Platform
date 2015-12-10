@@ -28,13 +28,18 @@
       "organizationName": "Company",
       "phone": "416-555-1234",
       "roles": [
-        "appDeveloper"
+        {
+          "role": "https://lcp.points.com/v1/roles/application-developer"
+        },
+        {
+          "role": "https://lcp.points.com/v1/roles/report-viewer",
+          "loyaltyProgram": "https://lcp.points.com/v1/lps/<lp-id>"
+        }
       ],
       "timeZone": "America/Toronto",
       "type": "account",
       "updatedAt": "2014-05-08T17:55:34.511304Z"
     }
-
 
 
 
