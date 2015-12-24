@@ -1,6 +1,6 @@
 ### Update an Order
 
-Update the status of an order. Order status is calculated automatically for BUY, GIFT, and TRANSFER order types. For all other order types, the application must manage the order status. When a primitive is added to an order, the order status changes to "statusPending". These orders require their status to be updated.
+Update the status of an order. The application must manage the order status. When a primitive is added to an order, the order status changes to "statusPending". These orders require their status to be updated.
 
 #### Parameters
 
@@ -18,7 +18,19 @@ Update the status of an order. Order status is calculated automatically for BUY,
         </tr>
         <tr>
             <td>status</td>
-            <td>The new status of the order.</td>
+            <td>
+                <p>The new status of the order. Can be one of:
+                    <ul>
+                        <li>"initial" when the order is created</li>
+                        <li>"debitFailed" if the debit failed</li>
+                        <li>"debitPending" if the debit is pending</li>
+                        <li>"creditFailed" if the credit failed</li>
+                        <li>"creditPending" if the credit is pending</li>
+                        <li>"complete" if all primitives succeeded</li>
+                        <li>"reversed" if all primitives are reversed</li>
+                    </ul>
+                </p>
+            </td>
         </tr>
     </tbody>
 </table>
