@@ -1,6 +1,6 @@
 ## Orders
 
-All transactions must be part of an order for them to appear in the order search support tool and the transaction reports in the [LCP Admin](https://admin.lcp.points.com/) console. An order is a composite transaction that associates multiple primitive transactions together. Primitive transactions include MVs, debits, and credits. The order contains details about the composite transaction and its fulfillment history. Additional metadata about the order can also be included in the data section.
+All transactions must be part of an order for them to appear in the order search support tool and the transaction reports in the [LCP Admin](https://admin.lcp.points.com/) console. An order is a composite transaction that associates multiple primitive transactions together. Primitive transactions include MVs, debits, and credits. The order contains details about the composite transaction and its fulfillment history. Additional metadata about the order can also be included in the data section. If you have <a href="https://www.getpostman.com/" target="_new">Postman</a> installed, click <a href="https://www.getpostman.com/collections/9393bd27614afdd01e6b">here</a> to install a Postman collection which will take through two examples of what is involved in creating an order on the LCP (in order for it to run, you will first need to download and import <a href="HelloLoyaltyWorld.json">this Postman environment</a>).
 
 #### Properties
 

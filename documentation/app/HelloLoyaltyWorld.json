@@ -1,0 +1,30 @@
+{
+	"id": "bef681db-e2a3-17c3-c624-020158f11e1b",
+	"name": "Hello Loyalty World",
+	"values": [
+		{
+			"key": "LP ID",
+			"value": "43f39a8f-cac9-4957-8480-a83b6093cfe3",
+			"type": "text",
+			"name": "LP ID",
+			"enabled": true
+		},
+		{
+			"key": "SANDBOX MAC Key Identifier",
+			"value": "6aa481d92276468a9b03aa6044bdb68e",
+			"type": "text",
+			"name": "SANDBOX MAC Key Identifier",
+			"enabled": true
+		},
+		{
+			"key": "SANDBOX MAC Key",
+			"value": "8DbdQYu6H8X626Shv5oI3ACAD0hRVf0dPuxps84kpaE",
+			"type": "text",
+			"name": "SANDBOX MAC Key",
+			"enabled": true
+		}
+	],
+	"timestamp": 1451401998969,
+	"synced": false,
+	"syncedFilename": ""
+}
