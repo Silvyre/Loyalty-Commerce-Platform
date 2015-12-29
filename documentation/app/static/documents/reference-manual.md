@@ -333,6 +333,384 @@ Periodically, the LCP sends the queued requests to the loyalty program for proce
 the LP returns the result of all the debits and credits in the batch. The application
 should periodically poll pending debits or credits to determine their result.
 
+## Using Orders
+
+All transactions must be part of an order for them to appear in the order search
+support tool and the transaction reports in the [LCP
+Admin](https://admin.lcp.points.com/) console. An order is a composite transaction
+that associates multiple primitive transactions together. Primitive transactions
+include MVs, debits, and credits. The order contains details about the composite
+transaction and its fulfillment history. Additional metadata about the order can also
+be included in the data section.
+
+There are six steps for using orders:
+
+1. Create an MV
+1. Create an order
+1. Add the MV to the order
+1. Create the debit or credit
+1. Update the status of the order
+1. Search for updated orders
+
+### Create an MV
+
+The first step is to [create a member validation
+(MV)](./?doc=api-reference#create-a-mv) to validate the member's credentials. Let's
+create a sandbox MV for Flying Blue like we did in the [LCP Getting Started
+Guide](./#perform-a-member-validation-mv-). Use your application's sandbox
+credentials to sign the request.
+
+    POST https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/
+    Authorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."
+    {
+      "identifyingFactors": {
+        "memberId": "2202"
+      },
+      "authenticatingFactors": {
+        "password": "PASSWORD"
+      }
+    }
+
+If the member credentials are correct, you'll receive the member's balance:
+
+    201 CREATED
+    location: https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54
+    {
+      "application": "https://sandbox.lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc",
+      "authenticatingFactors": {
+        "password": "*****"
+      },
+      "balance": 100000,
+      "createdAt": "2014-02-26T17:46:00.000000Z",
+      "identifyingFactors": {
+        "memberId": "2202"
+      },
+      "links": {
+        "self": {
+          "href": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
+        }
+      },
+      "loyaltyProgram": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6",
+      "status": "success",
+      "type": "memberValidation",
+      "updatedAt": "2014-02-26T17:46:00.000000Z"
+    }
+
+### Create an Order
+
+After the user has successfully validated their credentials, you can [create an
+order](./?doc=api-reference#create-an-order) for them. The order type can be either
+EXCHANGE_CREDIT for credit orders or REDEEM_DEBIT for debit orders. Contact Points to
+determine which order type you should use.
+
+    POST https://sandbox.lcp.points.com/v1/orders/
+    Authorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."
+    {
+      "data": {
+        "clientIpAddress": "127.0.0.1", 
+        "clientUserAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0", 
+        "language": "en-US", 
+        "orderDetails": {
+          "basePoints": 2000, 
+          "loyaltyProgram": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6"
+        }, 
+        "user": {
+          "email": "jdoe@example.com",
+          "firstName": "John", 
+          "lastName": "Doe", 
+          "memberId": "2202", 
+          "memberValidation": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
+        }
+      },
+      "orderType": "EXCHANGE_CREDIT"
+    }
+
+The order is created with the order details. The order confirmation number can be
+provided to the user in case they need to inquire about their order later. The order
+status is set to "initial".
+
+    201 CREATED
+    location: https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0
+    {
+      "application": "https://sandbox.lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc",
+      "confirmationNumber": "3902-2266-8404-8538-1721",
+      "createdAt": "2014-02-26T17:47:00.000000Z",
+      "data": {
+        "clientIpAddress": "127.0.0.1", 
+        "clientUserAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0", 
+        "language": "en-US", 
+        "orderDetails": {
+          "basePoints": 2000, 
+          "loyaltyProgram": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6"
+        }, 
+        "user": {
+          "email": "jdoe@example.com",
+          "firstName": "John", 
+          "lastName": "Doe", 
+          "memberId": "2202", 
+          "memberValidation": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0"
+        }
+      },
+      "orderType": "EXCHANGE_CREDIT",
+      "status": "initial",
+      "type": "order",
+      "updatedAt": "2014-02-26T17:47:00.000000Z",
+      "updates": []
+    }
+
+### Add the MV to the Order
+
+The MV you created in the first step needs to be associated with the new order you just
+created. To do that, [PATCH the MV](./?doc=api-reference#update-a-mv) with a link to
+the order:
+
+    PATCH https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54
+    Authorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."
+    {
+      "order": "https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0"
+    }
+
+The updated MV is returned in the response:
+
+    200 OK
+    {
+      "application": "https://sandbox.lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc",
+      "authenticatingFactors": {
+        "password": "*****"
+      },
+      "balance": 100000,
+      "createdAt": "2014-02-26T17:46:00.000000Z",
+      "identifyingFactors": {
+        "memberId": "2202"
+      },
+      "links": {
+        "self": {
+          "href": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
+        }
+      },
+      "loyaltyProgram": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6",
+      "order": "https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0",
+      "status": "success",
+      "type": "memberValidation",
+      "updatedAt": "2014-02-26T17:47:30.000000Z"
+    }
+
+### Create the Debit or Credit
+
+Now you can add (credit) or remove (debit) points from the member's account. In this
+example, we'll [create a credit](./?doc=api-reference#create-a-credit) to add 2000
+points to the member's account:
+
+    POST https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/credits/
+    Authorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."
+    {
+      "amount": 2000,
+      "memberValidation": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
+    }
+
+The credit is automatically added to the same order as the MV. The credit status can
+be success, failure, systemError or pending. Failure means that the LP rejected the
+request. A system error means there was a problem communicating with the LP. Points
+will investigate system errors to determine if the transaction went through. Pending
+means the credit will be sent in a nightly batch file to the LP and it will be
+updated later with the result. This credit came back successful:
+
+    201 CREATED
+    location: https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/credits/d38a9ecf-0863-4a7f-81d6-0efaf15a4425
+    {
+      "amount": 2000,
+      "application": "https://sandbox.lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc",
+      "createdAt": "2014-02-26T17:49:00.000000Z",
+      "links": {
+        "self": {
+          "href": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/credits/d38a9ecf-0863-4a7f-81d6-0efaf15a4425"
+        }
+      },
+      "loyaltyProgram": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6",
+      "memberValidation": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54",
+      "order": "https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0",
+      "status": "success",
+      "transactionId": "15786560",
+      "type": "credit",
+      "updatedAt": "2014-02-26T17:49:00.000000Z"
+    }
+
+### Update the Status of the Order
+
+The next step is to [update the order](./?doc=api-reference#update-an-order) with its
+status. Update the order status based on the status of the debit or credit:
+
+<table>
+  <thead>
+    <tr>
+      <th>Debit/Credit Status</th>
+      <th>Order Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>success</td>
+      <td>complete</td>
+    </tr>
+    <tr>
+      <td>failure</td>
+      <td>debitFailed/creditFailed</td>
+    </tr>
+    <tr>
+      <td>systemError</td>
+      <td>debitError/creditError</td>
+    </tr>
+    <tr>
+      <td>pending</td>
+      <td>debitPending/creditPending</td>
+    </tr>
+  </tbody>
+</table>
+
+In this case, the credit status is "success" so let’s update the order status to
+"complete":
+
+    PATCH https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0
+    Authorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."
+    {
+      "status": "complete"
+    }
+
+The order with the updated status is returned. Note that the "updates" section of the
+order includes the order fulfillment history including the MV and the credit.
+
+    200 OK
+    {
+      "application": "https://sandbox.lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc",
+      "confirmationNumber": "3902-2266-8404-8538-1721",
+      "createdAt": "2014-02-26T17:47:00.000000Z",
+      "data": {
+        "clientIpAddress": "127.0.0.1", 
+        "clientUserAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0", 
+        "language": "en-US", 
+        "orderDetails": {
+          "basePoints": 2000, 
+          "loyaltyProgram": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6"
+        }, 
+        "user": {
+          "email": "jdoe@example.com",
+          "firstName": "John", 
+          "lastName": "Doe", 
+          "memberId": "2202", 
+          "memberValidation": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0"
+        }
+      },
+      "orderType": "EXCHANGE_CREDIT",
+      "status": "complete",
+      "type": "order",
+      "updatedAt": "2014-02-26T17:50:00.000000Z",
+      "updates": [
+        {
+          "resource": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54",
+          "status": "success",
+          "type": "memberValidation",
+          "updatedAt": "2014-02-26T17:47:30.000000Z"
+        },
+        {
+          "resource": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/credits/d38a9ecf-0863-4a7f-81d6-0efaf15a4425",
+          "status": "success",
+          "type": "credit",
+          "updatedAt": "2014-02-26T17:49:00.000000Z"
+        }
+      ]
+    }
+
+### Search for Updated Orders
+
+Orders can be updated at a later time for the following reasons:
+
+- A pending debit or credit succeeded or failed
+- A debit or credit with a status of systemError has been investigated and updated to
+  success or failure
+- The debit or credit has been reversed and the points have been added back to or removed
+  from the user's account
+
+If any of these events happen, the order will have a new entry in its "updates"
+section describing the change. This section is append only so old entries are not
+replaced, which allows you to see the order fulfillment history. When the order is
+updated, its status changes to "statusPending" indicating you need to recalculate the
+status of the order. Periodically, you should [search for
+orders](./?doc=api-reference#list-all-orders) with a status of "statusPending" and
+update their status:
+
+    GET https://sandbox.lcp.points.com/v1/search/orders/?q=status:statusPending
+    Authorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."
+
+Here is an order where the batch credit was updated from "pending" to "success". The
+order status needs to be updated to "complete".
+
+    200 OK
+    {
+      "orders" : [
+        {
+          "application": "https://sandbox.lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc",
+          "confirmationNumber": "3902-2266-8404-8538-1721",
+          "createdAt": "2014-02-26T17:47:00.000000Z",
+          "data": {
+            "clientIpAddress": "127.0.0.1", 
+            "clientUserAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0", 
+            "language": "en-US", 
+            "orderDetails": {
+              "basePoints": 2000, 
+              "loyaltyProgram": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6"
+            }, 
+            "user": {
+              "email": "jdoe@example.com",
+              "firstName": "John", 
+              "lastName": "Doe", 
+              "memberId": "2202", 
+              "memberValidation": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
+            }
+          },
+          "links": {
+            "self": {
+              "href": "https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0"
+            }
+          },
+          "orderType": "EXCHANGE_CREDIT",
+          "status": "statusPending",
+          "type": "order",
+          "updatedAt": "2014-02-26T17:50:00.000000Z",
+          "updates": [
+            {
+              "resource": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54",
+              "status": "success",
+              "type": "memberValidation",
+              "updatedAt": "2014-02-26T17:47:30.000000Z"
+            },
+            {
+              "resource": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/credits/d38a9ecf-0863-4a7f-81d6-0efaf15a4425",
+              "status": "pending",
+              "type": "credit",
+              "updatedAt": "2014-02-26T17:49:00.000000Z"
+            },
+            {
+              "resource": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/credits/d38a9ecf-0863-4a7f-81d6-0efaf15a4425",
+              "status": "success",
+              "type": "credit",
+              "updatedAt": "2014-02-27T06:00:00.000000Z"
+            }
+          ]
+        },
+        ...
+      ]
+    }
+
 ## HTTP Status Codes
 
 HTTP status codes are used to indicate success or failure. Status codes in the

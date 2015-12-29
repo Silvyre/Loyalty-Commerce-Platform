@@ -3,7 +3,7 @@
     PATCH https://lcp.points.com/v1/lps/<lp-id>/mvs/<id>
     Authorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."
     {
-      "order": "https://sandbox.lcp.points.com/v1/orders/<order-id>",
+      "order": "https://sandbox.lcp.points.com/v1/orders/<order-id>"
     }
 
 #### Example Response

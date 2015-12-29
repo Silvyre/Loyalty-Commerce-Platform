@@ -46,10 +46,12 @@ All transactions must be part of an order for them to appear in the order search
                 <p>The overall status of the order. Can be one of:
                     <ul>
                         <li>"initial" when the order is created</li>
-                        <li>"debitFailed" if the debit failed</li>
-                        <li>"debitPending" if the debit is pending</li>
-                        <li>"creditFailed" if the credit failed</li>
-                        <li>"creditPending" if the credit is pending</li>
+                        <li>"debitFailed" if the debit status is failure</li>
+                        <li>"debitPending" if the debit status is pending</li>
+                        <li>"debitError" if the debit status is systemError</li>
+                        <li>"creditFailed" if the credit status is failure</li>
+                        <li>"creditPending" if the credit status is pending</li>
+                        <li>"creditError" if the credit status is systemError</li>
                         <li>"complete" if all primitives succeeded</li>
                         <li>"reversed" if all primitives are reversed</li>
                         <li>"statusPending" if the order has been updated and needs its status to be recalculated</li>
