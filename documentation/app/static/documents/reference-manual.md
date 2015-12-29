@@ -264,6 +264,12 @@ Here is an example of using the HMAC-SHA1 algorithm to generate the signature in
         # Base64 encode the result
         return base64.b64encode(hashed.digest())
 
+## Correlation ID
+
+Every request sent to the LCP is assigned a correlation ID. This value is returned
+in the API response in the `PTS-LCP-CID` header. When inquiring about a request, send
+this value to Points to help us find your request as quickly as possible.
+
 ## Single Sign-On (SSO)
 
 There are two ways to validate loyalty program member credentials and obtain account
