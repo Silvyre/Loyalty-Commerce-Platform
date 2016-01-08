@@ -83,9 +83,9 @@ public class SSORedirectServlet extends HttpServlet {
 
 	private void populateMemberValidation(JsonObject memberValidation) {
 		// required
-		memberValidation.addProperty("memberId", "110008298");
-		memberValidation.addProperty("firstName", "QA3");
-		memberValidation.addProperty("lastName", "User3");
+		memberValidation.addProperty("memberId", "");
+		memberValidation.addProperty("firstName", "");
+		memberValidation.addProperty("lastName", "");
 
 	}
 
@@ -94,18 +94,17 @@ public class SSORedirectServlet extends HttpServlet {
 
 		// required
 		memberValidationResponse.addProperty("balance", 0);
-		memberValidationResponse.addProperty("memberId", "110008298");
-		memberValidationResponse.addProperty("firstName", "QA3");
-		memberValidationResponse.addProperty("lastName", "User3");
+		memberValidationResponse.addProperty("memberId", "");
+		memberValidationResponse.addProperty("firstName", "");
+		memberValidationResponse.addProperty("lastName", "");
 		// optional
 		memberValidationResponse.addProperty("email", "");
-		memberValidationResponse.addProperty("countryCode", "US");
+		memberValidationResponse.addProperty("countryCode", "");
 		memberValidationResponse.addProperty("membershipLevel", "");
-		memberValidationResponse.addProperty("language", "es-ES");
-		memberValidationResponse.addProperty("currencyCode", "USD");
+		memberValidationResponse.addProperty("language", ""); //format is en-US
+		memberValidationResponse.addProperty("currencyCode", "");
 		memberValidationResponse.addProperty("accountStatus", "");
-		memberValidationResponse.addProperty("accountCreationDate",
-				"01-01-2015");
+		memberValidationResponse.addProperty("accountCreationDate",""); //format YYYY-MM-DD
 
 	}
 }
