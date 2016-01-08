@@ -16,6 +16,7 @@ For more information on this process please go to the [LCP Reference Manual] (ht
 - lpId is the ID of the LP configured for your loyalty program (Note: if you used your sandbox Mac ID and Mac Key above, then the lpId should start with https://sandbox...)
 - redirectBaseURL is the URL where the website where your member will be sent to (corresponding to the applicationId setup above)
 - (Optional) encryptyonKey if you want the MV URL to be AES encrypted (this assumes the third party website is configured with the same key and therefore can decrypt the value of the mv query parameter which will be passed to it)
+
 ## Usage
 
 -Update populateMemberValidation and populateMemberValidationResponse inside the SSORedirectServlet with the fields and the values you want to send over to the third party website via the LCP
