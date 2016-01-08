@@ -10,12 +10,12 @@ For more information on this process please go to the [LCP Reference Manual] (ht
 2. Download this repo using git
 3. Import this project into Eclipse
 4. Inside src/main/resources update config.properties as follows:
--macId is the Mac ID corresponding to the sandbox or live key of the application you have created in the [LCP admin console] (https://admin.lcp.points.com/)  
--macKey is the Mac Key corresponding to the sandbox or live key of the application you have created in the [LCP admin console] (https://admin.lcp.points.com/)
--applicationId is the ID of the application which is supposed to be allowed to get the details of the member you are redirecting to their site
--lpId is the ID of the LP configured for your loyalty program (Note: if you used your sandbox Mac ID and Mac Key above, then the lpId should start with https://sandbox...)
--redirectBaseURL is the URL where the website where your member will be sent to (corresponding to the applicationId setup above)
--(Optional) encryptyonKey if you want the MV URL to be AES encrypted (this assumes the third party website is configured with the same key and therefore can decrypt the value of the mv query parameter which will be passed to it)
+- macId is the Mac ID corresponding to the sandbox or live key of the application you have created in the [LCP admin console] (https://admin.lcp.points.com/)  
+- macKey is the Mac Key corresponding to the sandbox or live key of the application you have created in the [LCP admin console] (https://admin.lcp.points.com/)
+- applicationId is the ID of the application which is supposed to be allowed to get the details of the member you are redirecting to their site
+- lpId is the ID of the LP configured for your loyalty program (Note: if you used your sandbox Mac ID and Mac Key above, then the lpId should start with https://sandbox...)
+- redirectBaseURL is the URL where the website where your member will be sent to (corresponding to the applicationId setup above)
+- (Optional) encryptyonKey if you want the MV URL to be AES encrypted (this assumes the third party website is configured with the same key and therefore can decrypt the value of the mv query parameter which will be passed to it)
 ## Usage
 
 -Update populateMemberValidation and populateMemberValidationResponse inside the SSORedirectServlet with the fields and the values you want to send over to the third party website via the LCP
