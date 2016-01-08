@@ -307,6 +307,8 @@ a three step process:
    URL to securely obtain information about the member and perform transactions.
    Authenticating factors like the member’s password are not shared with the application.
    
+To see a reference implementation of this, please proceed to the [LCP Samples] (https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples/java)
+   
 ## Real-time vs Batch
 
 Moving points in or out of loyalty accounts can happen either in real-time or in a
