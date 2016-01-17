@@ -50,7 +50,7 @@ public class ServerMain {
 				}
 		}
 
-		Server server = new Server(7072);
+		Server server = new Server(Integer.parseInt(System.getenv("PORT")));
 		ServletContextHandler lpApiHandler = new ServletContextHandler(server,
 				"/");
 		lpApiHandler.setSecurityHandler(getSecurityHandler());
