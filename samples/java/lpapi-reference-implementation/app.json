@@ -1,0 +1,6 @@
+{
+  "name": "Reference implementation for the LP API",
+  "description": "A barebones LP API implementation, which can easily be deployed to Heroku.",
+  "image": "heroku/java",
+  "addons": [ "heroku-postgresql" ]
+}
