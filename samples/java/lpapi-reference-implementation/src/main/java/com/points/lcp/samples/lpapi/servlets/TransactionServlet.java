@@ -23,7 +23,7 @@ import com.heroku.sdk.jdbc.DatabaseUrl;
 public class TransactionServlet extends HttpServlet {
 	
 	private static Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-	private static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'");
+	private static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSSSS'Z'");
 	
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
