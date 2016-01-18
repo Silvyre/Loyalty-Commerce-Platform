@@ -42,7 +42,7 @@ public class TransactionServlet extends HttpServlet {
 				int amount = transactionRequest.getAsJsonPrimitive("amount").getAsInt();
 				String pic = transactionRequest.getAsJsonPrimitive("pic") != null ? "'"+transactionRequest.getAsJsonPrimitive("pic").getAsString()+"'" : null;
 				String transactionType = transactionRequest.getAsJsonObject("order") != null ? "'"+transactionRequest.getAsJsonObject("order").getAsJsonPrimitive("orderType").getAsString()+"'" : null;
-				String transactionDate = transactionRequest.getAsJsonObject("order") != null ? "'"+transactionRequest.getAsJsonObject("order").getAsJsonPrimitive("createdAt").getAsString()+"'" : dateFormatter.format(new Date());
+				String transactionDate = "'"+(transactionRequest.getAsJsonObject("order") != null ? transactionRequest.getAsJsonObject("order").getAsJsonPrimitive("createdAt").getAsString() : dateFormatter.format(new Date())) +"'";
 				System.out.println(transactionDate);
 				stmt.executeUpdate("INSERT into LPAPITRANSACTIONS(transactionId, transactionDate,memberId,pic, transactionType, amount) values('"+transactionId+"',"+transactionDate+",'"+memberId+"',"+pic+","+transactionType+","+transactionRequest.getAsJsonPrimitive("amount").getAsInt()+");");
 				stmt.executeUpdate("UPDATE LPAPIUSERS SET balance="+(currentBalance+amount)+" WHERE memberId='"+memberId+"';");
@@ -79,7 +79,7 @@ public class TransactionServlet extends HttpServlet {
 	        outputStream.write(outputResult.getBytes());
 	        Connection connection = DatabaseUrl.extract().getConnection();;
 			Statement stmt = connection.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT transactionId, transactionDate, memberId, amount, pic, transactionType FROM LPAPITRANSACTIONS");
+			ResultSet rs = stmt.executeQuery("SELECT transactionId, transactionDate, memberId, amount, pic, transactionType FROM LPAPITRANSACTIONS ORDER BY transactionDate DESC");
 			while (rs.next()) {
 				outputStream.write((rs.getString(1)+","+rs.getString(2)+","+rs.getString(3)+","+rs.getInt(4)+","+rs.getString(5)+","+rs.getString(6)+"\n").getBytes());
 			}
