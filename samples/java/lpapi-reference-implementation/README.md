@@ -1,38 +1,25 @@
-# java-getting-started
+LPAPI Reference Implementation
+=========
 
-A barebones Java app, which can easily be deployed to Heroku.  
+This Java Heroku application showcases a barebones implementation of the APIs invoked by the LCP when calling out to your loyalty program.
 
-This application support the [Getting Started with Java on Heroku](https://devcenter.heroku.com/articles/getting-started-with-java) article - check it out.
+## Setup
 
-## Running Locally
+1. Create a [free Heroku account] (https://signup.heroku.com/dc). 
+2. Install [Maven] (http://maven.apache.org/download.cgi) locally.
+3. Install [Heroku toolbelt] (https://toolbelt.heroku.com/). 
+4. Clone this repository: git clone https://github.com/Points/Loyalty-Commerce-Platform.git
+5. Navigate to the Loyalty-Commerce-Platform folder
+6. Create a Heroku application: heroku create "application name"
+7. Push the code to your Heroku application: git subtree push --prefix samples/java/lpapi-reference-implementation heroku master
+8. Start the Heroku application: heroku ps:scale web=1
 
-Make sure you have Java and Maven installed.  Also, install the [Heroku Toolbelt](https://toolbelt.heroku.com/).
+## Usage
 
-```sh
-$ git clone https://github.com/heroku/java-getting-started.git
-$ cd java-getting-started
-$ mvn install
-$ foreman start web
-```
+- Dowbload [Postman] (https://www.getpostman.com/) 
+- Import this [Postman collection] (https://www.getpostman.com/collections/5913e7f4d1f7bb920d1e)
+- Exercise the Member Validation (memberIds 1000 or 1001), Debit and Credit operations
+- Once done, exercise the Get Transactions operation to download a CSV file with all the transactions performed
+  
 
-Your app should now be running on [localhost:5000](http://localhost:5000/).
 
-If you're going to use a database, ensure you have a local `.env` file that reads something like this:
-
-```
-DATABASE_URL=postgres://localhost:5432/java_database_name
-```
-
-## Deploying to Heroku
-
-```sh
-$ heroku create
-$ git push heroku master
-$ heroku open
-```
-
-## Documentation
-
-For more information about using Java on Heroku, see these Dev Center articles:
-
-- [Java on Heroku](https://devcenter.heroku.com/categories/java)

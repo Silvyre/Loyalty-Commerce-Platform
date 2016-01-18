@@ -1,7 +1,7 @@
 SSO Reference Implementation
 =========
 
-This project demonstrate one website redirecting a logged in member to another website through the LCP.
+This project demonstrates one website redirecting a logged in member to another website through the LCP.
 For more information on this process please go to the [LCP Reference Manual] (http://points.github.io/Loyalty-Commerce-Platform/?doc=reference-manual#single-sign-on-sso-)
 
 ## Setup
