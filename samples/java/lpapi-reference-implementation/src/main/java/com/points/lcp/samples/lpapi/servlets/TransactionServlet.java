@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
@@ -22,7 +23,8 @@ import com.heroku.sdk.jdbc.DatabaseUrl;
 public class TransactionServlet extends HttpServlet {
 	
 	private static Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-
+	private static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'");
+	
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -40,7 +42,7 @@ public class TransactionServlet extends HttpServlet {
 				int amount = transactionRequest.getAsJsonPrimitive("amount").getAsInt();
 				String pic = transactionRequest.getAsJsonPrimitive("pic") != null ? "'"+transactionRequest.getAsJsonPrimitive("pic").getAsString()+"'" : null;
 				String transactionType = transactionRequest.getAsJsonObject("order") != null ? "'"+transactionRequest.getAsJsonObject("order").getAsJsonPrimitive("orderType").getAsString()+"'" : null;
-				String transactionDate = transactionRequest.getAsJsonObject("order") != null ? "'"+transactionRequest.getAsJsonObject("order").getAsJsonPrimitive("createdAt").getAsString()+"'" : new Date().toString();
+				String transactionDate = transactionRequest.getAsJsonObject("order") != null ? "'"+transactionRequest.getAsJsonObject("order").getAsJsonPrimitive("createdAt").getAsString()+"'" : dateFormatter.format(new Date());
 				
 				stmt.executeUpdate("INSERT into LPAPITRANSACTIONS(transactionId, transactionDate,memberId,pic, transactionType, amount) values('"+transactionId+"',"+transactionDate+",'"+memberId+"',"+pic+","+transactionType+","+transactionRequest.getAsJsonPrimitive("amount").getAsInt()+");");
 				stmt.executeUpdate("UPDATE LPAPIUSERS SET balance="+(currentBalance+amount)+" WHERE memberId='"+memberId+"';");
