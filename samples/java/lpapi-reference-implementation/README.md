@@ -18,6 +18,7 @@ This Java Heroku application showcases a barebones implementation of the APIs in
 
 - Dowbload [Postman] (https://www.getpostman.com/) 
 - Import this [Postman collection] (https://www.getpostman.com/collections/5913e7f4d1f7bb920d1e)
+- Replace "application" in the URL with the name of the application you created in step 6 above
 - Exercise the Member Validation (memberIds 1000 or 1001), Debit and Credit operations
 - Once done, exercise the Get Transactions operation to download a CSV file with all the transactions performed
   
