@@ -43,7 +43,7 @@ public class TransactionServlet extends HttpServlet {
 				String pic = transactionRequest.getAsJsonPrimitive("pic") != null ? "'"+transactionRequest.getAsJsonPrimitive("pic").getAsString()+"'" : null;
 				String transactionType = transactionRequest.getAsJsonObject("order") != null ? "'"+transactionRequest.getAsJsonObject("order").getAsJsonPrimitive("orderType").getAsString()+"'" : null;
 				String transactionDate = transactionRequest.getAsJsonObject("order") != null ? "'"+transactionRequest.getAsJsonObject("order").getAsJsonPrimitive("createdAt").getAsString()+"'" : dateFormatter.format(new Date());
-				
+				System.out.println(transactionDate);
 				stmt.executeUpdate("INSERT into LPAPITRANSACTIONS(transactionId, transactionDate,memberId,pic, transactionType, amount) values('"+transactionId+"',"+transactionDate+",'"+memberId+"',"+pic+","+transactionType+","+transactionRequest.getAsJsonPrimitive("amount").getAsInt()+");");
 				stmt.executeUpdate("UPDATE LPAPIUSERS SET balance="+(currentBalance+amount)+" WHERE memberId='"+memberId+"';");
 				
