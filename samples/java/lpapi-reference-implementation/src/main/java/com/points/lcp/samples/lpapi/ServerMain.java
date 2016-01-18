@@ -89,9 +89,6 @@ public class ServerMain {
 
 	private static HashLoginService getHashLoginService() {
 
-		// create the login service, assign the realm and read the user
-		// credentials
-		// from the file /tmp/realm.properties.
 		HashLoginService hls = new HashLoginService();
 		hls.setName("REALM");
 		hls.setRefreshInterval(0);
