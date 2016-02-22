@@ -4,8 +4,8 @@ For Points Loyalty Commerce Platform - Version 1.0
 ## Document Overview
 
 This document contains an in-depth description of the Points Loyalty Commerce
-Platform (LCP). You will find below descriptions of the platform,
-authentication, and error codes. This document assumes have read the [LCP Getting
+Platform (LCP). Below, you will find descriptions of the platform,
+authentication, and error codes. This document assumes that you have read the [LCP Getting
 Started Guide for Developers](./). For a detailed description of the API, see the [LCP
 API Reference](./?doc=api-reference).
 
@@ -980,12 +980,6 @@ Each link has an href property that contains the link. For example:
         }
       }
     }
-
-
-
-
-
-
 
 
 
