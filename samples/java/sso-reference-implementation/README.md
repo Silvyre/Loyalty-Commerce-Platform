@@ -21,6 +21,6 @@ For more information on this process please go to the [LCP Reference Manual] (ht
 
 - Update populateMemberValidation and populateMemberValidationResponse inside the SSORedirectServlet with the fields and the values you want to send over to the third party website via the LCP
 - Run ServerMain
-- In your browser proceed to [http://localhost:7071/redirect] (http://localhost:7071/redirect) which will redirect the member to redirectBaseURL/redirect?mv=MVURL 
+- In your browser proceed to [http://localhost:7071/redirect] (http://localhost:7071/redirect) which will redirect the member to redirectBaseURL/redirect?token=MV DELEGATE URL 
 
 
