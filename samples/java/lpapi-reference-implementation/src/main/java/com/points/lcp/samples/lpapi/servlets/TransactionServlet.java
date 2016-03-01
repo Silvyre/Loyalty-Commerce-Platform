@@ -34,13 +34,11 @@ public class TransactionServlet extends HttpServlet {
 			String memberId = transactionRequest.getAsJsonPrimitive("memberId").getAsString();
 			Connection connection = DatabaseUrl.extract().getConnection();
 			Statement stmt = connection.createStatement();
-			String selectQuery = "
-				SELECT
-					balance
-				FROM LPAPIUSERS
-				WHERE memberId = '" + memberId + "'
-				;
-			";
+			String selectQuery = "SELECT "
+					+"balance "
+				+"FROM LPAPIUSERS "
+				+"WHERE memberId = '" + memberId + "' "
+				+";";
 			ResultSet rs = stmt.executeQuery(selectQuery);
 			if (rs.next()) {
 				int currentBalance = rs.getInt(1);

@@ -28,87 +28,83 @@ public class ServerMain {
 			connection = DatabaseUrl.extract().getConnection();
 
 			Statement stmt = connection.createStatement();
-			stmt.executeUpdate("
-				CREATE TABLE IF NOT EXISTS LPAPITRANSACTIONS (
-					transactionId varchar(255) NOT NULL,
-					memberId varchar(255) NOT NULL,
-					transactionType varchar(255),
-					amount int,
-					pic varchar(255),
-					transactionDate date,
-					PRIMARY KEY (transactionId)
-				)
-			");
-			stmt.executeUpdate("
-				CREATE TABLE IF NOT EXISTS LPAPIUSERS (
-					memberId varchar(255) NOT NULL,
-					firstName varchar(255),
-					lastName varchar(255),
-					balance int,
-					membershipLevel varchar(255),
-					countryCode varchar(255),
-					email varchar(255),
-					language varchar(255),
-					accountStatus varchar(255),
-					accountCreationDate date,
-					PRIMARY KEY (memberId)
-				)
-			");
+			stmt.executeUpdate("CREATE TABLE IF NOT EXISTS LPAPITRANSACTIONS ( "
+					+"transactionId varchar(255) NOT NULL, "
+					+"memberId varchar(255) NOT NULL, "
+					+"transactionType varchar(255), "
+					+"amount int, "
+					+"pic varchar(255), "
+					+"transactionDate date, "
+					+"PRIMARY KEY (transactionId) "
+				+");"
+			);
+			stmt.executeUpdate("CREATE TABLE IF NOT EXISTS LPAPIUSERS ( "
+					+"memberId varchar(255) NOT NULL, "
+					+"firstName varchar(255), "
+					+"lastName varchar(255), "
+					+"balance int, "
+					+"membershipLevel varchar(255), "
+					+"countryCode varchar(255), "
+					+"email varchar(255), "
+					+"language varchar(255), "
+					+"accountStatus varchar(255), "
+					+"accountCreationDate date, "
+					+"PRIMARY KEY (memberId) "
+				+");"
+			);
 			try {
-				stmt.executeUpdate("
-					insert into LPAPIUSERS (
-						memberId,
-						firstName,
-						lastName,
-						balance,
-						membershipLevel,
-						accountStatus,
-						countryCode,
-						email,
-						language,
-						accountCreationDate
-					) values (
-						'1000',
-						'John',
-						'Doe',
-						10000,
-						'Gold',
-						'US',
-						'john@doe.com',
-						'en-US',
-						'ACTIVE',
-						'01-01-2016'
-					);
-				");
+				stmt.executeUpdate("insert into LPAPIUSERS ( "
+						+"memberId, "
+						+"firstName, "
+						+"lastName, "
+						+"balance, "
+						+"membershipLevel, "
+						+"accountStatus, "
+						+"countryCode, "
+						+"email, "
+						+"language, "
+						+"accountCreationDate "
+					+") values ( "
+						+"'1000', "
+						+"'John', "
+						+"'Doe', "
+						+"10000, "
+						+"'Gold', "
+						+"'US', "
+						+"'john@doe.com', "
+						+"'en-US', "
+						+"'ACTIVE', "
+						+"'01-01-2016' "
+					");"
+				);
 			} catch (Exception e) {
 				
 			} 
 			try {
-				stmt.executeUpdate("
-					insert into LPAPIUSERS (
-						memberId,
-						firstName,
-						lastName,
-						balance,
-						membershipLevel,
-						accountStatus,
-						countryCode,
-						email,
-						language,
-						accountCreationDate
-					) values (
-						'1001',
-						'Jane',
-						'Doe',
-						100000,
-						'Platinum',
-						'US',
-						'jane@doe.com',
-						'en-US',
-						'ACTIVE',
-						'01-01-2015'
-					);
-				");
+				stmt.executeUpdate("insert into LPAPIUSERS ( "
+						+"memberId, "
+						+"firstName, "
+						+"lastName, "
+						+"balance, "
+						+"membershipLevel, "
+						+"accountStatus, "
+						+"countryCode, "
+						+"email, "
+						+"language, "
+						+"accountCreationDate "
+					+") values ( "
+						+"'1001', "
+						+"'Jane', "
+						+"'Doe', "
+						+"100000, "
+						+"'Platinum', "
+						+"'US', "
+						+"'jane@doe.com', "
+						+"'en-US', "
+						+"'ACTIVE', "
+						+"'01-01-2015' "
+					+");"
+				);
 			} catch (Exception e) {
 				
 			}
