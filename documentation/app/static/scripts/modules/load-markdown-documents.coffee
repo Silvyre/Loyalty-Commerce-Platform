@@ -137,6 +137,7 @@ define [
   "mdown!../../documents/api/update-sandbox-permissions.md"
   "mdown!../../documents/getting-started.md"
   "mdown!../../documents/reference-manual.md"
+  "mdown!../../documents/lp-reference.md"
 ], (
   account_credentials_example
   account_credentials
@@ -276,6 +277,7 @@ define [
   update_sandbox_permissions
   getting_started
   reference_manual
+  lp_reference
 ) ->
   Markdown =
     account_credentials_example: account_credentials_example
@@ -416,5 +418,6 @@ define [
     update_sandbox_permissions: update_sandbox_permissions
     getting_started: getting_started
     reference_manual: reference_manual
+    lp_reference: lp_reference
 
   return Markdown

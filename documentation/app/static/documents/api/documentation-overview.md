@@ -1,5 +1,5 @@
 # LCP API Reference
-For Points Loyalty Platform - Version 1.0<br><br>
+For Points Loyalty Commerce Platform - Version 1.0<br><br>
 
 ## Document Overview
 
