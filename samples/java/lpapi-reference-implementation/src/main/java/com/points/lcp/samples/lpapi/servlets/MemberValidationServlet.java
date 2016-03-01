@@ -28,22 +28,20 @@ public class MemberValidationServlet extends HttpServlet {
 			JsonObject mvRequest = new JsonParser().parse(req.getReader()).getAsJsonObject();
 			Connection connection = DatabaseUrl.extract().getConnection();
 			Statement stmt = connection.createStatement();
-			String selectQuery = "
-				SELECT
-					memberId,
-					firstName,
-					lastName,
-					balance,
-					email,
-					accountStatus,
-					membershipLevel,
-					accountCreationDate,
-					countryCode,
-					language
-				FROM LPAPIUSERS
-				WHERE memberId = '" + mvRequest.getAsJsonPrimitive("memberId").getAsString() + "'
-				;
-			";
+			String selectQuery = "SELECT "
+					+"memberId, "
+					+"firstName, "
+					+"lastName, "
+					+"balance, "
+					+"email, "
+					+"accountStatus, "
+					+"membershipLevel, "
+					+"accountCreationDate, "
+					+"countryCode, "
+					+"language "
+				+"FROM LPAPIUSERS "
+				+"WHERE memberId = '" + mvRequest.getAsJsonPrimitive("memberId").getAsString() + "' "
+				+"; ";
 			ResultSet rs = stmt.executeQuery(selectQuery);
 			if (rs.next()) {
 				JsonObject mvResponse = new JsonObject();
