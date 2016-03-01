@@ -54,29 +54,27 @@ public class TransactionServlet extends HttpServlet {
 					? transactionRequest.getAsJsonObject("order").getAsJsonPrimitive("createdAt").getAsString() 
 					: dateFormatter.format(new Date())) +"'";
 				System.out.println(transactionDate);
-				stmt.executeUpdate("
-					INSERT into LPAPITRANSACTIONS(
-						transactionId,
-						transactionDate,
-						memberId,
-						pic,
-						transactionType,
-						amount
-					) values (
-						'"+transactionId+"',"+
-						transactionDate+",
-						'"+memberId+"',"+
+				stmt.executeUpdate("INSERT into LPAPITRANSACTIONS( "
+						+"transactionId, "
+						+"transactionDate, "
+						+"memberId, "
+						+"pic, "
+						+"transactionType, "
+						+"amount "
+					+") values ( "
+						"'"+transactionId+"',"+
+						transactionDate+","
+						"'"+memberId+"',"+
 						pic+","+
 						transactionType+","+
-						transactionRequest.getAsJsonPrimitive("amount").getAsInt()+"
-					);
-				");
-				stmt.executeUpdate("
-					UPDATE LPAPIUSERS
-					SET balance = "+(currentBalance+amount)+"
-					WHERE memberId='"+memberId+"'
-					;
-				");
+						transactionRequest.getAsJsonPrimitive("amount").getAsInt()
+					+");"
+				);
+				stmt.executeUpdate("UPDATE LPAPIUSERS "
+					+"SET balance = "+(currentBalance+amount)+" "
+					+"WHERE memberId='"+memberId+"' "
+					+"; "
+				);
 				
 				JsonObject success = new JsonObject();
 				success.addProperty("status", "success");
@@ -110,17 +108,16 @@ public class TransactionServlet extends HttpServlet {
 	        outputStream.write(outputResult.getBytes());
 	        Connection connection = DatabaseUrl.extract().getConnection();;
 			Statement stmt = connection.createStatement();
-			ResultSet rs = stmt.executeQuery("
-				SELECT
-					transactionId,
-					transactionDate,
-					memberId,
-					amount,
-					pic,
-					transactionType
-				FROM LPAPITRANSACTIONS
-				ORDER BY transactionDate DESC
-			");
+			ResultSet rs = stmt.executeQuery("SELECT "
+					+"transactionId, "
+					+"transactionDate, "
+					+"memberId, "
+					+"amount, "
+					+"pic, "
+					+"transactionType "
+				+"FROM LPAPITRANSACTIONS "
+				+"ORDER BY transactionDate DESC "
+			);
 			while (rs.next()) {
 				outputStream.write((rs.getString(1)+","+rs.getString(2)+","+rs.getString(3)+","
 					+rs.getInt(4)+","+rs.getString(5)+","+rs.getString(6)+"\n").getBytes());
