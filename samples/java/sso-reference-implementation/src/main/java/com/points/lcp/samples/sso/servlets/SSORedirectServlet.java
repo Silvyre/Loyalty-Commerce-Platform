@@ -52,9 +52,8 @@ public class SSORedirectServlet extends HttpServlet {
 
 			resp.sendRedirect(config.getProperty("redirectBaseURL")
 					+ req.getServletPath()
-					+ "?mv="
-					+ encryptMVURL(response.get("memberValidation")
-							.getAsString()));
+					+ "?token="
+					+ response.get("links").getAsJsonObject().get("self").getAsJsonObject().get("href").getAsString());
 		} catch (Exception e) {
 			resp.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
 			resp.getWriter().println(e.getMessage());
@@ -62,49 +61,32 @@ public class SSORedirectServlet extends HttpServlet {
 
 	}
 
-	private String encryptMVURL(String MVURL) throws Exception {
-		if (!config.containsKey("encryptyonKey")) {
-			return MVURL;
-		}
-		byte[] keyBytes = Hex.decodeHex(config.getProperty("encryptyonKey")
-				.toCharArray());
-		byte[] encryptedBytes = new byte[1];
-		SecretKey key = new SecretKeySpec(keyBytes, "AES");
-		try {
-
-			Cipher dataCipher = Cipher.getInstance("AES");
-			dataCipher.init(Cipher.ENCRYPT_MODE, key);
-			encryptedBytes = dataCipher.doFinal(MVURL.getBytes());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return new String(Hex.encodeHex(encryptedBytes));
-	}
-
 	private void populateMemberValidation(JsonObject memberValidation) {
-		// required
-		memberValidation.addProperty("memberId", "");
-		memberValidation.addProperty("firstName", "");
-		memberValidation.addProperty("lastName", "");
-
+		//required
+		JsonObject identifyingFactors = new JsonObject();
+		identifyingFactors.addProperty("memberId", "1");
+		identifyingFactors.addProperty("firstName", "First");
+		identifyingFactors.addProperty("lastName", "Last");
+		identifyingFactors.addProperty("email", "abc@abc.com");
+		
+		memberValidation.add("identifyingFactors", identifyingFactors);
 	}
-
-	private void populateMemberValidationResponse(
-			JsonObject memberValidationResponse) {
-
-		// required
+	
+	private void populateMemberValidationResponse(JsonObject memberValidationResponse) {
+		
+		//required
 		memberValidationResponse.addProperty("balance", 0);
-		memberValidationResponse.addProperty("memberId", "");
-		memberValidationResponse.addProperty("firstName", "");
-		memberValidationResponse.addProperty("lastName", "");
-		// optional
-		memberValidationResponse.addProperty("email", "");
-		memberValidationResponse.addProperty("countryCode", "");
+		memberValidationResponse.addProperty("memberId", "1");
+		memberValidationResponse.addProperty("firstName", "First");
+		memberValidationResponse.addProperty("lastName", "Last");
+		//optional
+		memberValidationResponse.addProperty("email", "abc@abc.com");
+		memberValidationResponse.addProperty("countryCode", "US");
 		memberValidationResponse.addProperty("membershipLevel", "");
-		memberValidationResponse.addProperty("language", ""); //format is en-US
-		memberValidationResponse.addProperty("currencyCode", "");
+		memberValidationResponse.addProperty("language", "en-US");
+		memberValidationResponse.addProperty("currencyCode", "USD");
 		memberValidationResponse.addProperty("accountStatus", "");
-		memberValidationResponse.addProperty("accountCreationDate",""); //format YYYY-MM-DD
-
+		memberValidationResponse.addProperty("accountCreationDate", "2015-01-24"); //format YYYY-MM-DD	
+		
 	}
 }
