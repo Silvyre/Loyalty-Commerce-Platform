@@ -75,7 +75,7 @@ public class ServerMain {
 						+"'en-US', "
 						+"'ACTIVE', "
 						+"'01-01-2016' "
-					");"
+					+");"
 				);
 			} catch (Exception e) {
 				

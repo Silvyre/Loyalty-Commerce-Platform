@@ -62,9 +62,9 @@ public class TransactionServlet extends HttpServlet {
 						+"transactionType, "
 						+"amount "
 					+") values ( "
-						"'"+transactionId+"',"+
+						+"'"+transactionId+"',"+
 						transactionDate+","
-						"'"+memberId+"',"+
+						+"'"+memberId+"',"+
 						pic+","+
 						transactionType+","+
 						transactionRequest.getAsJsonPrimitive("amount").getAsInt()
