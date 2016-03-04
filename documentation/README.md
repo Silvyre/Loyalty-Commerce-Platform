@@ -27,7 +27,7 @@ Download this repo and from the `documentation` folder:
 ## Usage
 
 - `grunt server` to run a local server of the documentation in development mode.
-- `grunt build` to create a build of the documentation into the `dist` folder.
+- `grunt build` (from the documentation folder) to create a build of the documentation into the `dist` folder.
 - `grunt generate-markdown-list` is used when any new `*.md` files are created
   in the `app/static/documentation/` folder. This command is also automatically run
   when `grunt build` is triggered.
