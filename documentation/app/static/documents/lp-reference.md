@@ -1,22 +1,22 @@
-# LCP Loyalty Partner API Reference Manual
+# Loyalty Partner API Reference Manual
 For Points Loyalty Commerce Platform - Version 1.0
 
 ## Document Overview
 
-This document contains a description of the RESTful API for Loyalty Partners that resides within the Points Loyalty Commerce Platform (LCP).
+This document describes the RESTful API services a Loyalty Partner can use to communicate with the Points Loyalty Commerce Platform (LCP).
 
-## Introducing the LCP Loyalty Partner API
+## Introducing the Loyalty Partner API
 
-As a Loyalty Partner (LP), you can integrate with the LCP with four simple calls to the LP API.
+As a Loyalty Partner (LP), you can integrate with the LCP with four simple calls.
 
 1. Member Validation
 1. Credit/Debit Posting
 1. Transfer Points to/from a member's account
 1. Transaction Retry (posting or transfer)
 
-When an application executes a member validation, credit, or debit operation to you (the Loyalty Partner) via the LCP, the LCP will find the pre-configured URL for your loyalty program and that specific operation, and send an HTTP request to that URL. The schema for each call is configured by Points during your onboarding process.
+When an application executes a member validation, credit, or debit operation to you (the Loyalty Partner) via the LCP, the LCP will find the pre-configured URL for your loyalty program's API and that specific operation, and send an HTTP request to that URL.
 
-A sample API integration for the member validation and credit/debit postings can be found in the [Loyalty Commerce Platform Github repository](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples/java/lpapi-reference-implementation).
+A reference implementation for the LP API's member validation and credit/debit postings can be found in the [Loyalty Commerce Platform Github repository](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples/java/lpapi-reference-implementation). Our example web server will be "http://application.herokuapp.com" below.
 
 ![LP API](static/images/lp-overview.png)
 
@@ -24,9 +24,9 @@ A sample API integration for the member validation and credit/debit postings can
 
 The basic API call for all LCP partners is the member validation (MV). Applications on the LCP will submit an MV request to determine if a member exists and check the balance of a loyalty program member's account.
 
-The request body will contain a member's details (e.g. account ID, name) and depends on the MV **request** schema. The properties of the member details returned are defined by the MV **response** schema. Both schemas are configured by Points during the onboarding process.
+The MV is the only configurable call. As a Loyalty Partner, you define what data fields you receive and share with applications. An MV **request** body will contain a member's details (e.g. account ID, name) and an MV **response** confirms the validity of a member and may include additional member data. Data fields in both the MV request and response are specified in their respective schemas. During the onboarding process, Points configures these schemas on your behalf.
 
-The following parameters are included in MV requests:
+The following parameters are recommended for MV requests:
 
 <table>
   <thead>
@@ -37,11 +37,6 @@ The following parameters are included in MV requests:
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td>order</td>
-      <td>If applicable, the expanded resource for the order that this member validation is executed as part of.</td>
-      <td>N</td>
-    </tr>
     <tr>
       <td>firstName</td>
       <td>First name of the loyalty program member</td>
@@ -72,13 +67,8 @@ The following parameters are included in MV requests:
 
 Sample MV request from applications via the LCP:
 
-    POST http://lcp-adapter.points.com/PartnerIntegrationWeb/v1/<domain name>/<routing partner>/MemberValidation
+    POST http://application.herokuapp.com/MemberValidation
     {
-      "callback": "https://lcp.points.com/v1/lps/<lp-id>/mvs/<id>",  
-      "order" : {
-          "orderType": "EARN",
-          "createdAt": "2015-12-31T15:24:00.000000Z"
-      },
       "firstName": "John",
       "lastName": "Doe",
       "memberId": "1234"
@@ -99,7 +89,7 @@ A successful MV response from you will include member details similar to those b
      "eligibility": "TransferToAny"
     }
 
-An MV response for an invalid member may return a *status* and *status message* with a helpful descriptor:
+An MV response for an invalid member must return a **status** and **statusMessage** with a helpful descriptor:
 
     200 OK
     {
@@ -122,7 +112,7 @@ As your loyalty members earn or redeem points, this service allows applications 
   <tbody>
     <tr>
       <td>callback</td>
-      <td>If the initial <em>status</em> in the response from the LP API is "pending", this URI of the LCP Credit or Debit would need to be updated at a later time.</td>
+      <td>The callback is a URI passed as a string that uniquely identifies a transaction in the LCP. This is helpful for Points' and your support teams if troubleshooting is required and it is strongly recommended that you store this string.</td>
       <td>Y</td>
     </tr>
     <tr>
@@ -157,8 +147,8 @@ As your loyalty members earn or redeem points, this service allows applications 
     </tr>
     <tr>
       <td>memberId</td>
-      <td>Member ID of the loyalty program member</td>
-      <td>N</td>
+      <td>Member ID of the loyalty program member. This is identical to the member ID in the MV.</td>
+      <td>Y</td>
     </tr>
     <tr>
       <td>password</td>
@@ -175,7 +165,7 @@ As your loyalty members earn or redeem points, this service allows applications 
 
 Sample posting request from applications via the LCP:
 
-    POST http://lcp-adapter.points.com/v1/<domain name>/<routing>/Posting/
+    POST http://application.herokuapp.com/Posting
     {
        "callback": "https://lcp.points.com/v1/lps/<lp-id>/credits/<id>",
        "amount": 100,
@@ -205,11 +195,11 @@ Sample posting request from applications via the LCP:
        "memberId": "1234"
     }
 
-A posting response returns the *transaction ID* and the *status* with an optional *statusMessage*.
+A posting response returns the **transactionId** and the **status**. In case of a *failure*, the response must include a **statusMessage**.
 
     200 OK
     {  
-       "status": "success|pending|failure",
+       "status": "success|failure",
        "transactionId": "12345678"
     }
 
@@ -230,7 +220,7 @@ The following parameters are included in transfer requests:
   <tbody>
     <tr>
       <td>callback</td>
-      <td>If the initial <em>status</em> in the response from the LP API is "pending", this URI of the LCP Credit or Debit would need to be updated at a later time.</td>
+      <td>The callback is a URI passed as a string that uniquely identifies a transaction in the LCP. This is helpful for Points' and your support teams if troubleshooting is required and it is strongly recommended that you store this string.</td>
       <td>Y</td>
     </tr>
     <tr>
@@ -260,8 +250,8 @@ The following parameters are included in transfer requests:
     </tr>
     <tr>
       <td>member/memberId</td>
-      <td>Member ID of the loyalty program member transacting</td>
-      <td>N</td>
+      <td>Member ID of the loyalty program member transacting. This is identical to the member ID in the MV.</td>
+      <td>Y</td>
     </tr>
     <tr>
       <td>recipient/firstName</td>
@@ -276,14 +266,14 @@ The following parameters are included in transfer requests:
     <tr>
       <td>recipient/memberId</td>
       <td>Member ID of the loyalty program member receiving the points</td>
-      <td>N</td>
+      <td>Y</td>
     </tr>
   </tbody>
 </table>
 
 Sample point transfer request from applications via the LCP:
 
-    POST http://lcp-adapter.points.com/v1/<domain name>/<routing>/
+    POST http://application.herokuapp.com/Transfer
     {
        "callback": "https://lcp.points.com/v1/lps/<lp-id>/credits/<id>",
        "amount": 100,
@@ -301,17 +291,17 @@ Sample point transfer request from applications via the LCP:
        }
     }
 
-A point transfer response returns the *transaction ID* and the *status* with an optional *statusMessage*.
+A point transfer response returns the **transactionId** and the **status**. In case of a *failure*, the response must include a **statusMessage**.
 
     200 OK
     {  
-       "status": "success|pending|failure",
+       "status": "success|failure",
        "transactionId": "12345678"
     }
 
 ## Retry a Transaction
 
-Occasionally, your system may undergo maintenance or experience downtime. During this time, you can return a *systemError* status instead of *failure* to the LCP for any transactions (credit/debit posting, transfer) received. You may wish to provide a service to allow the LCP to retry transactions with *systemError*. Our support team can then retry the transaction at a later time by sending the same transaction ID used on the original request.
+Occasionally, your system may undergo maintenance or experience downtime. During this time, you can return a *systemError* status instead of *failure* to the LCP for any transactions (credit/debit posting, transfer) received. For these transactions, your API should accept a call with the **transactionId**. Our support team can then retry the transaction at a later time by sending the same **transactionId** used on the original request.
 
 The following parameter is included in retry requests:
 
@@ -334,19 +324,19 @@ The following parameter is included in retry requests:
 
 Sample retry request from applications via the LCP:
 
-    POST http://lcp-adapter.points.com/v1/<domain name>/<routing>/Posting
+    POST http://application.herokuapp.com/retryTransaction
     {
        "transactionId": "12345678"
     }
 
-A transaction retry response returns the *transaction ID* and the *status* with an optional *statusMessage*.
+A transaction retry response returns the **transactionId** and the **status**. In case of a *failure*, the response must include a **statusMessage**.
 
     200 OK
     {  
-       "status": "success|pending|failure",
+       "status": "success|failure",
        "transactionId": "12345678"
     }
 
 ## Call Authorization
 
-Each call is authorized with Basic Auth (an encrypted username/password pair).
+We recommend using with Basic Auth (an encrypted username/password pair) to authorize calls from the LCP.
