@@ -7,7 +7,7 @@
 
     200 OK
     {
-      "live-permissions": [
+      "livePermissions": [
         {
           "links": {
             "self": {

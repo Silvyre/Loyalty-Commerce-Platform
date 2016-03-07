@@ -7,7 +7,7 @@
 
     200 OK
     {
-      "sandbox-permissions": [
+      "sandboxPermissions": [
         {
           "links": {
             "self": {
