@@ -9,6 +9,11 @@
     </thead>
     <tbody>
         <tr>
+            <td>2016-01-28</td>
+            <td>Added ability to filter LPs by name
+            </td>
+        </tr>
+        <tr>
             <td>2015-12-08</td>
             <td>Added member-details to sandbox permissions
             </td>
