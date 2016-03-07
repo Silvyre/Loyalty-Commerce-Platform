@@ -7,18 +7,22 @@ This document describes the RESTful API services a Loyalty Partner can use to co
 
 ## Introducing the Loyalty Partner API
 
-As a Loyalty Partner (LP), you can integrate with the LCP with four simple calls.
+As a Loyalty Partner (LP), you can integrate with the LCP and all its applications with four simple calls.
 
 1. Member Validation
 1. Credit/Debit Posting
 1. Transfer Points to/from a member's account
 1. Transaction Retry (posting or transfer)
 
+![LP API](static/images/lp-overview.png)
+
 When an application executes a member validation, credit, or debit operation to you (the Loyalty Partner) via the LCP, the LCP will find the pre-configured URL for your loyalty program's API and that specific operation, and send an HTTP request to that URL.
 
-A reference implementation for the LP API's member validation and credit/debit postings can be found in the [Loyalty Commerce Platform Github repository](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples/java/lpapi-reference-implementation). Our example web server will be "http://application.herokuapp.com" below.
+In a typical Buy transaction, an MV will precede a credit posting as illustrated.
 
-![LP API](static/images/lp-overview.png)
+![LP API - Buy example](static/images/lp-api-buy.png)
+
+A reference implementation for the LP API's member validation and credit/debit postings can be found in the [Loyalty Commerce Platform Github repository](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples/java/lpapi-reference-implementation). Our example web server will be "http://application.herokuapp.com" below.
 
 ## Validate a Member
 
