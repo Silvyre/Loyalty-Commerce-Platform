@@ -3,7 +3,7 @@ For Points Loyalty Commerce Platform - Version 1.0
 
 ## Document Overview
 
-This document describes the RESTful API services a Loyalty Partner can use to communicate with the Points Loyalty Commerce Platform (LCP).
+This document describes the RESTful API services a Loyalty Partner must implement to enable members using Loyalty Commerce Applications built on the Points Loyalty Commerce Platform (LCP) to transact.
 
 ## Introducing the Loyalty Partner API
 
@@ -22,7 +22,7 @@ For example, in a typical Buy transaction, an MV will precede a credit posting i
 
 ![LP API - Buy example](static/images/lp-api-buy.png)
 
-A reference implementation for the LP API's member validation and credit/debit postings can be found in the [Loyalty Commerce Platform Github repository](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples). Our example web server will be "http://application.com" below.
+A reference implementation for the LP API's member validation and credit/debit postings can be found in the [Loyalty Commerce Platform Github repository](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples). Our example web server will be "http://api.loyaltyprogram.com" below.
 
 ## Validate a Member
 
@@ -61,7 +61,7 @@ The following parameters are recommended for MV requests:
 
 Sample MV request from applications via the LCP:
 
-    POST http://loyaltyprogram.com/MemberValidation
+    POST http://api.loyaltyprogram.com/MemberValidation
     {
       "firstName": "John",
       "lastName": "Doe",
@@ -149,7 +149,7 @@ As your loyalty members earn or redeem points, this service allows applications 
 
 Sample posting request from applications via the LCP:
 
-    POST http://loyaltyprogram.com/Posting
+    POST http://api.loyaltyprogram.com/Posting
     {
        "callback": "https://lcp.points.com/v1/lps/<lp-id>/credits/<id>",
        "amount": 100,
@@ -258,7 +258,7 @@ The following parameters are included in transfer requests:
 
 Sample point transfer request from applications via the LCP:
 
-    POST http://loyaltyprogram.com/Transfer
+    POST http://api.loyaltyprogram.com/Transfer
     {
        "callback": "https://lcp.points.com/v1/lps/<lp-id>/credits/<id>",
        "amount": 100,
@@ -310,7 +310,7 @@ The following parameter is included in retry requests:
 
 Sample retry request from applications via the LCP:
 
-    POST http://loyaltyprogram.com/retryTransaction
+    POST http://api.loyaltyprogram.com/retryTransaction
     {
        "transactionId": "12345678"
     }
