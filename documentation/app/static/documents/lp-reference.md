@@ -61,7 +61,7 @@ The following parameters are recommended for MV requests:
 
 Sample MV request from applications via the LCP:
 
-    POST http://application.com/MemberValidation
+    POST http://loyaltyprogram.com/MemberValidation
     {
       "firstName": "John",
       "lastName": "Doe",
@@ -149,7 +149,7 @@ As your loyalty members earn or redeem points, this service allows applications 
 
 Sample posting request from applications via the LCP:
 
-    POST http://application.com/Posting
+    POST http://loyaltyprogram.com/Posting
     {
        "callback": "https://lcp.points.com/v1/lps/<lp-id>/credits/<id>",
        "amount": 100,
@@ -258,7 +258,7 @@ The following parameters are included in transfer requests:
 
 Sample point transfer request from applications via the LCP:
 
-    POST http://application.com/Transfer
+    POST http://loyaltyprogram.com/Transfer
     {
        "callback": "https://lcp.points.com/v1/lps/<lp-id>/credits/<id>",
        "amount": 100,
@@ -310,7 +310,7 @@ The following parameter is included in retry requests:
 
 Sample retry request from applications via the LCP:
 
-    POST http://application.com/retryTransaction
+    POST http://loyaltyprogram.com/retryTransaction
     {
        "transactionId": "12345678"
     }
