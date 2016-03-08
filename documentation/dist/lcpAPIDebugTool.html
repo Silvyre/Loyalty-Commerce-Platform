@@ -1,0 +1,141 @@
+<html>
+<head>
+<title> LCP API Debug Tool </title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="https://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/hmac-sha1.js"></script>
+<script src="https://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha1.js"></script>
+<script src="https://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js"></script>
+<script>
+var defaultCurlTagStart="<pre class=\"embedcurl\" width=\"620\">"
+var defaultCurlTagEnd="</pre>"
+function randomString(len, charSet) {
+    charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var randomString = '';
+    for (var i = 0; i < len; i++) {
+    	var randomPoz = Math.floor(Math.random() * charSet.length);
+    	randomString += charSet.substring(randomPoz,randomPoz+1);
+    }
+    return randomString;
+}
+function getLCPAuthHeader(macId, macKey, method, server,path,data) {
+	var d = new Date();
+	var n = d.getTime()+"";
+	var ts = n.substring(0, n.length-3);
+	var nonce=randomString(8);
+	var ext = "";
+	if (method != "GET" && data.length > 0) {
+		ext = CryptoJS.SHA1("application/json"+data);
+	}
+	macKey = macKey.replace(new RegExp("-", 'g'), "+").replace(new RegExp("_", 'g'), "/");
+	path = path.split("?")[0];
+	var normalizedRequestString = ts+"\n"+nonce+"\n"+method+"\n"+path+"\n"+server+"\n443\n"+ext+"\n";
+	var secret = CryptoJS.enc.Base64.parse(macKey);
+	var mac=CryptoJS.HmacSHA1(normalizedRequestString, secret).toString(CryptoJS.enc.Base64);
+	var header="MAC id=\""+macId+"\", ts=\""+ts+"\", nonce=\""+nonce+"\", ext=\""+ext+"\", mac=\""+mac+"\"";
+	return header;
+}
+function updateCurl() {
+	var data = "";
+    if ($('#method').val() != "GET" && $('#data').val().length > 0) {
+       	data = $('#data').val().replace(new RegExp("\n", 'g'), "").replace(new RegExp("\r", 'g'), "");
+    }
+    var authorization = getLCPAuthHeader($('#macId').val(),$('#macKey').val(),$('#method').val(),$('#server').val(),$('#path').val(),data);
+    $('#data_access_curl').html(defaultCurlTagStart + "curl -i -X " + $('#method').val() + " https://" + $('#server').val() + $('#path').val() + " -H 'Content-Type: application/json' -H 'Authorization: " + authorization + "'"+(data.length > 0 ? " -d '"+data+"'" : "") + defaultCurlTagEnd);
+    var els = document.getElementsByClassName('embedcurl');
+    for (var i = 0; i < els.length; i) {
+        var id = Math.random().toString(36).substr(2, 5);
+        var t = els[i].textContent;
+        var fr = document.createElement("iframe");
+        width = els[i].getAttribute("width") || 500;
+        var h = (typeof __base_url != 'undefined') ? __base_url : "https://www.embedcurl.com/";
+        url = h + "view?curl=" + window.btoa(unescape(encodeURIComponent(t)));
+        if (width) {
+            url += "&width=" + width;
+        }
+        var d = els[i].getAttribute("title");
+        if (d) {
+            url += "&title=" + d;
+        }
+        url += "&id=" + id;
+        fr.setAttribute("src", url);
+        fr.frameBorder = '0';
+        fr.height = 100;
+        fr.width = width;
+        fr.id = id;
+        fr.scrolling = "no";
+        els[i].parentNode.replaceChild(fr, els[i]);
+    }
+    window.addEventListener('message', function (e) {
+        document.getElementById(e.data[0]).height = e.data[1] + 18;
+    }, false);
+}
+/**
+   * Run initializations on web app load.
+   */
+  $(function() {
+    //request token
+    $('#macKey,#macId,#path,#data').keyup(function () {
+    	updateCurl();
+    });
+    $('#server,#method').change(function () {
+	    updateCurl();
+    });
+    updateCurl();
+  });
+</script>
+</head>
+<body>
+    <table class="inputDataTable">
+                <colgroup>
+                    <col style="text-align: right;"/>
+                    <col/>
+                </colgroup>
+                <tr>
+                    <td>Mac Key</td>
+                    <td colspan="2"><input type="text" id="macKey" /></td>
+                </tr>
+                <tr>
+                    <td>Mac Id</td>
+                    <td colspan="2"><input type="text" id="macId" /></td>
+                </tr>
+                <tr>
+                    <td>Server</td>
+                    <td colspan="2">
+                    	<select id="server">
+                    		<option value="staging.lcp.points.com" >Staging</option>
+                    		<option value="lcp.points.com" selected="selected">Production</option>
+                    		<option value="sandbox.lcp.points.com">Production Sandbox</option>
+                    		<option value="sandbox-staging.lcp.points.com">Staging Sandbox</option>
+                    	</select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Method</td>
+                    <td colspan="2">
+                    	<select id="method">
+                    		<option value="GET" selected="selected">GET</option>
+                    		<option value="POST">POST</option>
+                    		<option value="PUT">PUT</option>
+                    		<option value="DELETE">DELETE</option>
+                    		<option value="PATCH">PATCH</option>
+                    	</select>
+                    </td>
+                </tr>
+                <tr>
+				     <td>Path</td>
+				     <td><input type="text" id="path" /></td>
+				     <td>E.g. /v1/lps/24425742-5380-4ea6-a419-6c7e2f3c994e</td>
+                </tr>
+                <tr>
+                	<td>Body</td>
+                    <td colspan="2"><textarea id="data" cols="50" rows="20"></textarea></td>
+                </tr>
+             </table>
+            <br/>
+            <h2>LCP API request:</h2>
+            <p id="data_access_curl" style="height: 100px;"></p>
+
+  </body>
+
+
+</html>

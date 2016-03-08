@@ -7,18 +7,22 @@ This document describes the RESTful API services a Loyalty Partner can use to co
 
 ## Introducing the Loyalty Partner API
 
-As a Loyalty Partner (LP), you can integrate with the LCP with four simple calls.
+As a Loyalty Partner (LP), you can integrate with the LCP and all its applications with four simple calls.
 
 1. Member Validation
 1. Credit/Debit Posting
 1. Transfer Points to/from a member's account
 1. Transaction Retry (posting or transfer)
 
+![LP API](static/images/lp-overview.png)
+
 When an application executes a member validation, credit, or debit operation to you (the Loyalty Partner) via the LCP, the LCP will find the pre-configured URL for your loyalty program's API and that specific operation, and send an HTTP request to that URL.
 
-A reference implementation for the LP API's member validation and credit/debit postings can be found in the [Loyalty Commerce Platform Github repository](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples/java/lpapi-reference-implementation). Our example web server will be "http://application.herokuapp.com" below.
+For example, in a typical Buy transaction, an MV will precede a credit posting in the sequence illustrated.
 
-![LP API](static/images/lp-overview.png)
+![LP API - Buy example](static/images/lp-api-buy.png)
+
+A reference implementation for the LP API's member validation and credit/debit postings can be found in the [Loyalty Commerce Platform Github repository](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples). Our example web server will be "http://application.com" below.
 
 ## Validate a Member
 
@@ -52,22 +56,12 @@ The following parameters are recommended for MV requests:
       <td>Member ID of the loyalty program member</td>
       <td>Y</td>
     </tr>
-    <tr>
-      <td>password</td>
-      <td>Password for the member’s account</td>
-      <td>Y</td>
-    </tr>
-    <tr>
-      <td>zip</td>
-      <td>Zip or postal code for the member’s account</td>
-      <td>Y</td>
-    </tr>
   </tbody>
 </table>
 
 Sample MV request from applications via the LCP:
 
-    POST http://application.herokuapp.com/MemberValidation
+    POST http://application.com/MemberValidation
     {
       "firstName": "John",
       "lastName": "Doe",
@@ -150,22 +144,12 @@ As your loyalty members earn or redeem points, this service allows applications 
       <td>Member ID of the loyalty program member. This is identical to the member ID in the MV.</td>
       <td>Y</td>
     </tr>
-    <tr>
-      <td>password</td>
-      <td>Password for the member’s account</td>
-      <td>N</td>
-    </tr>
-    <tr>
-      <td>zip</td>
-      <td>Zip or postal code for the member’s account</td>
-      <td>N</td>
-    </tr>
   </tbody>
 </table>
 
 Sample posting request from applications via the LCP:
 
-    POST http://application.herokuapp.com/Posting
+    POST http://application.com/Posting
     {
        "callback": "https://lcp.points.com/v1/lps/<lp-id>/credits/<id>",
        "amount": 100,
@@ -195,11 +179,12 @@ Sample posting request from applications via the LCP:
        "memberId": "1234"
     }
 
-A posting response returns the **transactionId** and the **status**. In case of a *failure*, the response must include a **statusMessage**.
+A posting response returns the **transactionId** and the **status**. In case of a *failure*, the response must also include a **statusMessage**. The **transactionId** is useful for troubleshooting with the Points support team and [transaction retries](./?doc=lp-reference#retry-a-transaction).
 
     200 OK
     {  
        "status": "success|failure",
+       "statusMessage": "SUCCESS",
        "transactionId": "12345678"
     }
 
@@ -273,7 +258,7 @@ The following parameters are included in transfer requests:
 
 Sample point transfer request from applications via the LCP:
 
-    POST http://application.herokuapp.com/Transfer
+    POST http://application.com/Transfer
     {
        "callback": "https://lcp.points.com/v1/lps/<lp-id>/credits/<id>",
        "amount": 100,
@@ -296,6 +281,7 @@ A point transfer response returns the **transactionId** and the **status**. In c
     200 OK
     {  
        "status": "success|failure",
+       "statusMessage": "SUCCESS",
        "transactionId": "12345678"
     }
 
@@ -324,7 +310,7 @@ The following parameter is included in retry requests:
 
 Sample retry request from applications via the LCP:
 
-    POST http://application.herokuapp.com/retryTransaction
+    POST http://application.com/retryTransaction
     {
        "transactionId": "12345678"
     }
@@ -334,6 +320,7 @@ A transaction retry response returns the **transactionId** and the **status**. I
     200 OK
     {  
        "status": "success|failure",
+       "statusMessage": "SUCCESS",
        "transactionId": "12345678"
     }
 

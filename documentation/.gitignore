@@ -1,4 +1,4 @@
-dist
+
 app/static/components
 node_modules
 tmp
