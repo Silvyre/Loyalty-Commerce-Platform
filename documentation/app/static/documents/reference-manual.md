@@ -4,8 +4,8 @@ For Points Loyalty Commerce Platform - Version 1.0
 ## Document Overview
 
 This document contains an in-depth description of the Points Loyalty Commerce
-Platform (LCP). Below, you will find descriptions of the platform,
-authentication, and error codes. This document assumes that you have read the [LCP Getting
+Platform (LCP). You will find below descriptions of the platform,
+authentication, and error codes. This document assumes have read the [LCP Getting
 Started Guide for Developers](./). For a detailed description of the API, see the [LCP
 API Reference](./?doc=api-reference).
 
@@ -288,24 +288,28 @@ member credentials.
 
 ### SSO MV
 
-Single sign-on doesn’t require the application to collect member credentials and
-avoids requiring the member to login with both the loyalty program and the
+Single sign-on doesn’t require any application built on top of the Loyalty Commerce Platform to collect member credentials and
+avoids requiring the member to login with both the loyalty program website and the
 application. If the member is already signed in on the loyalty program’s website and
 the loyalty program’s website links to the application, the loyalty program can
 provide the member’s info to the LCP and allow the application to retrieve it without
 sharing any confidential information about the member through the web browser. SSO is
-a three step process:
+a five step process:
 
-1. The loyalty program [creates an MV delegate](./?doc=api-reference#create-a-mv-delegate)
+1. The Loyalty Program [creates an MV delegate](./?doc=api-reference#create-a-mv-delegate)
    on the LCP. The loyalty program provides the member info needed to create an MV and
    "delegates" the MV to the application so that the application has permission to access
    the MV. The LCP creates the MV and returns the MV URL to the loyalty program.
 1. The loyalty program redirects the user to the application and provides the
-   application with the MV URL. No member information is passed in the redirect. It is
-   securely stored in the LCP.
+   application with the MV delegate URL. No member information is passed in the redirect. It
+   is securely stored in the LCP.
+1. The application [gets the MV delegate](./?doc=api-reference#get-a-mv-delegate) from the LCP using the MV delegate
+   URL to securely obtain the location of the MV.
 1. The application [gets the MV](./?doc=api-reference#get-a-mv) from the LCP using the MV
-   URL to securely obtain information about the member and perform transactions.
+   URL in the MV delegate to securely obtain information about the member and perform transactions.
    Authenticating factors like the member’s password are not shared with the application.
+1. If necessary, the application gets the member details from the LCP by appending "/member-details"
+   to the MV URL to securly obtain additional information about the member.
    
 To see a reference implementation of this, please proceed to the [LCP Samples](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples/java/sso-reference-implementation).
    
@@ -980,4 +984,23 @@ Each link has an href property that contains the link. For example:
         }
       }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
