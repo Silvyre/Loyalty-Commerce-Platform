@@ -18,7 +18,7 @@ As a Loyalty Partner (LP), you can integrate with the LCP and all its applicatio
 
 When an application executes a member validation, credit, or debit operation to you (the Loyalty Partner) via the LCP, the LCP will find the pre-configured URL for your loyalty program's API and that specific operation, and send an HTTP request to that URL.
 
-In a typical Buy transaction, an MV will precede a credit posting as illustrated.
+For example, in a typical Buy transaction, an MV will precede a credit posting in the sequence illustrated.
 
 ![LP API - Buy example](static/images/lp-api-buy.png)
 
@@ -54,16 +54,6 @@ The following parameters are recommended for MV requests:
     <tr>
       <td>memberId</td>
       <td>Member ID of the loyalty program member</td>
-      <td>Y</td>
-    </tr>
-    <tr>
-      <td>password</td>
-      <td>Password for the member’s account</td>
-      <td>Y</td>
-    </tr>
-    <tr>
-      <td>zip</td>
-      <td>Zip or postal code for the member’s account</td>
       <td>Y</td>
     </tr>
   </tbody>
@@ -154,16 +144,6 @@ As your loyalty members earn or redeem points, this service allows applications 
       <td>Member ID of the loyalty program member. This is identical to the member ID in the MV.</td>
       <td>Y</td>
     </tr>
-    <tr>
-      <td>password</td>
-      <td>Password for the member’s account</td>
-      <td>N</td>
-    </tr>
-    <tr>
-      <td>zip</td>
-      <td>Zip or postal code for the member’s account</td>
-      <td>N</td>
-    </tr>
   </tbody>
 </table>
 
@@ -199,11 +179,12 @@ Sample posting request from applications via the LCP:
        "memberId": "1234"
     }
 
-A posting response returns the **transactionId** and the **status**. In case of a *failure*, the response must include a **statusMessage**.
+A posting response returns the **transactionId** and the **status**. In case of a *failure*, the response must also include a **statusMessage**. The **transactionId** is useful for troubleshooting with the Points support team and [transaction retries](./?doc=lp-reference#retry-a-transaction).
 
     200 OK
     {  
        "status": "success|failure",
+       "statusMessage": "SUCCESS",
        "transactionId": "12345678"
     }
 
@@ -300,6 +281,7 @@ A point transfer response returns the **transactionId** and the **status**. In c
     200 OK
     {  
        "status": "success|failure",
+       "statusMessage": "SUCCESS",
        "transactionId": "12345678"
     }
 
@@ -338,6 +320,7 @@ A transaction retry response returns the **transactionId** and the **status**. I
     200 OK
     {  
        "status": "success|failure",
+       "statusMessage": "SUCCESS",
        "transactionId": "12345678"
     }
 
