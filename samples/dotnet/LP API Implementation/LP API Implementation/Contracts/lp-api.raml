@@ -1,0 +1,146 @@
+#%RAML 0.8
+---
+title: "LCP: LP API"
+version: v1
+baseUri: https://lpapi.loyaltyprogram.com/
+schemas:
+  - mv: |
+      {  "$schema": "http://json-schema.org/draft-03/schema",
+         "type": "object",
+         "id":"mv",
+         "description": "A member validation request",
+         "properties": {
+           "memberId":  { "type": "string", "required": true },
+           "firstName":  { "type": "string" },
+           "lastName":  { "type": "string" }
+         }
+      }
+  - mvResponse: |
+      {  "$schema": "http://json-schema.org/draft-03/schema",
+         "type": "object",
+         "description": "The response to a successful request",
+         "id":"mvResponse",
+         "properties": {
+           "balance":  { "type": "integer", "required":true },
+           "language":  { "type": "string" },
+           "countryCode":  { "type": "string" },
+           "accountCreationDate":  { "type": "string" },
+           "membershipLevel":  { "type": "string" },
+           "accountStatus":  { "type": "string" },
+           "status":  { 
+           		"type": "string", 
+           		"required": true, 
+           		"enum": [
+        			"success",
+        			"failure",
+        			"systemError"
+      			] 
+      		},
+       	   "statusMessage":  { 
+       	   		"type": "string", 
+       	   		"required": true,
+       	   		"enum": [
+        			"SUCCESS",
+        			"UNKNOWN_MEMBER",
+        			"MAXIMUM_ATTEMPTS_EXCEEDED",
+        			"INELIGIBLE"
+      			]  
+       	   	}
+         }
+      }   
+  - transact: |
+      {  "$schema": "http://json-schema.org/draft-03/schema",         
+         "description": "A transaction request",
+         "type": "object",
+         "properties":
+           { 
+             "memberId":{"type": "string","required":true},
+             "amount": {"type":"integer", "required":true},
+             "pic":{"type": "string"},
+             "transactionId":{"type": "string"},
+             "bonus": {"type":"boolean"},
+             "callback": {"type":"string","required":true},
+             "order": {
+             	"type":"object",
+             	"properties": {
+             		"orderType": {"type": "string", "required": true },
+             		"createdAt": {"type": "string", "required": true },
+             		"confirmationNumber": {"type": "string", "required": true },
+             		"data" : {
+             			"type":"object",
+             			"properties": {
+             				"recipient":{
+             					"type":"object",
+             					"properties" : {
+             						"memberId":{"type": "string","required":true}
+             					}
+             				}
+             			}
+             		}
+             	}
+             }
+           }  
+      } 
+  - transactResponse: |
+      {  "$schema": "http://json-schema.org/draft-03/schema",
+         "type": "object",
+         "description": "A transaction response",
+         "properties":
+           { 
+             "transactionId":  { "type": "string", "required": true },
+             "status":  { 
+           		"type": "string", 
+           		"required": true, 
+           		"enum": [
+        			"success",
+        			"failure",
+        			"systemError"
+      			] 
+              },
+       	      "statusMessage":  { 
+       	   		"type": "string", 
+       	   		"required": true,
+       	   		"enum": [
+        			"SUCCESS",
+        			"UNKNOWN_MEMBER",
+        			"MAXIMUM_ATTEMPTS_EXCEEDED",
+        			"INELIGIBLE"
+      			]  
+       	   	  }
+            }    	
+        } 
+resourceTypes:
+  - base:
+      post?:
+          responses:
+            200:
+              description: Created              
+  - member:
+      type: base
+      post:
+  - typedMember:
+      type: member
+      post:
+        body:
+          application/json:
+            schema: <<request>>
+        responses:
+          200:
+            body:
+              application/json:
+                schema: <<response>>               
+traits:
+  - secured:
+      displayName: secured
+      headers:
+        Authorization:
+          description: The auth token for this request
+      responses:
+        401:
+          description: Unauthorized
+/validateMember:
+  type: { typedMember: { request: mv, response: mvResponse } }
+  is: [ secured ]
+/transact:
+  type: { typedMember: { request: transact, response: transactResponse } }
+  is: [ secured ]
