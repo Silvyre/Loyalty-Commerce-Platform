@@ -50,9 +50,7 @@ public class SSORedirectServlet extends HttpServlet {
 							+ "/mv-delegates/", config.getProperty("macId"),
 							config.getProperty("macKey"))).getAsJsonObject();
 
-			resp.sendRedirect(config.getProperty("redirectBaseURL")
-					+ req.getServletPath()
-					+ "?token="
+			resp.sendRedirect(config.getProperty("redirectBaseURL")					
 					+ response.get("links").getAsJsonObject().get("self").getAsJsonObject().get("href").getAsString());
 		} catch (Exception e) {
 			resp.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
