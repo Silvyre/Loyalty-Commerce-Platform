@@ -25,7 +25,6 @@ public class TransactionServlet extends HttpServlet {
 	private static Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 	private static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSSSS'Z'");
 	
-	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		try {
@@ -96,7 +95,6 @@ public class TransactionServlet extends HttpServlet {
 
 	}
 
-	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		resp.setContentType("text/csv");

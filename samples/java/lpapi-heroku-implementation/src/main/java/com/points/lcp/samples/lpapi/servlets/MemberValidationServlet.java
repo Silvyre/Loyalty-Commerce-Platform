@@ -20,7 +20,6 @@ public class MemberValidationServlet extends HttpServlet {
 	
 	private static Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		try {
@@ -50,7 +49,7 @@ public class MemberValidationServlet extends HttpServlet {
 				mvResponse.addProperty("memberId", rs.getString(1));				
 				mvResponse.addProperty("firstName", rs.getString(2));
 				mvResponse.addProperty("lastName", rs.getString(3));
-				mvResponse.addProperty("balance", rs.getInt(4));
+				mvResponse.addProperty("balance", new Integer(rs.getInt(4)));
 				mvResponse.addProperty("email", rs.getString(5));
 				mvResponse.addProperty("accountStatus", rs.getString(6));
 				mvResponse.addProperty("membershipLevel", rs.getString(7));
