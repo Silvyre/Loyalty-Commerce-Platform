@@ -1,4 +1,4 @@
-LPAPI Reference Implementation
+LPAPI Heroku Ready Implementation
 =========
 
 This Java Heroku application showcases a barebones implementation of the APIs invoked by the LCP when calling out to your loyalty program.
