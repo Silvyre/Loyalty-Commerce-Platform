@@ -11,7 +11,7 @@ This Java Heroku application showcases a barebones implementation of the APIs in
 4. In command line, clone this repository: git clone https://github.com/Points/Loyalty-Commerce-Platform.git
 5. Navigate to the *Loyalty-Commerce-Platform* folder
 6. Create a Heroku application: *heroku create "application name"*
-7. Push the code to your Heroku application: *git subtree push --prefix samples/java/lpapi-reference-implementation heroku master*
+7. Push the code to your Heroku application: *git subtree push --prefix samples/java/lpapi-heroku-implementation heroku master*
 8. Start the Heroku application: *heroku ps:scale web=1*
 
 ## Usage
