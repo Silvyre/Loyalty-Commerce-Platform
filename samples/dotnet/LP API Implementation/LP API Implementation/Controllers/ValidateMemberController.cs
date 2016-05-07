@@ -39,6 +39,7 @@ namespace LP_API_Implementation.LpApi
                     result.Language = "en-US";
                     result.MembershipLevel = "Gold";
                     result.AccountStatus = "Active";
+                    result.Email = "test@acme.com";
 
                     result.Status = Status.success;
                     result.StatusMessage = StatusMessage.SUCCESS;

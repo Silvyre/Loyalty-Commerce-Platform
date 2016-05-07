@@ -38,6 +38,10 @@ namespace LP_API_Implementation.LpApi.Models
 		[JsonProperty("accountStatus")]
         public string AccountStatus { get; set; }
 
+
+		[JsonProperty("email")]
+        public string Email { get; set; }
+
         [Required]
 		[JsonProperty("status")]
 		[JsonConverter(typeof(StringEnumConverter))]
