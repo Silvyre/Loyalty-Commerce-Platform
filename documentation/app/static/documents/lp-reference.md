@@ -13,6 +13,7 @@ As a Loyalty Partner (LP), you can integrate with the LCP and all its applicatio
 1. Credit/Debit Posting
 1. Transfer Points to/from a member's account
 1. Transaction Retry (posting or transfer)
+1. Single Sign On (SSO)
 
 ![LP API](static/images/lp-overview.png)
 
@@ -287,7 +288,7 @@ A point transfer response returns the **transactionId** and the **status**. In c
 
 ## Retry a Transaction
 
-Occasionally, your system may undergo maintenance or experience downtime. During this time, you can return a *systemError* status instead of *failure* to the LCP for any transactions (credit/debit posting, transfer) received. For these transactions, your API should accept a call with the **transactionId**. Our support team can then retry the transaction at a later time by sending the same **transactionId** used on the original request.
+Occasionally, your system may undergo maintenance or experience downtime. During this time, you can return a status of "*systemError*" instead of "*failure*" to the LCP for any transactions (credit/debit posting, transfer) received. "*systemError*" informs the application on the LCP that the request passed may be correct For these transactions, your API should accept a call with the **transactionId**. Our support team can then retry the transaction at a later time by sending the same **transactionId** used on the original request.
 
 The following parameter is included in retry requests:
 
@@ -327,3 +328,22 @@ A transaction retry response returns the **transactionId** and the **status**. I
 ## Call Authorization
 
 We recommend using with Basic Auth (an encrypted username/password pair) to authorize calls from the LCP.
+
+## Single Sign On (SSO)
+
+Your loyalty members only sign in once on your loyalty program site and can continue logged in to applications on the LCP. With SSO, LCP applications do not need member credentials (i.e. password) for members to browse and transact.
+
+![SSO MV](static/images/sso-mv.png)
+
+When the member is signed in and visits a link on your loyalty program’s website to an LCP application, your loyalty program can provide the member’s info to the LCP and allow the LCP application to retrieve it without sharing any confidential information about the member through the web browser.
+
+SSO is a five-step process:
+
+1. **Your loyalty program [creates an MV delegate](https://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#create-a-mv-delegate) on the LCP.** Your loyalty program provides the member info needed to create an MV and "delegates" the MV to the application so that the application has permission to access the MV. The LCP creates the MV and returns the MV URL to your loyalty program.
+1. **Your loyalty program redirects the user to the application and provides the application with the MV delegate URL.** No member information is passed in the redirect. It is securely stored in the LCP.
+1. **The application [gets the MV delegate](https://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#get-a-mv-delegate) from the LCP using the MV delegate URL** to securely obtain the location of the MV.
+1. **The application [gets the MV](https://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#get-a-mv) from the LCP using the MV URL** in the MV delegate to securely obtain information about the member and perform transactions. Authenticating factors like the member’s password are not shared with the application.
+1. If necessary, the application gets the member details from the LCP by appending "/member-details" to the MV URL to securely obtain additional information about the member.
+
+A [reference implementation of the SSO API](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples/java/sso-reference-implementation) can be found in the LCP Github repository.
+
