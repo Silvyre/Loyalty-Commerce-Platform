@@ -7,12 +7,13 @@ This document describes the RESTful API services a Loyalty Partner must implemen
 
 ## Introducing the Loyalty Partner API
 
-As a Loyalty Partner (LP), you can integrate with the LCP and all its applications with four simple calls.
+As a Loyalty Partner (LP), you can integrate with the LCP and all its applications with these simple calls.
 
 1. Member Validation
 1. Credit/Debit Posting
 1. Transfer Points to/from a member's account
 1. Transaction Retry (posting or transfer)
+1. Transaction Reversal
 1. Single Sign On (SSO)
 
 ![LP API](static/images/lp-overview.png)
@@ -66,7 +67,7 @@ Sample MV request from applications via the LCP:
     {
       "firstName": "John",
       "lastName": "Doe",
-      "memberId": "1234"
+      "memberId": "A1234567890"
     }
 
 A successful MV response from you will include member details similar to those below if the member exists and is valid for use. You can return additional data to applications on the LCP to enable them to offer personalized loyalty experiences to consumers (e.g. targeted offers).
@@ -74,9 +75,10 @@ A successful MV response from you will include member details similar to those b
     200 OK
     {
      "status": "success",
-     "memberId": "1234",
+     "memberId": "A1234567890",
      "accountCreationDate": "2015-12-31",
      "countryCode": "CA",
+     "cobrand": "XYZ Co"
      "balance": 200000,
      "membershipLevel": "Gold",
      "accountStatus": "Active",
@@ -89,12 +91,14 @@ An MV response for an invalid member must return a **status** and **statusMessag
     200 OK
     {
        "status": "failure",
-       "statusMessage": "UNKNOWN_MEMBER"
+       "statusMessage": "Error: Unknown Member"
     }
 
 ## Credit or Debit an Account
 
-As your loyalty members earn or redeem points, this service allows applications on the LCP to post a debit and/or credit to a member’s account. The following parameters are included in posting requests:
+As your loyalty members earn or redeem points, this service allows applications on the LCP to post a debit and/or credit to a member’s account.
+
+The following parameters are included in posting requests:
 
 <table>
   <thead>
@@ -154,30 +158,14 @@ Sample posting request from applications via the LCP:
     {
        "callback": "https://lcp.points.com/v1/lps/<lp-id>/credits/<id>",
        "amount": 100,
-       "bonus": true|false,
+       "bonus": false,
        "order" : {
-          "orderType": "EARN",
+          "orderType": "GIFT",
           "createdAt": "2014-11-25T15:24:00.000000Z",      
-          "confirmationNumber": "12345",
-          "data": {
-               "recipient": {
-                    "email": "john@gmail.com", 
-                    "firstName": "John", 
-                    "lastName": "Doe", 
-                    "memberId": "12345678901"
-                }, 
-                "user": {
-                    "balance": 3800, 
-                    "email": "jill@gmail.com", 
-                    "firstName": "Jill", 
-                    "lastName": "Doe", 
-                    "memberId": "12345678902",
-                    "membershipLevel": ""
-                }
-          }
+          "confirmationNumber": "12345"
        },
-       "pic": "EARNMALL",
-       "memberId": "1234"
+       "pic": "POINTSGIFT",
+       "memberId": "A1234567890"
     }
 
 A posting response returns the **transactionId** and the **status**. In case of a *failure*, the response must also include a **statusMessage**. The **transactionId** is useful for troubleshooting with the Points support team and [transaction retries](./?doc=lp-reference#retry-a-transaction).
@@ -185,7 +173,7 @@ A posting response returns the **transactionId** and the **status**. In case of 
     200 OK
     {  
        "status": "success|failure",
-       "statusMessage": "SUCCESS",
+       "statusMessage": "Error: Limit exceeded",
        "transactionId": "12345678"
     }
 
@@ -264,16 +252,16 @@ Sample point transfer request from applications via the LCP:
        "callback": "https://lcp.points.com/v1/lps/<lp-id>/credits/<id>",
        "amount": 100,
        "order" : {
-          "orderType": "EARN",
+          "orderType": "TRANSFER",
           "createdAt": "2015-11-25T15:24:00.000000Z",
           "confirmationNumber": "12345"
        },
-       "pic": "EARNMALL",
+       "pic": "TRANSFER",
        "member": {
-          "memberId": "1234"
+          "memberId": "A1234567890"
        },
        "recipient": {
-          "memberId": "1234"
+          "memberId": "B1234567890"
        }
     }
 
@@ -282,13 +270,13 @@ A point transfer response returns the **transactionId** and the **status**. In c
     200 OK
     {  
        "status": "success|failure",
-       "statusMessage": "SUCCESS",
+       "statusMessage": "Error: Insufficient balance",
        "transactionId": "12345678"
     }
 
 ## Retry a Transaction
 
-Occasionally, your system may undergo maintenance or experience downtime. During this time, you can return a status of "*systemError*" instead of "*failure*" to the LCP for any transactions (credit/debit posting, transfer) received. "*systemError*" informs the application on the LCP that the request passed may be correct For these transactions, your API should accept a call with the **transactionId**. Our support team can then retry the transaction at a later time by sending the same **transactionId** used on the original request.
+Occasionally, your system may undergo maintenance or experience downtime. During this time, you can return a status of "*systemError*" instead of "*failure*" to the LCP for any transactions (credit/debit posting, transfer) received. "*systemError*" informs the application on the LCP that the request passed may be correct For these transactions, your API should accept a call with the **transactionId**. The Points support team can then retry the transaction at a later time by sending the same **transactionId** used on the original request.
 
 The following parameter is included in retry requests:
 
@@ -309,9 +297,9 @@ The following parameter is included in retry requests:
   </tbody>
 </table>
 
-Sample retry request from applications via the LCP:
+Sample retry request from the LCP:
 
-    POST http://api.loyaltyprogram.com/retryTransaction
+    POST http://api.loyaltyprogram.com/RetryTransaction
     {
        "transactionId": "12345678"
     }
@@ -321,9 +309,58 @@ A transaction retry response returns the **transactionId** and the **status**. I
     200 OK
     {  
        "status": "success|failure",
-       "statusMessage": "SUCCESS",
+       "statusMessage": "Error: Transaction already succeeded",
        "transactionId": "12345678"
     }
+
+## Transaction Reversals
+
+Transactions (postings or transfers) may be cancelled for any number of reasons and members' balances should be updated in a timely manner. You may wish to provide a service to handle reversals automatically.
+
+A transaction can be fully reversed by sending the same **transactionId** used on the original request. If only some points should be reversed, an amount will be specified.
+
+Each reversal will be made on a successful transaction that has not been previously reversed.
+
+The following parameters are included in reversal requests:
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Required</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>transactionId</td>
+      <td>ID of the transaction being reattempted. This should be used to ensure that the initial transaction was indeed not successful.</td>
+      <td>Y</td>
+    </tr>
+    <tr>
+      <td>amount</td>
+      <td>Number of points to reverse for the transaction. This field will only populated for partial reversals.</td>
+      <td>N</td>
+    </tr>
+  </tbody>
+</table>
+
+Sample reversal request from the LCP:
+
+    POST http://api.loyaltyprogram.com/Reversal
+    {
+       "transactionId": "12345678"
+    }
+
+A reversal response returns the **transactionId** and the **status**. In case of a *failure*, the response must include a **statusMessage**.
+
+    200 OK
+    {  
+       "status": "success|failure",
+       "statusMessage": "Error: No such transactionId",
+       "transactionId": "12345678"
+    }
+
 
 ## Call Authorization
 
