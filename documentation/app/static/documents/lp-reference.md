@@ -317,9 +317,9 @@ A transaction retry response returns the **transactionId** and the **status**. I
 
 Transactions (postings or transfers) may be cancelled for any number of reasons and members' balances should be updated in a timely manner. You may wish to provide a service to handle reversals automatically.
 
-A transaction can be fully reversed by sending the same **transactionId** used on the original request. If only some points should be reversed, an amount will be specified.
+A transaction can be fully or partially reversed by sending the same **transactionId** used on the original request. The amount of points to reverse will always be specified and the sign (+/-) will indicate the operation to the member's points account. Amounts greater than 0 should add points into a member's account, while a negative amount should remove points.
 
-Each reversal will be made on a successful transaction that has not been previously reversed.
+Each reversal will be made on a successful transaction. If the cumulative amount to be reversed is more than the points originally transacted, the reversal should be rejected.
 
 The following parameters are included in reversal requests:
 
@@ -339,28 +339,34 @@ The following parameters are included in reversal requests:
     </tr>
     <tr>
       <td>amount</td>
-      <td>Number of points to reverse for the transaction. This field will only populated for partial reversals.</td>
-      <td>N</td>
+      <td>Number of points to reverse for the transaction. This field will be populated for all reversals.</td>
+      <td>Y</td>
     </tr>
   </tbody>
 </table>
 
-Sample reversal request from the LCP:
+Sample reversal request from the LCP to remove 2000 points from the member account corresponding to the transactionId:
 
     POST http://api.loyaltyprogram.com/Reversal
     {
-       "transactionId": "12345678"
+       "transactionId": "12345678",
+       "amount": -2000
     }
 
 A reversal response returns the **transactionId** and the **status**. In case of a *failure*, the response must include a **statusMessage**.
 
     200 OK
     {  
-       "status": "success|failure",
-       "statusMessage": "Error: No such transactionId",
+       "status": "success",
        "transactionId": "12345678"
     }
 
+    400 BAD REQUEST
+    {  
+       "status": "failure",
+       "statusMessage": "Error: No such transactionId",
+       "transactionId": "12345678"
+    }
 
 ## Call Authorization
 
