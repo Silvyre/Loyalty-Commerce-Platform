@@ -158,17 +158,17 @@ Sample posting request from applications via the LCP:
     {
        "callback": "https://lcp.points.com/v1/lps/<lp-id>/credits/<id>",
        "amount": 100,
-       "bonus": false,
+       "bonus": true|false,
        "order" : {
           "orderType": "GIFT",
           "createdAt": "2014-11-25T15:24:00.000000Z",      
-          "confirmationNumber": "12345"
+          "confirmationNumber": "1111-2222-3333-4444-5555"
        },
        "pic": "POINTSGIFT",
        "memberId": "A1234567890"
     }
 
-A posting response returns the **transactionId** and the **status**. In case of a *failure*, the response must also include a **statusMessage**. The **transactionId** is useful for troubleshooting with the Points support team and [transaction retries](./?doc=lp-reference#retry-a-transaction).
+A posting response returns the **transactionId** and the **status**. In case of a *failure*, the response must also include a **statusMessage**. The **transactionId** is a string with a maximum length of 100 characters used by the Points support team to troubleshoot and for [transaction retries](./?doc=lp-reference#retry-a-transaction).
 
     200 OK
     {  
@@ -254,7 +254,7 @@ Sample point transfer request from applications via the LCP:
        "order" : {
           "orderType": "TRANSFER",
           "createdAt": "2015-11-25T15:24:00.000000Z",
-          "confirmationNumber": "12345"
+          "confirmationNumber": "1111-2222-3333-4444-5555"
        },
        "pic": "TRANSFER",
        "member": {
