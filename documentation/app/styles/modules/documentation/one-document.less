@@ -1,0 +1,111 @@
+.one-document {
+  padding: 30px 70px;
+  max-width: 760px;
+  margin: 0 auto;
+  background: #fff;
+  .box-shadow(0px 1px 2px rgba(0,0,0,0.6));
+
+  > h1, > p {
+    padding: 0 30px;
+    margin: 0 0 10px;
+  }
+
+  > p {
+    background: url('../../../images/separator.png') no-repeat 50% bottom;
+    background-size: 700px auto;
+    padding-bottom: 30px;
+  }
+}
+
+.documents {
+  margin: 0 30px;
+  padding: 30px 0 20px;
+  border-bottom: solid 1px rgba(0,0,0,0.1);
+
+  &:last-child {
+    border-bottom: none;
+    background: none;
+  }
+
+  pre {
+    padding: 20px;
+    border-radius: 5px;
+    .box-shadow(inset 0 0 12px rgba(0,0,0,0.8));
+  }
+
+  p, ul, ol, pre {
+    margin-bottom: 18px;
+  }
+
+  ul, ol {
+    ul, ol, p {
+      margin-bottom: 10px;
+    }
+  }
+
+  table {
+    margin-bottom: 18px;
+    margin-left: -5%;
+    width: 110%;
+
+    th, td {
+      border: solid 1px #ccc;
+      padding: 10px;
+      overflow: auto;
+    }
+
+    th {
+      background: #ddd;
+      border: solid 1px #aaa;
+    }
+
+    tr:nth-child(2n) {
+      background: @gray-lighter;
+    }
+  }
+
+  .document {
+    padding: 20px 0 0;
+    margin-top: -30px;
+  }
+}
+
+@media (max-width: @screen-md-max) {
+  .one-document {
+    padding: 20px 0;
+    max-width: @screen-sm-max;
+
+    img {
+      max-width: 100%;
+    }
+
+    > h1 {
+      padding: 20px 20px 0 20px;
+    }
+
+    > p {
+      padding: 0 20px 50px 20px;
+    }
+  }
+
+  .documents {
+    margin: 0;
+    padding: 50px 30px 30px;
+
+    pre {
+      padding: 10px 20px;
+      overflow: auto;
+      font-size: 0.7em;
+      line-height: 1.6em;
+    }
+
+    .document {
+      padding: 5px 0;
+    }
+
+    table {
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+}

@@ -6,5 +6,5 @@ app/static/styles/*.css
 app/static/scripts/*.map
 app/static/scripts/*/*.js
 app/static/scripts/*/*.map
-test/*.js
+dist
 .DS_Store
