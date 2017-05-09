@@ -10583,9 +10583,9 @@ module.exports = g;
 /* 5 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************!*\
-  !*** ./app/static/templates/navigation.html ***!
-  \**********************************************/
+/*!***************************************!*\
+  !*** ./app/templates/navigation.html ***!
+  \***************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 var Handlebars = __webpack_require__(/*! ./~/handlebars/runtime.js */ 3);
@@ -10720,9 +10720,9 @@ exports.logger = _logger2['default'];
 /* 7 */
 /* unknown exports provided */
 /* all exports used */
-/*!****************************************************!*\
-  !*** ./app/static/scripts/mediators/global.coffee ***!
-  \****************************************************/
+/*!*********************************************!*\
+  !*** ./app/scripts/mediators/global.coffee ***!
+  \*********************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 var Documentation;
@@ -10755,9 +10755,9 @@ module.exports = (function(_this) {
 /* 8 */
 /* unknown exports provided */
 /* all exports used */
-/*!************************************!*\
-  !*** ./app/static/styles/app.less ***!
-  \************************************/
+/*!*****************************!*\
+  !*** ./app/styles/app.less ***!
+  \*****************************/
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
@@ -11257,9 +11257,9 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/* NProgress, 
 /* 10 */
 /* unknown exports provided */
 /* all exports used */
-/*!***********************************************!*\
-  !*** ./app/static/scripts/api-documents.json ***!
-  \***********************************************/
+/*!****************************************!*\
+  !*** ./app/scripts/api-documents.json ***!
+  \****************************************/
 /***/ (function(module, exports) {
 
 module.exports = {
@@ -11808,9 +11808,9 @@ module.exports = {
 /* 12 */
 /* unknown exports provided */
 /* all exports used */
-/*!****************************************!*\
-  !*** ./app/static/scripts/main.coffee ***!
-  \****************************************/
+/*!*********************************!*\
+  !*** ./app/scripts/main.coffee ***!
+  \*********************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {var mediators, nprogress;
@@ -11836,15 +11836,15 @@ mediators();
 
 nprogress.done();
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./../../../~/webpack/buildin/global.js */ 4)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./../../~/webpack/buildin/global.js */ 4)))
 
 /***/ }),
 /* 13 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/scripts/modules/api-documentation.coffee ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/scripts/modules/api-documentation.coffee ***!
+  \******************************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 var $, ApiDocumentation, ProcessDocumentation, documents, markdownDocuments, tmplApiArticle, tmplApiSection, tmplNavigation,
@@ -11932,9 +11932,9 @@ module.exports = ApiDocumentation = (function(superClass) {
 /* 14 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************************!*\
-  !*** ./app/static/scripts/modules/documentation.coffee ***!
-  \*********************************************************/
+/*!**************************************************!*\
+  !*** ./app/scripts/modules/documentation.coffee ***!
+  \**************************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 var $, ApiDocumentation, Documentation, tmplArticle, tmplNavigation,
@@ -12058,9 +12058,9 @@ module.exports = Documentation = (function(superClass) {
 /* 15 */
 /* unknown exports provided */
 /* all exports used */
-/*!*******************************************************************!*\
-  !*** ./app/static/scripts/modules/load-markdown-documents.coffee ***!
-  \*******************************************************************/
+/*!************************************************************!*\
+  !*** ./app/scripts/modules/load-markdown-documents.coffee ***!
+  \************************************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = {
@@ -12210,9 +12210,9 @@ module.exports = {
 /* 16 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************************!*\
-  !*** ./app/static/scripts/modules/process-documentation.coffee ***!
-  \*****************************************************************/
+/*!**********************************************************!*\
+  !*** ./app/scripts/modules/process-documentation.coffee ***!
+  \**********************************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 var $, ProcessDocumentation, Scrollspy, prettify, responsiveTables;
@@ -12401,9 +12401,9 @@ module.exports = ProcessDocumentation = (function() {
 /* 17 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/scripts/modules/responsive-tables.coffee ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/scripts/modules/responsive-tables.coffee ***!
+  \******************************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 var $, responsiveTables;
@@ -12452,9 +12452,9 @@ module.exports = responsiveTables = function(table) {
 /* 18 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************!*\
-  !*** ./app/static/scripts/modules/scrollspy.coffee ***!
-  \*****************************************************/
+/*!**********************************************!*\
+  !*** ./app/scripts/modules/scrollspy.coffee ***!
+  \**********************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 var $, Scrollspy;
@@ -12505,111 +12505,111 @@ module.exports = Scrollspy = (function() {
 /* 19 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************!*\
-  !*** ./app/static/images/batch.png ***!
-  \*************************************/
+/*!******************************!*\
+  !*** ./app/images/batch.png ***!
+  \******************************/
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__.p + "static/images/batch.png";
+module.exports = __webpack_require__.p + "images/batch.png";
 
 /***/ }),
 /* 20 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************!*\
-  !*** ./app/static/images/create-an-app.png ***!
-  \*********************************************/
+/*!**************************************!*\
+  !*** ./app/images/create-an-app.png ***!
+  \**************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__.p + "static/images/create-an-app.png";
+module.exports = __webpack_require__.p + "images/create-an-app.png";
 
 /***/ }),
 /* 21 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************!*\
-  !*** ./app/static/images/empty-app-list.png ***!
-  \**********************************************/
+/*!***************************************!*\
+  !*** ./app/images/empty-app-list.png ***!
+  \***************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__.p + "static/images/empty-app-list.png";
+module.exports = __webpack_require__.p + "images/empty-app-list.png";
 
 /***/ }),
 /* 22 */
 /* unknown exports provided */
 /* all exports used */
-/*!*******************************************!*\
-  !*** ./app/static/images/example-app.png ***!
-  \*******************************************/
+/*!************************************!*\
+  !*** ./app/images/example-app.png ***!
+  \************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__.p + "static/images/example-app.png";
+module.exports = __webpack_require__.p + "images/example-app.png";
 
 /***/ }),
 /* 23 */
 /* unknown exports provided */
 /* all exports used */
-/*!***********************************************!*\
-  !*** ./app/static/images/getting-started.png ***!
-  \***********************************************/
+/*!****************************************!*\
+  !*** ./app/images/getting-started.png ***!
+  \****************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__.p + "static/images/getting-started.png";
+module.exports = __webpack_require__.p + "images/getting-started.png";
 
 /***/ }),
 /* 24 */
 /* unknown exports provided */
 /* all exports used */
-/*!******************************************!*\
-  !*** ./app/static/images/lp-api-buy.png ***!
-  \******************************************/
+/*!***********************************!*\
+  !*** ./app/images/lp-api-buy.png ***!
+  \***********************************/
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__.p + "static/images/lp-api-buy.png";
+module.exports = __webpack_require__.p + "images/lp-api-buy.png";
 
 /***/ }),
 /* 25 */
 /* unknown exports provided */
 /* all exports used */
-/*!*******************************************!*\
-  !*** ./app/static/images/lp-overview.png ***!
-  \*******************************************/
+/*!************************************!*\
+  !*** ./app/images/lp-overview.png ***!
+  \************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__.p + "static/images/lp-overview.png";
+module.exports = __webpack_require__.p + "images/lp-overview.png";
 
 /***/ }),
 /* 26 */
 /* unknown exports provided */
 /* all exports used */
-/*!***************************************************!*\
-  !*** ./app/static/images/sandbox-credentials.png ***!
-  \***************************************************/
+/*!********************************************!*\
+  !*** ./app/images/sandbox-credentials.png ***!
+  \********************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__.p + "static/images/sandbox-credentials.png";
+module.exports = __webpack_require__.p + "images/sandbox-credentials.png";
 
 /***/ }),
 /* 27 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************!*\
-  !*** ./app/static/images/sso-mv.png ***!
-  \**************************************/
+/*!*******************************!*\
+  !*** ./app/images/sso-mv.png ***!
+  \*******************************/
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__.p + "static/images/sso-mv.png";
+module.exports = __webpack_require__.p + "images/sso-mv.png";
 
 /***/ }),
 /* 28 */
 /* unknown exports provided */
 /* all exports used */
-/*!***********************************!*\
-  !*** ./app/static/images/sso.png ***!
-  \***********************************/
+/*!****************************!*\
+  !*** ./app/images/sso.png ***!
+  \****************************/
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__.p + "static/images/sso.png";
+module.exports = __webpack_require__.p + "images/sso.png";
 
 /***/ }),
 /* 29 */
@@ -14295,9 +14295,9 @@ var prettyPrint;
 /* 31 */
 /* unknown exports provided */
 /* all exports used */
-/*!***********************************************!*\
-  !*** ./app/static/templates/api-article.html ***!
-  \***********************************************/
+/*!****************************************!*\
+  !*** ./app/templates/api-article.html ***!
+  \****************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 var Handlebars = __webpack_require__(/*! ./~/handlebars/runtime.js */ 3);
@@ -14318,9 +14318,9 @@ module.exports = (Handlebars["default"] || Handlebars).template({"compiler":[7,"
 /* 32 */
 /* unknown exports provided */
 /* all exports used */
-/*!***********************************************!*\
-  !*** ./app/static/templates/api-section.html ***!
-  \***********************************************/
+/*!****************************************!*\
+  !*** ./app/templates/api-section.html ***!
+  \****************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 var Handlebars = __webpack_require__(/*! ./~/handlebars/runtime.js */ 3);
@@ -14337,9 +14337,9 @@ module.exports = (Handlebars["default"] || Handlebars).template({"compiler":[7,"
 /* 33 */
 /* unknown exports provided */
 /* all exports used */
-/*!*******************************************!*\
-  !*** ./app/static/templates/article.html ***!
-  \*******************************************/
+/*!************************************!*\
+  !*** ./app/templates/article.html ***!
+  \************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 var Handlebars = __webpack_require__(/*! ./~/handlebars/runtime.js */ 3);
@@ -15341,9 +15341,9 @@ module.exports = exports['default'];
 /* 49 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************************!*\
-  !*** ./app/static/documents/api/account-credentials-example.md ***!
-  \*****************************************************************/
+/*!**********************************************************!*\
+  !*** ./app/documents/api/account-credentials-example.md ***!
+  \**********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/&lt;id&gt;&quot;\n    }\n  },\n  &quot;macAlgorithm&quot;: &quot;HMAC-SHA1&quot;,\n  &quot;macKey&quot;: &quot;&lt;macKey&gt;&quot;,\n  &quot;macKeyIdentifier&quot;: &quot;&lt;macKeyIdentifier&gt;&quot;,\n  &quot;type&quot;: &quot;accountCredential&quot;\n}\n</code></pre>";
@@ -15352,9 +15352,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 50 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************************!*\
-  !*** ./app/static/documents/api/account-credentials.md ***!
-  \*********************************************************/
+/*!**************************************************!*\
+  !*** ./app/documents/api/account-credentials.md ***!
+  \**************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"account-credentials\">Account Credentials</h2>\n<p>Account credentials authenticate you to perform actions on your developer account. A set of account credentials is created automatically when you create your developer account. Account credentials are the same for both sandbox and live mode. They are available at <code>/accounts/&lt;account-id&gt;/account-credentials</code> and are used to sign requests to <code>/accounts</code> and <code>/apps</code>.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>macAlgorithm</td>\n            <td>The MAC algorithm describes the algorithm used to create the signature.</td>\n        </tr>\n        <tr>\n            <td>macKey</td>\n            <td>The MAC key is the shared secret key. It should never be shared with anyone or transmitted in any request. Keep this key secure as you would any private key.</td>\n        </tr>\n        <tr>\n            <td>macKeyIdentifier</td>\n            <td>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier is sent with each request to tell the server which MAC key was used to sign the request.</td>\n        </td>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n\n\n";
@@ -15363,9 +15363,9 @@ module.exports = "<h2 id=\"account-credentials\">Account Credentials</h2>\n<p>Ac
 /* 51 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************************!*\
-  !*** ./app/static/documents/api/account-permissions-example.md ***!
-  \*****************************************************************/
+/*!**********************************************************!*\
+  !*** ./app/documents/api/account-permissions-example.md ***!
+  \**********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/account-permissions&quot;\n    }\n  },\n  &quot;support&quot;: [\n    &quot;https://lcp.points.com/v1/accounts/&lt;account-id1&gt;&quot;,\n    &quot;https://lcp.points.com/v1/accounts/&lt;account-id2&gt;&quot;\n  ],\n  &quot;type&quot;: &quot;accountPermission&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -15374,9 +15374,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 52 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************************!*\
-  !*** ./app/static/documents/api/account-permissions.md ***!
-  \*********************************************************/
+/*!**************************************************!*\
+  !*** ./app/documents/api/account-permissions.md ***!
+  \**************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"account-permissions\">Account Permissions</h2>\n<p>Account permissions allow you to grant other accounts access to your application.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>createdAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was created.</td>\n        </tr>\n        <tr>\n            <td>support</td>\n            <td>A list of <a href=\"#accounts\">accounts</a> that have permission to support the application. Accounts with support permissions have read-only access to the application and all of the application’s transactions.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n        <tr>\n            <td>updatedAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was last updated.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
@@ -15385,9 +15385,9 @@ module.exports = "<h2 id=\"account-permissions\">Account Permissions</h2>\n<p>Ac
 /* 53 */
 /* unknown exports provided */
 /* all exports used */
-/*!******************************************************!*\
-  !*** ./app/static/documents/api/accounts-example.md ***!
-  \******************************************************/
+/*!***********************************************!*\
+  !*** ./app/documents/api/accounts-example.md ***!
+  \***********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;accountCredentials&quot;: [\n    {\n      &quot;links&quot;: {\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/&lt;id&gt;/account-credentials/&lt;ac-id&gt;&quot;\n        }\n      },\n      &quot;macAlgorithm&quot;: &quot;HMAC-SHA1&quot;,\n      &quot;macKey&quot;: &quot;&lt;macKey&gt;&quot;,\n      &quot;macKeyIdentifier&quot;: &quot;&lt;macKeyIdentifier&gt;&quot;\n    }\n  ],\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;email&quot;: &quot;youremail@yourcompany.com&quot;,\n  &quot;firstName&quot;: &quot;First Name&quot;,\n  &quot;lastName&quot;: &quot;Last Name&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/&lt;id&gt;&quot;\n    },\n    &quot;friendly&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/youremail%40yourcompany.com&quot;\n    }\n  },\n  &quot;organizationName&quot;: &quot;Company&quot;,\n  &quot;phone&quot;: &quot;416-555-1234&quot;,\n  &quot;roles&quot;: [\n    {\n      &quot;role&quot;: &quot;https://lcp.points.com/v1/roles/application-developer&quot;\n    },\n    {\n      &quot;role&quot;: &quot;https://lcp.points.com/v1/roles/report-viewer&quot;,\n      &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;\n    }\n  ],\n  &quot;timeZone&quot;: &quot;America/Toronto&quot;,\n  &quot;type&quot;: &quot;account&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -15396,9 +15396,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 54 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************!*\
-  !*** ./app/static/documents/api/accounts.md ***!
-  \**********************************************/
+/*!***************************************!*\
+  !*** ./app/documents/api/accounts.md ***!
+  \***************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"accounts\">Accounts</h2>\n<p>An account is your own personal developer account on the LCP system. It is tied to your email address and gives you access credentials to the LCP. It also enables you to create one or more applications that interface with the LCP. Create an account in the <a href=\"https://admin.lcp.points.com/\">LCP Admin</a>.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>accountCredentials</td>\n            <td>An array of <a href=\"#account-credentials\">account credential</a> objects that can be used to access this account.</td>\n        </tr>\n        <tr>\n            <td>createdAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was created.</td>\n        </tr>\n        <tr>\n            <td>email</td>\n            <td>The email address of the account owner.</td>\n        </tr>\n        <tr>\n            <td>firstName</td>\n            <td>The first name of the account owner.</td>\n        </tr>\n        <tr>\n            <td>lastName</td>\n            <td>The last name of the account owner.</td>\n        </tr>\n        <tr>\n            <td>organizationName</td>\n            <td>The organization of the account owner.</td>\n        </tr>\n        <tr>\n            <td>phone</td>\n            <td>The phone number of the account owner.</td>\n        </tr>\n        <tr>\n            <td>roles</td>\n            <td>List of roles the account belongs to.</td>\n        </tr>\n        <tr>\n            <td>timeZone</td>\n            <td>The time zone of the account owner.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n        <tr>\n            <td>updatedAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was last updated.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n\n\n\n";
@@ -15407,9 +15407,9 @@ module.exports = "<h2 id=\"accounts\">Accounts</h2>\n<p>An account is your own p
 /* 55 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************!*\
-  !*** ./app/static/documents/api/apps-example.md ***!
-  \**************************************************/
+/*!*******************************************!*\
+  !*** ./app/documents/api/apps-example.md ***!
+  \*******************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;description&quot;: &quot;&lt;description&gt;&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;id&gt;&quot;\n    },\n    &quot;reports&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;id&gt;/reports/&quot;\n    }\n  },\n  &quot;liveCredentials&quot;: [],\n  &quot;name&quot;: &quot;&lt;name&gt;&quot;,\n  &quot;sandboxCredentials&quot;: [\n    &quot;https://lcp.points.com/v1/apps/&lt;id&gt;/sandbox-credentials/&lt;sc-id&gt;&quot;\n  ],\n  &quot;type&quot;: &quot;app&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -15418,9 +15418,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 56 */
 /* unknown exports provided */
 /* all exports used */
-/*!******************************************!*\
-  !*** ./app/static/documents/api/apps.md ***!
-  \******************************************/
+/*!***********************************!*\
+  !*** ./app/documents/api/apps.md ***!
+  \***********************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"apps\">Apps</h2>\n<p>Apps allow you to communicate with one or more loyalty programs. Apps are stored under the <code>/apps</code> endpoint. Use your account credentials to create one or more apps and to access your existing apps. Each app has its own set of business rules that determine which loyalty programs it can interact with, what actions it can perform, and how much each action costs.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>createdAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was created.</td>\n        </tr>\n        <tr>\n            <td>description</td>\n            <td>The description of the app.</td>\n        </tr>\n        <tr>\n            <td>liveCredentials</td>\n            <td>An array of <a href=\"#live-credentials\">live credential</a> objects that the app can use to access the live environment.</td>\n        </tr>\n        <tr>\n            <td>name</td>\n            <td>The name of the app.</td>\n        </tr>\n        <tr>\n            <td>sandboxCredentials</td>\n            <td>An array of <a href=\"#sandbox-credentials\">sandbox credential</a> objects that the app can use to access the sandbox environment.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n        <tr>\n            <td>updatedAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was last updated.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
@@ -15429,9 +15429,9 @@ module.exports = "<h2 id=\"apps\">Apps</h2>\n<p>Apps allow you to communicate wi
 /* 57 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/documents/api/create-a-credit-example.md ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/documents/api/create-a-credit-example.md ***!
+  \******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>POST https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;amount&quot;: 2000,\n  &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>201 CREATED\nlocation: https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;\n{\n  &quot;amount&quot;: 2000,\n  &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;order-id&gt;&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;transactionId&quot;: &quot;15786560&quot;,\n  &quot;type&quot;: &quot;credit&quot;,\n  &quot;updatedAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;\n}\n</code></pre>";
@@ -15440,9 +15440,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PO
 /* 58 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************!*\
-  !*** ./app/static/documents/api/create-a-credit.md ***!
-  \*****************************************************/
+/*!**********************************************!*\
+  !*** ./app/documents/api/create-a-credit.md ***!
+  \**********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"create-a-credit\">Create a Credit</h3>\n<p>Create a credit object to attempt to add points to a loyalty program member&#39;s account. A credit first requires a successful <a href=\"#member-validations\">member validation</a> that has not been used previously with another transaction. To create a new credit, POST a link to the member validation and the amount to add to the member&#39;s account under the credits endpoint for the loyalty program. Requests must be signed with your app&#39;s credentials.</p>\n<p>In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a credit.</p>\n<p>Credits can happen in real-time or in batch mode depending on the loyalty program. For real-time credits, the credit will be immediately executed by the loyalty program and the credit status will be either success or failure. For batch mode, the credit will be queued with other transactions and sent to the loyalty program in a batch job typically once a day. Batch credits will initially have a status of pending. Once the loyalty program responds, the credit will be updated to success or failure.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the <a href=\"#loyalty-programs\">loyalty program</a> (LP).</td>\n        </tr>\n        <tr>\n            <td>amount</td>\n            <td><p>The number of points to add to the member&#39;s account. Must be a positive integer.</p>\n                <p><strong>Sandbox mode</strong>: Set &quot;amount&quot; to these values to simulate different values for &quot;status&quot; in the response:\n                    <ul>\n                        <li>92: &quot;systemError&quot;</li>\n                        <li>93: &quot;failure&quot;</li>\n                        <li>94: &quot;pending&quot;</li>\n                        <li>95: &quot;pending&quot; that changes to &quot;success&quot;</li>\n                        <li>96: &quot;pending&quot; that changes to &quot;failure&quot;</li>\n                        <li>97: &quot;systemError&quot;</li>\n                        <li>98: &quot;failure&quot;</li>\n                        <li>99: &quot;failure&quot;</li>\n                        <li>Other: &quot;success&quot;</li>\n                    </ul>\n                </p>\n            </td>\n        </tr>\n        <tr>\n            <td>creditType</td>\n            <td>Indicates whether the credit is for base or bonus points or both (optional). Can be one of &quot;base&quot;, &quot;bonus&quot; or &quot;combinedBaseBonus&quot;.</td>\n        </tr>\n        <tr>\n            <td>memberValidation</td>\n            <td>Link to a member validation that identifies the member&#39;s account to be credited. The member validation cannot have been used with another transaction.</td>\n        </tr>\n        <tr>\n            <td>pic</td>\n            <td>Product Identification Code (optional). Only set this field if directed to by the loyalty program.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The credit object if it was created successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if the member validation is not valid.</p>\n";
@@ -15451,9 +15451,9 @@ module.exports = "<h3 id=\"create-a-credit\">Create a Credit</h3>\n<p>Create a c
 /* 59 */
 /* unknown exports provided */
 /* all exports used */
-/*!************************************************************!*\
-  !*** ./app/static/documents/api/create-a-debit-example.md ***!
-  \************************************************************/
+/*!*****************************************************!*\
+  !*** ./app/documents/api/create-a-debit-example.md ***!
+  \*****************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>POST https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;amount&quot;: 2000,\n  &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>201 CREATED\nlocation: https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;\n{\n  &quot;amount&quot;: 2000,\n  &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;order-id&gt;&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;transactionId&quot;: &quot;15786561&quot;,\n  &quot;type&quot;: &quot;debit&quot;,\n  &quot;updatedAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;\n}\n</code></pre>";
@@ -15462,9 +15462,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PO
 /* 60 */
 /* unknown exports provided */
 /* all exports used */
-/*!****************************************************!*\
-  !*** ./app/static/documents/api/create-a-debit.md ***!
-  \****************************************************/
+/*!*********************************************!*\
+  !*** ./app/documents/api/create-a-debit.md ***!
+  \*********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"create-a-debit\">Create a Debit</h3>\n<p>Create a debit object to attempt to deduct points from a loyalty program member&#39;s account. A debit first requires a successful <a href=\"#member-validations\">member validation</a> that has not been used previously with another transaction. To create a new debit, POST a link to the member validation and the amount to deduct from the member&#39;s account under the debits endpoint for the loyalty program. Requests must be signed with your app&#39;s credentials.</p>\n<p>In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a debit.</p>\n<p>Debits can happen in real-time or in batch mode depending on the loyalty program. For real-time debits, the debit will be immediately executed by the loyalty program and the debit status will be either success or failure. For batch mode, the debit will be queued with other transactions and sent to the loyalty program in a batch job typically once a day. Batch debits will initially have a status of pending. Once the loyalty program responds, the debit will be updated to success or failure.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the <a href=\"#loyalty-programs\">loyalty program</a> (LP).</td>\n        </tr>\n        <tr>\n            <td>amount</td>\n            <td><p>The number of points to deduct from the member&#39;s account. Must be a positive integer less than the member&#39;s balance obtained from the member validation.</p>\n                <p><strong>Sandbox mode</strong>: Set &quot;amount&quot; to these values to simulate different values for &quot;status&quot; in the response:\n                    <ul>\n                        <li>91: &quot;systemError&quot;</li>\n                        <li>94: &quot;pending&quot;</li>\n                        <li>95: &quot;pending&quot; that changes to &quot;success&quot;</li>\n                        <li>96: &quot;pending&quot; that changes to &quot;failure&quot;</li>\n                        <li>97: &quot;systemError&quot;</li>\n                        <li>98: &quot;systemError&quot;</li>\n                        <li>99: &quot;failure&quot;</li>\n                        <li>Other: &quot;success&quot;</li>\n                    </ul>\n                </p>\n            </td>\n        </tr>\n        <tr>\n            <td>memberValidation</td>\n            <td>Link to a member validation that identifies the member&#39;s account to be debited. The member validation cannot have been used with another transaction.</td>\n        </tr>\n        <tr>\n            <td>pic</td>\n            <td>Product Identification Code (optional). Only set this field if directed to by the loyalty program.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The debit object if it was created successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if the member validation is not valid or if the amount is greater than the balance in the member validation.</p>\n";
@@ -15473,9 +15473,9 @@ module.exports = "<h3 id=\"create-a-debit\">Create a Debit</h3>\n<p>Create a deb
 /* 61 */
 /* unknown exports provided */
 /* all exports used */
-/*!******************************************************************!*\
-  !*** ./app/static/documents/api/create-a-mv-delegate-example.md ***!
-  \******************************************************************/
+/*!***********************************************************!*\
+  !*** ./app/documents/api/create-a-mv-delegate-example.md ***!
+  \***********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>POST https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mv-delegates/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;memberValidation&quot;: {\n    &quot;identifyingFactors&quot;: {\n      &quot;firstName&quot;: &quot;John&quot;,\n      &quot;lastName&quot;: &quot;Doe&quot;,\n      &quot;memberId&quot;: &quot;1234&quot;\n    },\n    &quot;authenticatingFactors&quot;: {\n      &quot;password&quot;: &quot;ABCD&quot;\n    }\n  },\n  &quot;memberValidationResponse&quot;: {\n    &quot;balance&quot;: 2000\n  }\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>201 CREATED\nlocation: https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mv-delegates/&lt;id&gt;\n{\n  &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mv-delegates/&lt;id&gt;&quot;\n  },\n  &quot;type&quot;: &quot;memberValidationDelegate&quot;,\n  &quot;updatedAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;\n}\n</code></pre>";
@@ -15484,9 +15484,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PO
 /* 62 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************************!*\
-  !*** ./app/static/documents/api/create-a-mv-delegate.md ***!
-  \**********************************************************/
+/*!***************************************************!*\
+  !*** ./app/documents/api/create-a-mv-delegate.md ***!
+  \***************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"create-an-mv-delegate\">Create an MV Delegate</h3>\n<p>A loyalty program creates an MV delegate to pass an authenticated user to another application. To create an MV delegate, provide all the member information that is normally included in an MV request and response as well as the application that should have access to the MV. As a side effect, the LCP creates an MV using the provided member information and gives the other application read access to the MV. The LCP creates the MV without contacting the loyalty program since the creator of the MV delegate is considered a trusted source of member information. Only loyalty program applications can create MV delegates.</p>\n<p>The MV delegate response contains a link to the created MV. The loyalty program should redirect the user to the other application and pass the MV link to the other application. The other application then retrieves the MV and the member information. Using this method, the application does not have to collect member credentials to create its own MV. Instead, the application can immediately use the MV for debits and credits since the loyalty program has already validated the member’s credentials.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the <a href=\"#loyalty-programs\">loyalty program</a> (LP) making the request.</td>\n        </tr>\n        <tr>\n            <td>application</td>\n            <td>The application that will have permission to access the member validation.</td>\n        </tr>\n        <tr>\n            <td>identifyingFactors</td>\n            <td>Dictionary of fields that identify the loyalty program member (e.g., firstName, lastName, memberId). Varies based on the LP’s <a href=\"#mv-request-schema\">MV request schema</a>.</td>\n        </tr>\n        <tr>\n            <td>authenticatingFactors</td>\n            <td>Dictionary of fields that authenticate the loyalty program member (e.g., password, pin). These fields are not displayed. Varies based on the LP’s <a href=\"#mv-request-schema\">MV request schema</a>.</td>\n        </tr>\n        <tr>\n            <td>balance</td>\n            <td>The balance in the loyalty program member’s account.</td>\n        </tr>\n        <tr>\n            <td>order</td>\n            <td>Link to the order that this member validation belongs to (optional).</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The MV delegate object if it was created successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if any of the required MV request and response fields for the given LP are not provided.</p>\n";
@@ -15495,9 +15495,9 @@ module.exports = "<h3 id=\"create-an-mv-delegate\">Create an MV Delegate</h3>\n<
 /* 63 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************************!*\
-  !*** ./app/static/documents/api/create-a-mv-example.md ***!
-  \*********************************************************/
+/*!**************************************************!*\
+  !*** ./app/documents/api/create-a-mv-example.md ***!
+  \**************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>POST https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;identifyingFactors&quot;: {\n    &quot;firstName&quot;: &quot;John&quot;,\n    &quot;lastName&quot;: &quot;Doe&quot;,\n    &quot;memberId&quot;: &quot;1234&quot;\n  },\n  &quot;authenticatingFactors&quot;: {\n    &quot;password&quot;: &quot;ABCD&quot;\n  }\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>201 CREATED\nlocation: https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;\n{\n  &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;authenticatingFactors&quot;: {\n    &quot;password&quot;: &quot;*****&quot;\n  },\n  &quot;balance&quot;: 2000,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;identifyingFactors&quot;: {\n    &quot;firstName&quot;: &quot;John&quot;,\n    &quot;lastName&quot;: &quot;Doe&quot;,\n    &quot;memberId&quot;: &quot;1234&quot;\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;type&quot;: &quot;memberValidation&quot;,\n  &quot;updatedAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;\n}\n</code></pre>";
@@ -15506,9 +15506,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PO
 /* 64 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************!*\
-  !*** ./app/static/documents/api/create-a-mv.md ***!
-  \*************************************************/
+/*!******************************************!*\
+  !*** ./app/documents/api/create-a-mv.md ***!
+  \******************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"create-an-mv\">Create an MV</h3>\n<p>To create a new MV, POST the loyalty program member&#39;s account details to the loyalty program&#39;s MV service and sign the request with your app credentials. In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating a MV. See <a href=\"#sandbox-mvs\">Sandbox MVs</a> for details.</p>\n<p>Authenticating a member requires a specific set of fields, defined by the specific loyalty program you wish to communicate with. For example, some loyalty programs may require a member ID and password, while others require a member ID, last name, and password. To determine which fields are required for a particular loyalty program, get its <a href=\"#mv-request-schema\">MV request schema</a>.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the <a href=\"#loyalty-programs\">loyalty program</a> (LP).</td>\n        </tr>\n        <tr>\n            <td>identifyingFactors</td>\n            <td>Dictionary of fields that identify the loyalty program member (e.g., firstName, lastName, memberId). Varies based on the LP’s <a href=\"#mv-request-schema\">MV request schema</a>.</td>\n        </tr>\n        <tr>\n            <td>authenticatingFactors</td>\n            <td>Dictionary of fields that authenticate the loyalty program member (e.g., password, pin). These fields are not displayed. Varies based on the LP’s <a href=\"#mv-request-schema\">MV request schema</a>.</td>\n        </tr>\n        <tr>\n            <td>order</td>\n            <td>Link to the order that this member validation belongs to (optional).</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The MV object if it was created successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if the required credentials are not provided or if the member could not be validated for the given loyalty program.</p>\n<table>\n    <thead>\n        <tr>\n            <th>HTTP Status Code</th>\n            <th>Error Code</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>422 Unprocessable Entity</td>\n            <td>INELIGIBLE</td>\n            <td>The member is not eligible to perform this transaction.</td>\n        </tr>\n        <tr>\n            <td>422 Unprocessable Entity</td>\n            <td>MAXIMUM_ATTEMPTS_EXCEEDED</td>\n            <td>The maximum number of incorrect MV attempts has been exceeded for this user.</td>\n        </tr>\n        <tr>\n            <td>422 Unprocessable Entity</td>\n            <td>UNKNOWN_MEMBER</td>\n            <td>The loyalty program couldn&#39;t find a member with the given credentials.</td>\n        </tr>\n        <tr>\n            <td>502 Bad Gateway</td>\n            <td>INVALID_UPSTREAM_RESPONSE</td>\n            <td>An external upstream service issued an invalid response.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n\n\n";
@@ -15517,9 +15517,9 @@ module.exports = "<h3 id=\"create-an-mv\">Create an MV</h3>\n<p>To create a new 
 /* 65 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/documents/api/create-a-report-example.md ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/documents/api/create-a-report-example.md ***!
+  \******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>POST https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;description&quot;: &quot;Report on all transactions performed by my app&quot;,\n  &quot;name&quot;: &quot;My App’s Transaction Report&quot;,\n  &quot;url&quot;: &quot;https://myapp.com/reports/report-name&quot;\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>201 CREATED\nlocation: https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;id&gt;\n{\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;description&quot;: &quot;Report on all transactions performed by my app&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;id&gt;&quot;\n    },\n    &quot;instances&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;id&gt;/instances/&quot;\n    }\n  },\n  &quot;name&quot;: &quot;My App’s Transaction Report&quot;,\n  &quot;type&quot;: &quot;report&quot;,\n  &quot;updatedAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;url&quot;: &quot;https://myapp.com/reports/report-name&quot;\n}\n</code></pre>";
@@ -15528,9 +15528,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PO
 /* 66 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************************************!*\
-  !*** ./app/static/documents/api/create-a-report-instance-example.md ***!
-  \**********************************************************************/
+/*!***************************************************************!*\
+  !*** ./app/documents/api/create-a-report-instance-example.md ***!
+  \***************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>POST https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;/instances/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>201 CREATED\nlocation: https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;/instances/&lt;id&gt;\n{\n  &quot;contentType&quot;: &quot;application/json&quot;,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;/instances/&lt;id&gt;&quot;\n    },\n    &quot;data&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;/instances/&lt;id&gt;/data&quot;\n    },\n    &quot;report&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;&quot;\n    }\n  },\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;type&quot;: &quot;reportInstance&quot;,\n  &quot;updatedAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;\n}\n</code></pre>";
@@ -15539,9 +15539,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PO
 /* 67 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************************!*\
-  !*** ./app/static/documents/api/create-a-report-instance.md ***!
-  \**************************************************************/
+/*!*******************************************************!*\
+  !*** ./app/documents/api/create-a-report-instance.md ***!
+  \*******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"create-a-report-instance\">Create a Report Instance</h3>\n<p>Create a report instance to generate a copy of a report. Creating a report instance triggers the LCP to perform a GET on the URL provided in the report definition. If the GET is successful, the response body is the data for the report. Currently, the LCP only supports data with a Content-Type of application/json. The LCP keeps a copy of the data so the report instance can be retrieved later.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n        <tr>\n            <td>report-id</td>\n            <td>The identifier of the report.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The report instance if it was created successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if the application or report does not exist. If the report instance was created, the status field indicates the progress in retrieving the report data from the application URL. A status of “success” indicates the report data is ready. A status is “failure” means one of the following:</p>\n<ul>\n  <li>The LCP could not connect to the URL provided in the report definition</li>\n  <li>The URL did not respond within 30 seconds</li>\n  <li>The URL did not return a 200 response</li>\n  <li>The Content-Type of the response was not application/json</li>\n</ul>\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
@@ -15550,9 +15550,9 @@ module.exports = "<h3 id=\"create-a-report-instance\">Create a Report Instance</
 /* 68 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************!*\
-  !*** ./app/static/documents/api/create-a-report.md ***!
-  \*****************************************************/
+/*!**********************************************!*\
+  !*** ./app/documents/api/create-a-report.md ***!
+  \**********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"create-a-report\">Create a Report</h3>\n<p>Applications can publish reports that can be accessed by other users of the LCP. Create a report to register a new report with the LCP. Provide a name and description for your report as well as a URL where the LCP can get the report data when it is requested by a user.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n        <tr>\n            <td>description</td>\n            <td>The description of the report (optional).</td>\n        </tr>\n        <tr>\n            <td>name</td>\n            <td>The name of the report.</td>\n        </tr>\n        <tr>\n            <td>url</td>\n            <td>The URL to access the report. Must be HTTPS.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The report object if it was created successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if the name is not provided or if the URL is not a valid HTTPS URL.</p>\n";
@@ -15561,9 +15561,9 @@ module.exports = "<h3 id=\"create-a-report\">Create a Report</h3>\n<p>Applicatio
 /* 69 */
 /* unknown exports provided */
 /* all exports used */
-/*!************************************************************************!*\
-  !*** ./app/static/documents/api/create-account-credentials-example.md ***!
-  \************************************************************************/
+/*!*****************************************************************!*\
+  !*** ./app/documents/api/create-account-credentials-example.md ***!
+  \*****************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>POST https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n}\n</code></pre><h4 id=\"example-request\">Example Request</h4>\n<pre><code>201 CREATED\nlocation: https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/&lt;id&gt;\n{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/&lt;id&gt;&quot;\n    }\n  },\n  &quot;macAlgorithm&quot;: &quot;HMAC-SHA1&quot;,\n  &quot;macKey&quot;: &quot;&lt;macKey&gt;&quot;,\n  &quot;macKeyIdentifier&quot;: &quot;&lt;macKeyIdentifier&gt;&quot;,\n  &quot;type&quot;: &quot;accountCredential&quot;\n}\n</code></pre>";
@@ -15572,9 +15572,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PO
 /* 70 */
 /* unknown exports provided */
 /* all exports used */
-/*!****************************************************************!*\
-  !*** ./app/static/documents/api/create-account-credentials.md ***!
-  \****************************************************************/
+/*!*********************************************************!*\
+  !*** ./app/documents/api/create-account-credentials.md ***!
+  \*********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"create-account-credentials\">Create Account Credentials</h3>\n<p>Account credentials are automatically created when you create your account. However, you can create additional credentials if you want another set or if your first set has been compromised. You must use your first set of credentials to sign the request.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>account-id</td>\n            <td>The identifier of the account to add credentials to.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The account credentials object if it was created successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if you are not authorized to create new account credentials on this account.</p>\n";
@@ -15583,9 +15583,9 @@ module.exports = "<h3 id=\"create-account-credentials\">Create Account Credentia
 /* 71 */
 /* unknown exports provided */
 /* all exports used */
-/*!***********************************************************!*\
-  !*** ./app/static/documents/api/create-an-app-example.md ***!
-  \***********************************************************/
+/*!****************************************************!*\
+  !*** ./app/documents/api/create-an-app-example.md ***!
+  \****************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>POST https://lcp.points.com/v1/apps/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;name&quot;: &quot;My App&quot;,\n  &quot;description&quot;: &quot;Description of my app&quot;\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>201 CREATED\nlocation: https://lcp.points.com/v1/apps/&lt;id&gt;\n{\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;description&quot;: &quot;Description of my app&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;id&gt;&quot;\n    },\n    &quot;reports&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;id&gt;/reports/&quot;\n    }\n  },\n  &quot;liveCredentials&quot;: [],\n  &quot;name&quot;: &quot;My App&quot;,\n  &quot;sandboxCredentials&quot;: [\n    &quot;https://lcp.points.com/v1/apps/&lt;id&gt;/sandbox-credentials/&lt;sc-id&gt;&quot;\n  ],\n  &quot;type&quot;: &quot;app&quot;,\n  &quot;updatedAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;\n}\n</code></pre>";
@@ -15594,9 +15594,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PO
 /* 72 */
 /* unknown exports provided */
 /* all exports used */
-/*!***************************************************!*\
-  !*** ./app/static/documents/api/create-an-app.md ***!
-  \***************************************************/
+/*!********************************************!*\
+  !*** ./app/documents/api/create-an-app.md ***!
+  \********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"create-an-app\">Create an App</h3>\n<p>To create a new application, POST the application name and description to <code>/apps</code> and sign the request with your account credentials. Sandbox credentials are created automatically when you create an app. Your app can use these credentials to access the sandbox environment. Credentials to access the live environment can only be created by Points.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>name</td>\n            <td>The name of your app (required). Provide a short name for your app, up to 50 characters.</td>\n        </tr>\n        <tr>\n            <td>description</td>\n            <td>A description for your app (required). Provide a detailed description of your app, up to 4000 characters.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The app object if it was created successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if the name or description is not provided.</p>\n";
@@ -15605,9 +15605,9 @@ module.exports = "<h3 id=\"create-an-app\">Create an App</h3>\n<p>To create a ne
 /* 73 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/documents/api/create-an-order-example.md ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/documents/api/create-an-order-example.md ***!
+  \******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>POST https://sandbox.lcp.points.com/v1/orders/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;data&quot;: {\n    &quot;clientIpAddress&quot;: &quot;127.0.0.1&quot;, \n    &quot;clientUserAgent&quot;: &quot;Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0&quot;, \n    &quot;language&quot;: &quot;en-US&quot;, \n    &quot;orderDetails&quot;: {\n      &quot;basePoints&quot;: 2000, \n      &quot;loyaltyProgram&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;\n    }, \n    &quot;user&quot;: {\n      &quot;email&quot;: &quot;jdoe@example.com&quot;,\n      &quot;firstName&quot;: &quot;John&quot;, \n      &quot;lastName&quot;: &quot;Doe&quot;, \n      &quot;memberId&quot;: &quot;1234&quot;, \n      &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;\n    }\n  },\n  &quot;orderType&quot;: &quot;EXCHANGE_CREDIT&quot;\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>201 CREATED\nlocation: https://sandbox.lcp.points.com/v1/orders/&lt;id&gt;\n{\n  &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;confirmationNumber&quot;: &quot;3902-2266-8404-8538-1721&quot;,\n  &quot;createdAt&quot;: &quot;2014-02-26T17:47:00.000000Z&quot;,\n  &quot;data&quot;: {\n    &quot;clientIpAddress&quot;: &quot;127.0.0.1&quot;, \n    &quot;clientUserAgent&quot;: &quot;Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0&quot;, \n    &quot;language&quot;: &quot;en-US&quot;, \n    &quot;orderDetails&quot;: {\n      &quot;basePoints&quot;: 2000, \n      &quot;loyaltyProgram&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;\n    }, \n    &quot;user&quot;: {\n      &quot;email&quot;: &quot;jdoe@example.com&quot;,\n      &quot;firstName&quot;: &quot;John&quot;, \n      &quot;lastName&quot;: &quot;Doe&quot;, \n      &quot;memberId&quot;: &quot;1234&quot;, \n      &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;\n    }\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;id&gt;&quot;\n    }\n  },\n  &quot;orderType&quot;: &quot;EXCHANGE_CREDIT&quot;,\n  &quot;status&quot;: &quot;initial&quot;,\n  &quot;type&quot;: &quot;order&quot;,\n  &quot;updatedAt&quot;: &quot;2014-02-26T17:47:00.000000Z&quot;,\n  &quot;updates&quot;: []\n}\n</code></pre>";
@@ -15616,9 +15616,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PO
 /* 74 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************!*\
-  !*** ./app/static/documents/api/create-an-order.md ***!
-  \*****************************************************/
+/*!**********************************************!*\
+  !*** ./app/documents/api/create-an-order.md ***!
+  \**********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"create-an-order\">Create an Order</h3>\n<p>Create an order to store details of a transaction. Requests must be signed with app credentials (sandbox or live).</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>data.clientIpAddress</td>\n            <td>User’s IP address. Between 7 and 40 characters.</td>\n        </tr>\n        <tr>\n            <td>data.clientUserAgent</td>\n            <td>Header provided by user’s browser (user agent). Maximum length of 300 characters.</td>\n        </tr>\n        <tr>\n            <td>data.language</td>\n            <td>The user’s preferred language. Must be an <a href=\"http://en.wikipedia.org/wiki/IETF_language_tag\">IETF language tag</a>, which includes a two letter language code and an optional country code, hyphen separated. Language code is lowercase, country code is upper case.</td>\n        </tr>\n        <tr>\n            <td>data.orderDetails.basePoints</td>\n            <td>Number of points being added to or removed from the user’s LP account.</td>\n        </tr>\n        <tr>\n            <td>data.orderDetails.loyaltyProgram</td>\n            <td>Link to the loyalty program resource.</td>\n        </tr>\n        <tr>\n            <td>data.user.email</td>\n            <td>The email address of the user.</td>\n        </tr>\n        <tr>\n            <td>data.user.firstName</td>\n            <td>The first name of user.</td>\n        </tr>\n        <tr>\n            <td>data.user.lastName</td>\n            <td>The last name of user.</td>\n        </tr>\n        <tr>\n            <td>data.user.memberId</td>\n            <td>The member ID of the user’s LP account.</td>\n        </tr>\n        <tr>\n            <td>data.user.memberValidation</td>\n            <td>Link to the member validation resource.</td>\n        </tr>\n        <tr>\n            <td>orderType</td>\n            <td>\n                <p>The type of order. Can be one of:\n                    <ul>\n                        <li>&quot;EXCHANGE_CREDIT&quot; for credit orders</li>\n                        <li>&quot;REDEEM_DEBIT&quot; for debit orders</li>\n                    </ul>\n                    Contact Points to determine which order type you should use.\n                </p>\n            </td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The order object if it was created successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if the order was not created due to a data validation error.</p>\n";
@@ -15627,9 +15627,9 @@ module.exports = "<h3 id=\"create-an-order\">Create an Order</h3>\n<p>Create an 
 /* 75 */
 /* unknown exports provided */
 /* all exports used */
-/*!************************************************************************!*\
-  !*** ./app/static/documents/api/create-sandbox-permissions-example.md ***!
-  \************************************************************************/
+/*!*****************************************************************!*\
+  !*** ./app/documents/api/create-sandbox-permissions-example.md ***!
+  \*****************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>POST https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-permissions/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;operations&quot;: [&quot;mvs&quot;, &quot;debits&quot;, &quot;credits&quot;]\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>201 CREATED\nlocation: https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-permissions/&lt;id&gt;\n{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-permissions/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;operations&quot;: [&quot;mvs&quot;, &quot;debits&quot;, &quot;credits&quot;],\n  &quot;type&quot;: &quot;sandboxPermission&quot;\n}\n</code></pre>";
@@ -15638,9 +15638,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PO
 /* 76 */
 /* unknown exports provided */
 /* all exports used */
-/*!****************************************************************!*\
-  !*** ./app/static/documents/api/create-sandbox-permissions.md ***!
-  \****************************************************************/
+/*!*********************************************************!*\
+  !*** ./app/documents/api/create-sandbox-permissions.md ***!
+  \*********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"create-sandbox-permissions\">Create Sandbox Permissions</h3>\n<p>Gives an application permission to perform operations in sandbox mode on an LP. Only one set of sandbox permissions can exist for a given app-LP relationship.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n        <tr>\n            <td>loyaltyProgram</td>\n            <td>The URL of the <a href=\"#loyalty-programs\">loyalty program</a>.</td>\n        </tr>\n        <tr>\n            <td>operations</td>\n            <td>An array of operations that the applications is permitted to do in sandbox mode for the LP. Must be one or more of &quot;mvs&quot;, &quot;member-details&quot;, &quot;mv-delegates&quot;, &quot;debits&quot;, &quot;credits&quot;, &quot;credit-delegates&quot;.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The sandbox permissions object if it was created successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if the app or LP doesn’t exist or if an invalid operation is provided. Returns an error with SANDBOX_PERMISSIONS_ALREADY_EXIST if the loyalty program and application already have sandbox permissions configured.</p>\n";
@@ -15649,9 +15649,9 @@ module.exports = "<h3 id=\"create-sandbox-permissions\">Create Sandbox Permissio
 /* 77 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************!*\
-  !*** ./app/static/documents/api/credits-example.md ***!
-  \*****************************************************/
+/*!**********************************************!*\
+  !*** ./app/documents/api/credits-example.md ***!
+  \**********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;amount&quot;: 2000,\n  &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;claimCode&quot;: &quot;TZ9E-9YHMHU-PDEE&quot;,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;creditType&quot;: &quot;base&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;order-id&gt;&quot;,\n  &quot;pic&quot;: &quot;ABC&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;transactionId&quot;: &quot;15786560&quot;,\n  &quot;type&quot;: &quot;credit&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -15660,9 +15660,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 78 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************!*\
-  !*** ./app/static/documents/api/credits.md ***!
-  \*********************************************/
+/*!**************************************!*\
+  !*** ./app/documents/api/credits.md ***!
+  \**************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"credits\">Credits</h2>\n<p>A credit is a transaction that adds points to a loyalty program member&#39;s account. Creating a credit object triggers the addition of points. A record of the credit is kept that can later be retrieved. A credit requires a member validation that has not been previously used for another transaction. Credits are stored for each loyalty program under <code>/lps/&lt;lp-id&gt;/credits/</code>.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>amount</td>\n            <td>The number of points added to the member&#39;s account. Must be a positive integer.</td>\n        </tr>\n        <tr>\n            <td>application</td>\n            <td>The application that created the transaction.</td>\n        </tr>\n        <tr>\n            <td>claimCode</td>\n            <td>The claim code for Amazon gift cards.</td>\n        </tr>\n        <tr>\n            <td>createdAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was created.</td>\n        </tr>\n        <tr>\n            <td>creditType</td>\n            <td>Indicates whether the credit is for base or bonus points or both.</td>\n        </tr>\n        <tr>\n            <td>loyaltyProgram</td>\n            <td>The loyalty program involved in the transaction.</td>\n        </tr>\n        <tr>\n            <td>memberValidation</td>\n            <td>Link to a member validation that identifies the member&#39;s account that was credited.</td>\n        </tr>\n        <tr>\n            <td>order</td>\n            <td>Link to the order that this credit belongs to.</td>\n        </tr>\n        <tr>\n            <td>pic</td>\n            <td>Product Identification Code.</td>\n        </tr>\n        <tr>\n            <td>status</td>\n            <td>The status of the credit. The status can be success, failure, systemError, or pending. Pending indicates the transaction is waiting for a response from the loyalty program. Retrieve the credit later to determine whether it succeeded or failed.</td>\n        </tr>\n        <tr>\n            <td>transactionId</td>\n            <td>A transaction ID that can be used to reconcile the credit against the loyalty partner&#39;s records.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n        <tr>\n            <td>updatedAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was last updated.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
@@ -15671,9 +15671,9 @@ module.exports = "<h2 id=\"credits\">Credits</h2>\n<p>A credit is a transaction 
 /* 79 */
 /* unknown exports provided */
 /* all exports used */
-/*!****************************************************!*\
-  !*** ./app/static/documents/api/debits-example.md ***!
-  \****************************************************/
+/*!*********************************************!*\
+  !*** ./app/documents/api/debits-example.md ***!
+  \*********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;amount&quot;: 2000,\n  &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;order-id&gt;&quot;,\n  &quot;pic&quot;: &quot;ABC&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;transactionId&quot;: &quot;15786561&quot;,\n  &quot;type&quot;: &quot;debit&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -15682,9 +15682,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 80 */
 /* unknown exports provided */
 /* all exports used */
-/*!********************************************!*\
-  !*** ./app/static/documents/api/debits.md ***!
-  \********************************************/
+/*!*************************************!*\
+  !*** ./app/documents/api/debits.md ***!
+  \*************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"debits\">Debits</h2>\n<p>A debit is a transaction that takes points out of a loyalty program member’s account. Creating a debit object triggers the removal of points. A record of the debit is kept that can later be retrieved. A debit requires a member validation that has not been previously used for another transaction. Debits are stored for each loyalty program under <code>/lps/&lt;lp-id&gt;/debits/</code>.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>amount</td>\n            <td>The number of points deducted from the member&#39;s account. Must be a positive integer.</td>\n        </tr>\n        <tr>\n            <td>application</td>\n            <td>The application that created the transaction.</td>\n        </tr>\n        <tr>\n            <td>createdAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was created.</td>\n        </tr>\n        <tr>\n            <td>loyaltyProgram</td>\n            <td>The loyalty program involved in the transaction.</td>\n        </tr>\n        <tr>\n            <td>memberValidation</td>\n            <td>Link to a member validation that identifies the member&#39;s account that was debited.</td>\n        </tr>\n        <tr>\n            <td>order</td>\n            <td>Link to the order that this debit belongs to.</td>\n        </tr>\n        <tr>\n            <td>pic</td>\n            <td>Product Identification Code.</td>\n        </tr>\n        <tr>\n            <td>status</td>\n            <td>The status of the debit. The status can be success, failure, systemError, or pending. Pending indicates the transaction is waiting for a response from the loyalty program. Retrieve the debit later to determine whether it succeeded or failed.</td>\n        </tr>\n        <tr>\n            <td>transactionId</td>\n            <td>A transaction ID that can be used to reconcile the debit against the loyalty partner&#39;s records.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n        <tr>\n            <td>updatedAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was last updated.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n\n\n\n\n";
@@ -15693,9 +15693,9 @@ module.exports = "<h2 id=\"debits\">Debits</h2>\n<p>A debit is a transaction tha
 /* 81 */
 /* unknown exports provided */
 /* all exports used */
-/*!************************************************************************!*\
-  !*** ./app/static/documents/api/delete-account-credentials-example.md ***!
-  \************************************************************************/
+/*!*****************************************************************!*\
+  !*** ./app/documents/api/delete-account-credentials-example.md ***!
+  \*****************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>DELETE https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>204 NO CONTENT\n</code></pre>";
@@ -15704,9 +15704,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>DE
 /* 82 */
 /* unknown exports provided */
 /* all exports used */
-/*!****************************************************************!*\
-  !*** ./app/static/documents/api/delete-account-credentials.md ***!
-  \****************************************************************/
+/*!*********************************************************!*\
+  !*** ./app/documents/api/delete-account-credentials.md ***!
+  \*********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"delete-account-credentials\">Delete Account Credentials</h3>\n<p>If your account credentials have been compromised or if you no longer wish to use one of them, you can delete them. However, you must have at least one set of account credentials. You cannot delete your only set. If you want to replace your current set of credentials, first <a href=\"#create-account-credentials\">create a new set of credentials</a> before deleting your current set.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>account-id</td>\n            <td>The identifier of the account that has the credentials.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the account credentials to be deleted.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>HTTP status code 204 (No Content) if successful. Otherwise, returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -15715,9 +15715,9 @@ module.exports = "<h3 id=\"delete-account-credentials\">Delete Account Credentia
 /* 83 */
 /* unknown exports provided */
 /* all exports used */
-/*!************************************************************************!*\
-  !*** ./app/static/documents/api/delete-sandbox-permissions-example.md ***!
-  \************************************************************************/
+/*!*****************************************************************!*\
+  !*** ./app/documents/api/delete-sandbox-permissions-example.md ***!
+  \*****************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>DELETE https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-permissions/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>204 NO CONTENT\n</code></pre>";
@@ -15726,9 +15726,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>DE
 /* 84 */
 /* unknown exports provided */
 /* all exports used */
-/*!****************************************************************!*\
-  !*** ./app/static/documents/api/delete-sandbox-permissions.md ***!
-  \****************************************************************/
+/*!*********************************************************!*\
+  !*** ./app/documents/api/delete-sandbox-permissions.md ***!
+  \*********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"delete-sandbox-permissions\">Delete Sandbox Permissions</h3>\n<p>Revokes permissions for an application to perform operations in sandbox mode on an LP.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the sandbox permissions object.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>HTTP status code 204 (No Content) if successful. Otherwise, returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -15737,9 +15737,9 @@ module.exports = "<h3 id=\"delete-sandbox-permissions\">Delete Sandbox Permissio
 /* 85 */
 /* unknown exports provided */
 /* all exports used */
-/*!************************************************************!*\
-  !*** ./app/static/documents/api/documentation-overview.md ***!
-  \************************************************************/
+/*!*****************************************************!*\
+  !*** ./app/documents/api/documentation-overview.md ***!
+  \*****************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h1 id=\"lcp-api-reference\">LCP API Reference</h1>\n<p>For Points Loyalty Commerce Platform - Version 1.0<br><br></p>\n<h2 id=\"document-overview\">Document Overview</h2>\n<p>This document contains a complete list of all objects and actions supported by the Points Loyalty Commerce Platform (LCP) API. The document is organized as follows. Each object is described with the list its properties and an example instance. For each object, a list of possible actions are provided. Each action contains a description of the action itself as well as descriptions and examples of the request and response parameters to perform the action. This document assumes you are already familiar with the LCP and have read the <a href=\"./\">LCP Getting Started Guide for Developers</a> and the <a href=\"./?doc=reference-manual\">LCP Reference Manual</a>.</p>\n";
@@ -15748,9 +15748,9 @@ module.exports = "<h1 id=\"lcp-api-reference\">LCP API Reference</h1>\n<p>For Po
 /* 86 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************************!*\
-  !*** ./app/static/documents/api/get-a-credit-example.md ***!
-  \**********************************************************/
+/*!***************************************************!*\
+  !*** ./app/documents/api/get-a-credit-example.md ***!
+  \***************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;amount&quot;: 2000,\n  &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;claimCode&quot;: &quot;TZ9E-9YHMHU-PDEE&quot;,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;creditType&quot;: &quot;base&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;order-id&gt;&quot;,\n  &quot;pic&quot;: &quot;ABC&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;transactionId&quot;: &quot;15786560&quot;,\n  &quot;type&quot;: &quot;credit&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -15759,9 +15759,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 87 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************!*\
-  !*** ./app/static/documents/api/get-a-credit.md ***!
-  \**************************************************/
+/*!*******************************************!*\
+  !*** ./app/documents/api/get-a-credit.md ***!
+  \*******************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-a-credit\">Get a Credit</h3>\n<p>Retrieves the details of a previous credit. This retrieves a historical record of the credit transaction when it was created, including whether the transaction succeeded or failed.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the loyalty program (LP).</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the credit.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The credit object if it exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -15770,9 +15770,9 @@ module.exports = "<h3 id=\"get-a-credit\">Get a Credit</h3>\n<p>Retrieves the de
 /* 88 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************************!*\
-  !*** ./app/static/documents/api/get-a-debit-example.md ***!
-  \*********************************************************/
+/*!**************************************************!*\
+  !*** ./app/documents/api/get-a-debit-example.md ***!
+  \**************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;amount&quot;: 2000,\n  &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;order-id&gt;&quot;,\n  &quot;pic&quot;: &quot;ABC&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;transactionId&quot;: &quot;15786561&quot;,\n  &quot;type&quot;: &quot;debit&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -15781,9 +15781,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 89 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************!*\
-  !*** ./app/static/documents/api/get-a-debit.md ***!
-  \*************************************************/
+/*!******************************************!*\
+  !*** ./app/documents/api/get-a-debit.md ***!
+  \******************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-a-debit\">Get a Debit</h3>\n<p>Retrieves the details of a previous debit. This retrieves a historical record of the debit transaction when it was created, including whether the transaction succeeded or failed.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the loyalty program (LP).</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the debit.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The debit object if it exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -15792,9 +15792,9 @@ module.exports = "<h3 id=\"get-a-debit\">Get a Debit</h3>\n<p>Retrieves the deta
 /* 90 */
 /* unknown exports provided */
 /* all exports used */
-/*!***************************************************************!*\
-  !*** ./app/static/documents/api/get-a-mv-delegate-example.md ***!
-  \***************************************************************/
+/*!********************************************************!*\
+  !*** ./app/documents/api/get-a-mv-delegate-example.md ***!
+  \********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mv-delegates/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mv-delegates/&lt;id&gt;&quot;\n  },\n  &quot;type&quot;: &quot;memberValidationDelegate&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -15803,9 +15803,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 91 */
 /* unknown exports provided */
 /* all exports used */
-/*!*******************************************************!*\
-  !*** ./app/static/documents/api/get-a-mv-delegate.md ***!
-  \*******************************************************/
+/*!************************************************!*\
+  !*** ./app/documents/api/get-a-mv-delegate.md ***!
+  \************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-an-mv-delegate\">Get an MV Delegate</h3>\n<p>Retrieves the details of a previous MV delegate. The MV delegate includes a link to the MV that was created and a link to the application that can retrieve the MV.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the loyalty program (LP).</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the MV delegate.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The MV delegate object if it exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -15814,9 +15814,9 @@ module.exports = "<h3 id=\"get-an-mv-delegate\">Get an MV Delegate</h3>\n<p>Retr
 /* 92 */
 /* unknown exports provided */
 /* all exports used */
-/*!******************************************************!*\
-  !*** ./app/static/documents/api/get-a-mv-example.md ***!
-  \******************************************************/
+/*!***********************************************!*\
+  !*** ./app/documents/api/get-a-mv-example.md ***!
+  \***********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;authenticatingFactors&quot;: {\n    &quot;password&quot;: &quot;*****&quot;\n  },\n  &quot;balance&quot;: 2000,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;identifyingFactors&quot;: {\n    &quot;firstName&quot;: &quot;John&quot;,\n    &quot;lastName&quot;: &quot;Doe&quot;,\n    &quot;memberId&quot;: &quot;1234&quot;\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;order-id&gt;&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;type&quot;: &quot;memberValidation&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -15825,9 +15825,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 93 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************!*\
-  !*** ./app/static/documents/api/get-a-mv.md ***!
-  \**********************************************/
+/*!***************************************!*\
+  !*** ./app/documents/api/get-a-mv.md ***!
+  \***************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-an-mv\">Get an MV</h3>\n<p>Retrieves the details of a previous MV. This retrieves the MV and member&#39;s balance in the state it was when it was when the MV was created. To get an updated member&#39;s balance, create a new MV. Requests must be signed with your app&#39;s credentials.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the loyalty program (LP).</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the member validation (MV).</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The MV object if it exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -15836,9 +15836,9 @@ module.exports = "<h3 id=\"get-an-mv\">Get an MV</h3>\n<p>Retrieves the details 
 /* 94 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************************!*\
-  !*** ./app/static/documents/api/get-a-report-example.md ***!
-  \**********************************************************/
+/*!***************************************************!*\
+  !*** ./app/documents/api/get-a-report-example.md ***!
+  \***************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;description&quot;: &quot;Report on all transactions performed by my app&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;id&gt;&quot;\n    },\n    &quot;instances&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;id&gt;/instances/&quot;\n    }\n  },\n  &quot;name&quot;: &quot;My App’s Transaction Report&quot;,\n  &quot;type&quot;: &quot;report&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;,\n  &quot;url&quot;: &quot;https://myapp.com/reports/report-name&quot;\n}\n</code></pre>";
@@ -15847,9 +15847,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 95 */
 /* unknown exports provided */
 /* all exports used */
-/*!*******************************************************************!*\
-  !*** ./app/static/documents/api/get-a-report-instance-example.md ***!
-  \*******************************************************************/
+/*!************************************************************!*\
+  !*** ./app/documents/api/get-a-report-instance-example.md ***!
+  \************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;/instances/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;contentType&quot;: &quot;application/json&quot;,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;/instances/&lt;id&gt;&quot;\n    },\n    &quot;data&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;/instances/&lt;id&gt;/data&quot;\n    },\n    &quot;report&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;&quot;\n    }\n  },\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;type&quot;: &quot;reportInstance&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -15858,9 +15858,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 96 */
 /* unknown exports provided */
 /* all exports used */
-/*!***********************************************************!*\
-  !*** ./app/static/documents/api/get-a-report-instance.md ***!
-  \***********************************************************/
+/*!****************************************************!*\
+  !*** ./app/documents/api/get-a-report-instance.md ***!
+  \****************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-a-report-instance\">Get a Report Instance</h3>\n<p>Retrieves the details of a report instance. The report instance contains a timestamp of when the report instance was created and the status of the request to generate the report instance. If the report instance was successful, get the data link to retrieve the report data.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n        <tr>\n            <td>report-id</td>\n            <td>The identifier of the report.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the report instance.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The report instance if it exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -15869,9 +15869,9 @@ module.exports = "<h3 id=\"get-a-report-instance\">Get a Report Instance</h3>\n<
 /* 97 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************!*\
-  !*** ./app/static/documents/api/get-a-report.md ***!
-  \**************************************************/
+/*!*******************************************!*\
+  !*** ./app/documents/api/get-a-report.md ***!
+  \*******************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-a-report\">Get a Report</h3>\n<p>Retrieves the details of a report. The report contains the name and description of the report. It does not contain the report data. To get the report data, request an instance of the report.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the report.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The report object if it exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -15880,9 +15880,9 @@ module.exports = "<h3 id=\"get-a-report\">Get a Report</h3>\n<p>Retrieves the de
 /* 98 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************************************!*\
-  !*** ./app/static/documents/api/get-account-credentials-example.md ***!
-  \*********************************************************************/
+/*!**************************************************************!*\
+  !*** ./app/documents/api/get-account-credentials-example.md ***!
+  \**************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/&lt;account-id&gt;/account-credentials/&lt;id&gt;&quot;\n    }\n  },\n  &quot;macAlgorithm&quot;: &quot;HMAC-SHA1&quot;,\n  &quot;macKey&quot;: &quot;&lt;macKey&gt;&quot;,\n  &quot;macKeyIdentifier&quot;: &quot;&lt;macKeyIdentifier&gt;&quot;,\n  &quot;type&quot;: &quot;accountCredential&quot;\n}\n</code></pre>";
@@ -15891,9 +15891,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 99 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/documents/api/get-account-credentials.md ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/documents/api/get-account-credentials.md ***!
+  \******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-account-credentials\">Get Account Credentials</h3>\n<p>Retrieves an existing set of account credentials.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>account-id</td>\n            <td>The identifier of the account that has the credentials.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the account credentials.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The account credentials object if it exists and you’re authorized to access it, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -15902,9 +15902,9 @@ module.exports = "<h3 id=\"get-account-credentials\">Get Account Credentials</h3
 /* 100 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************************************!*\
-  !*** ./app/static/documents/api/get-account-permissions-example.md ***!
-  \*********************************************************************/
+/*!**************************************************************!*\
+  !*** ./app/documents/api/get-account-permissions-example.md ***!
+  \**************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/account-permissions\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/account-permissions&quot;\n    }\n  },\n  &quot;support&quot;: [\n    &quot;https://lcp.points.com/v1/accounts/&lt;account-id1&gt;&quot;,\n    &quot;https://lcp.points.com/v1/accounts/&lt;account-id2&gt;&quot;\n  ],\n  &quot;type&quot;: &quot;accountPermission&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -15913,9 +15913,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 101 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/documents/api/get-account-permissions.md ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/documents/api/get-account-permissions.md ***!
+  \******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-account-permissions\">Get Account Permissions</h3>\n<p>Retrieves the list of accounts that have permission to access the application and its resources.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The account permissions for the application if the application exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -15924,9 +15924,9 @@ module.exports = "<h3 id=\"get-account-permissions\">Get Account Permissions</h3
 /* 102 */
 /* unknown exports provided */
 /* all exports used */
-/*!************************************************************!*\
-  !*** ./app/static/documents/api/get-an-account-example.md ***!
-  \************************************************************/
+/*!*****************************************************!*\
+  !*** ./app/documents/api/get-an-account-example.md ***!
+  \*****************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/accounts/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;accountCredentials&quot;: [\n    {\n      &quot;links&quot;: {\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/&lt;id&gt;/account-credentials/&lt;ac-id&gt;&quot;\n        }\n      },\n      &quot;macAlgorithm&quot;: &quot;HMAC-SHA1&quot;,\n      &quot;macKey&quot;: &quot;&lt;macKey&gt;&quot;,\n      &quot;macKeyIdentifier&quot;: &quot;&lt;macKeyIdentifier&gt;&quot;\n    }\n  ],\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;email&quot;: &quot;youremail@yourcompany.com&quot;,\n  &quot;firstName&quot;: &quot;First Name&quot;,\n  &quot;lastName&quot;: &quot;Last Name&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/&lt;id&gt;&quot;\n    },\n    &quot;friendly&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/youremail%40yourcompany.com&quot;\n    }\n  },\n  &quot;organizationName&quot;: &quot;Company&quot;,\n  &quot;phone&quot;: &quot;416-555-1234&quot;,\n  &quot;roles&quot;: [\n    &quot;appDeveloper&quot;\n  ],\n  &quot;timeZone&quot;: &quot;America/Toronto&quot;,\n  &quot;type&quot;: &quot;account&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -15935,9 +15935,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 103 */
 /* unknown exports provided */
 /* all exports used */
-/*!****************************************************!*\
-  !*** ./app/static/documents/api/get-an-account.md ***!
-  \****************************************************/
+/*!*********************************************!*\
+  !*** ./app/documents/api/get-an-account.md ***!
+  \*********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-an-account\">Get an Account</h3>\n<p>Retrieves the account details for an existing account.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the account.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The account object if it exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -15946,9 +15946,9 @@ module.exports = "<h3 id=\"get-an-account\">Get an Account</h3>\n<p>Retrieves th
 /* 104 */
 /* unknown exports provided */
 /* all exports used */
-/*!***************************************************************!*\
-  !*** ./app/static/documents/api/get-an-app-by-mac-example.md ***!
-  \***************************************************************/
+/*!********************************************************!*\
+  !*** ./app/documents/api/get-an-app-by-mac-example.md ***!
+  \********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/?macKeyIdentifier=&lt;mac-key-id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;apps&quot;: [\n    {\n      &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n      &quot;description&quot;: &quot;Description of my app&quot;,\n      &quot;links&quot;: {\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;id&gt;&quot;\n        },\n        &quot;reports&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;id&gt;/reports/&quot;\n        }\n      },\n      &quot;liveCredentials&quot;: [],\n      &quot;name&quot;: &quot;My App&quot;,\n      &quot;sandboxCredentials&quot;: [\n        &quot;https://lcp.points.com/v1/apps/&lt;id&gt;/sandbox-credentials/&lt;sc-id&gt;&quot;\n      ],\n      &quot;type&quot;: &quot;app&quot;,\n      &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n    }\n  ]\n}\n</code></pre>";
@@ -15957,9 +15957,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 105 */
 /* unknown exports provided */
 /* all exports used */
-/*!*******************************************************!*\
-  !*** ./app/static/documents/api/get-an-app-by-mac.md ***!
-  \*******************************************************/
+/*!************************************************!*\
+  !*** ./app/documents/api/get-an-app-by-mac.md ***!
+  \************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-an-app-by-mac-key-identifier\">Get an App by MAC Key Identifier</h3>\n<p>If you don&#39;t remember your app&#39;s ID, you can also retrieve it by querying the <code>/apps</code> endpoint with your app&#39;s MAC key identifier.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>mac-key-id</td>\n            <td>The MAC key identifier for the live or sandbox credentials of an app.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>A list of apps. If an app was found with the given MAC key identifier, the app is included in the list. Otherwise, the list is empty.</p>\n";
@@ -15968,9 +15968,9 @@ module.exports = "<h3 id=\"get-an-app-by-mac-key-identifier\">Get an App by MAC 
 /* 106 */
 /* unknown exports provided */
 /* all exports used */
-/*!********************************************************!*\
-  !*** ./app/static/documents/api/get-an-app-example.md ***!
-  \********************************************************/
+/*!*************************************************!*\
+  !*** ./app/documents/api/get-an-app-example.md ***!
+  \*************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;description&quot;: &quot;Description of my app&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;id&gt;&quot;\n    },\n    &quot;reports&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;id&gt;/reports/&quot;\n    }\n  },\n  &quot;liveCredentials&quot;: [],\n  &quot;name&quot;: &quot;My App&quot;,\n  &quot;sandboxCredentials&quot;: [\n    &quot;https://lcp.points.com/v1/apps/&lt;id&gt;/sandbox-credentials/&lt;sc-id&gt;&quot;\n  ],\n  &quot;type&quot;: &quot;app&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -15979,9 +15979,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 107 */
 /* unknown exports provided */
 /* all exports used */
-/*!************************************************!*\
-  !*** ./app/static/documents/api/get-an-app.md ***!
-  \************************************************/
+/*!*****************************************!*\
+  !*** ./app/documents/api/get-an-app.md ***!
+  \*****************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-an-app\">Get an App</h3>\n<p>Retrieves the details of an existing app.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the app.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The app object if it exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -15990,9 +15990,9 @@ module.exports = "<h3 id=\"get-an-app\">Get an App</h3>\n<p>Retrieves the detail
 /* 108 */
 /* unknown exports provided */
 /* all exports used */
-/*!*******************************************************!*\
-  !*** ./app/static/documents/api/get-an-lp-example.md ***!
-  \*******************************************************/
+/*!************************************************!*\
+  !*** ./app/documents/api/get-an-lp-example.md ***!
+  \************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/lps/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;creditType&quot;: &quot;combinedBaseBonus&quot;,\n  &quot;defaultLanguage&quot;: &quot;en&quot;,\n  &quot;hidden&quot;: false,\n  &quot;links&quot;: {\n    &quot;credits&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/credits/&quot;\n    },\n    &quot;debits&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/debits/&quot;\n    },\n    &quot;memberValidations&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/mvs/&quot;\n    },\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;&quot;\n    }\n  },\n  &quot;name&quot;: &quot;Rapid Rewards&quot;,\n  &quot;partnerId&quot;: &quot;dVNm&quot;,\n  &quot;partnerName&quot;: &quot;Southwest&quot;,\n  &quot;rewardCurrency&quot;: &quot;Points&quot;,\n  &quot;translations&quot;: {\n    &quot;es&quot;: {\n      &quot;name&quot;: &quot;Rapid Rewards&quot;,\n      &quot;partnerName&quot;: &quot;Southwest&quot;,\n      &quot;rewardCurrency&quot;: &quot;puntos&quot;\n  },\n  &quot;type&quot;: &quot;loyaltyProgram&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -16001,9 +16001,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 109 */
 /* unknown exports provided */
 /* all exports used */
-/*!***********************************************!*\
-  !*** ./app/static/documents/api/get-an-lp.md ***!
-  \***********************************************/
+/*!****************************************!*\
+  !*** ./app/documents/api/get-an-lp.md ***!
+  \****************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-an-lp\">Get an LP</h3>\n<p>Retrieves the details of an LP.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the loyalty program (LP).</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The LP object if it exists and the requestor has permission to access it, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -16012,9 +16012,9 @@ module.exports = "<h3 id=\"get-an-lp\">Get an LP</h3>\n<p>Retrieves the details 
 /* 110 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************************************!*\
-  !*** ./app/static/documents/api/get-an-mv-request-schema-example.md ***!
-  \**********************************************************************/
+/*!***************************************************************!*\
+  !*** ./app/documents/api/get-an-mv-request-schema-example.md ***!
+  \***************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/metadata/schema\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;presentation&quot;: {\n    &quot;labels&quot;: {\n      &quot;identifyingFactors.firstName&quot;: {\n        &quot;en&quot;: &quot;First Name&quot;\n      },\n      &quot;identifyingFactors.lastName&quot;: {\n        &quot;en&quot;: &quot;Last Name&quot;\n      },\n      &quot;identifyingFactors.memberId&quot;: {\n        &quot;en&quot;: &quot;Membership Number&quot;\n      },\n      &quot;authenticatingFactors.password&quot;: {\n        &quot;en&quot;: &quot;Password&quot;\n      }\n    },\n    &quot;order&quot;: [&quot;identifyingFactors.firstName&quot;, &quot;identifyingFactors.lastName&quot;, &quot;identifyingFactors.memberId&quot;, &quot;authenticatingFactors.password&quot;]\n  },\n  &quot;schema&quot;: {\n    &quot;type&quot;: &quot;object&quot;,\n    &quot;properties&quot;: {\n      &quot;identifyingFactors&quot;: {\n        &quot;type&quot;: &quot;object&quot;,\n        &quot;properties&quot;: {\n          &quot;firstName&quot;: {\n            &quot;type&quot;: &quot;string&quot;,\n            &quot;minLength&quot;: 1,\n            &quot;maxLength&quot;: 100\n          },\n          &quot;lastName&quot;: {\n            &quot;type&quot;: &quot;string&quot;,\n            &quot;minLength&quot;: 1,\n            &quot;maxLength&quot;: 100\n          },\n          &quot;memberId&quot;: {\n            &quot;type&quot;: &quot;string&quot;,\n            &quot;minLength&quot;: 1,\n            &quot;maxLength&quot;: 100\n          }\n        },\n        &quot;required&quot;: [&quot;firstName&quot;, &quot;lastName&quot;, &quot;memberId&quot;],\n        &quot;additionalProperties&quot;: false\n      },\n      &quot;authenticatingFactors&quot;: {\n        &quot;type&quot;: &quot;object&quot;,\n        &quot;properties&quot;: {\n          &quot;password&quot;: {\n            &quot;type&quot;: &quot;string&quot;,\n            &quot;minLength&quot;: 1,\n            &quot;maxLength&quot;: 100\n          }\n        },\n        &quot;required&quot;: [&quot;password&quot;],\n        &quot;additionalProperties&quot;: false\n      }\n    },\n    &quot;required&quot;: [&quot;identifyingFactors&quot;, &quot;authenticatingFactors&quot;],\n    &quot;additionalProperties&quot;: false\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/metadata/schema&quot;\n    }\n  },\n  &quot;type&quot;: &quot;memberValidationRequestSchema&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -16023,9 +16023,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 111 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************************!*\
-  !*** ./app/static/documents/api/get-an-mv-request-schema.md ***!
-  \**************************************************************/
+/*!*******************************************************!*\
+  !*** ./app/documents/api/get-an-mv-request-schema.md ***!
+  \*******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-an-mv-request-schema\">Get an MV Request Schema</h3>\n<p>Retrieves the MV request schema that defines the JSON document applications must send to do an MV.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the loyalty program (LP).</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The MV request schema object if it exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -16034,9 +16034,9 @@ module.exports = "<h3 id=\"get-an-mv-request-schema\">Get an MV Request Schema</
 /* 112 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************************!*\
-  !*** ./app/static/documents/api/get-an-order-example.md ***!
-  \**********************************************************/
+/*!***************************************************!*\
+  !*** ./app/documents/api/get-an-order-example.md ***!
+  \***************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://sandbox.lcp.points.com/v1/orders/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;confirmationNumber&quot;: &quot;3902-2266-8404-8538-1721&quot;,\n  &quot;createdAt&quot;: &quot;2014-02-26T17:47:00.000000Z&quot;,\n  &quot;data&quot;: {\n    &quot;clientIpAddress&quot;: &quot;127.0.0.1&quot;, \n    &quot;clientUserAgent&quot;: &quot;Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0&quot;, \n    &quot;language&quot;: &quot;en-US&quot;, \n    &quot;orderDetails&quot;: {\n      &quot;basePoints&quot;: 2000, \n      &quot;loyaltyProgram&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;\n    }, \n    &quot;user&quot;: {\n      &quot;email&quot;: &quot;jdoe@example.com&quot;,\n      &quot;firstName&quot;: &quot;John&quot;, \n      &quot;lastName&quot;: &quot;Doe&quot;, \n      &quot;memberId&quot;: &quot;1234&quot;, \n      &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;\n    }\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;id&gt;&quot;\n    }\n  },\n  &quot;orderType&quot;: &quot;EXCHANGE_CREDIT&quot;,\n  &quot;status&quot;: &quot;complete&quot;,\n  &quot;type&quot;: &quot;order&quot;,\n  &quot;updatedAt&quot;: &quot;2014-02-26T17:50:00.000000Z&quot;,\n  &quot;updates&quot;: [\n    {\n      &quot;resource&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n      &quot;status&quot;: &quot;success&quot;,\n      &quot;type&quot;: &quot;memberValidation&quot;,\n      &quot;updatedAt&quot;: &quot;2014-02-26T17:47:30.000000Z&quot;\n    },\n    {\n      &quot;resource&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;credit-id&gt;&quot;,\n      &quot;status&quot;: &quot;success&quot;,\n      &quot;type&quot;: &quot;credit&quot;,\n      &quot;updatedAt&quot;: &quot;2014-02-26T17:49:00.000000Z&quot;\n    }\n  ]\n}\n</code></pre>";
@@ -16045,9 +16045,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 113 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************!*\
-  !*** ./app/static/documents/api/get-an-order.md ***!
-  \**************************************************/
+/*!*******************************************!*\
+  !*** ./app/documents/api/get-an-order.md ***!
+  \*******************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-an-order\">Get an Order</h3>\n<p>Retrieves the details of an order.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the order.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The order object if it exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -16056,9 +16056,9 @@ module.exports = "<h3 id=\"get-an-order\">Get an Order</h3>\n<p>Retrieves the de
 /* 114 */
 /* unknown exports provided */
 /* all exports used */
-/*!******************************************************************!*\
-  !*** ./app/static/documents/api/get-live-credentials-example.md ***!
-  \******************************************************************/
+/*!***********************************************************!*\
+  !*** ./app/documents/api/get-live-credentials-example.md ***!
+  \***********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/live-credentials/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/live-credentials/&lt;id&gt;&quot;\n    }\n  },\n  &quot;macAlgorithm&quot;: &quot;HMAC-SHA1&quot;,\n  &quot;macKey&quot;: &quot;&lt;macKey&gt;&quot;,\n  &quot;macKeyIdentifier&quot;: &quot;&lt;macKeyIdentifier&gt;&quot;,\n  &quot;type&quot;: &quot;liveCredential&quot;\n}\n</code></pre>";
@@ -16067,9 +16067,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 115 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************************!*\
-  !*** ./app/static/documents/api/get-live-credentials.md ***!
-  \**********************************************************/
+/*!***************************************************!*\
+  !*** ./app/documents/api/get-live-credentials.md ***!
+  \***************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-live-credentials\">Get Live Credentials</h3>\n<p>Retrieves an existing set of live credentials.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the app that has the credentials.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the live credentials.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The live credentials object if it exists and you&#39;re authorized to access it, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -16078,9 +16078,9 @@ module.exports = "<h3 id=\"get-live-credentials\">Get Live Credentials</h3>\n<p>
 /* 116 */
 /* unknown exports provided */
 /* all exports used */
-/*!******************************************************************!*\
-  !*** ./app/static/documents/api/get-live-permissions-example.md ***!
-  \******************************************************************/
+/*!***********************************************************!*\
+  !*** ./app/documents/api/get-live-permissions-example.md ***!
+  \***********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/live-permissions/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/live-permissions/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;operations&quot;: [&quot;mvs&quot;, &quot;debits&quot;, &quot;credits&quot;],\n  &quot;type&quot;: &quot;livePermission&quot;\n}\n</code></pre>";
@@ -16089,9 +16089,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 117 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************************!*\
-  !*** ./app/static/documents/api/get-live-permissions.md ***!
-  \**********************************************************/
+/*!***************************************************!*\
+  !*** ./app/documents/api/get-live-permissions.md ***!
+  \***************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-live-permissions\">Get Live Permissions</h3>\n<p>Retrieves the operations that an app can perform in live mode for an LP.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the live permissions object.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The live permissions object if it exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -16100,9 +16100,9 @@ module.exports = "<h3 id=\"get-live-permissions\">Get Live Permissions</h3>\n<p>
 /* 118 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************************************!*\
-  !*** ./app/static/documents/api/get-report-instance-data-example.md ***!
-  \**********************************************************************/
+/*!***************************************************************!*\
+  !*** ./app/documents/api/get-report-instance-data-example.md ***!
+  \***************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;/instances/&lt;id&gt;/data\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &lt;data provided by application&gt;\n}\n</code></pre>";
@@ -16111,9 +16111,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 119 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************************!*\
-  !*** ./app/static/documents/api/get-report-instance-data.md ***!
-  \**************************************************************/
+/*!*******************************************************!*\
+  !*** ./app/documents/api/get-report-instance-data.md ***!
+  \*******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-report-instance-data\">Get Report Instance Data</h3>\n<p>Retrieves the data in a report instance. The data is a cached copy of what the application returned to the LCP when the report instance was created. Check the Content-Type header to determine how to process the data.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n        <tr>\n            <td>report-id</td>\n            <td>The identifier of the report.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the report instance.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The report data if it exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -16122,9 +16122,9 @@ module.exports = "<h3 id=\"get-report-instance-data\">Get Report Instance Data</
 /* 120 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************************************!*\
-  !*** ./app/static/documents/api/get-sandbox-credentials-example.md ***!
-  \*********************************************************************/
+/*!**************************************************************!*\
+  !*** ./app/documents/api/get-sandbox-credentials-example.md ***!
+  \**************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-credentials/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-credentials/&lt;id&gt;&quot;\n    }\n  },\n  &quot;macAlgorithm&quot;: &quot;HMAC-SHA1&quot;,\n  &quot;macKey&quot;: &quot;&lt;macKey&gt;&quot;,\n  &quot;macKeyIdentifier&quot;: &quot;&lt;macKeyIdentifier&gt;&quot;,\n  &quot;type&quot;: &quot;sandboxCredential&quot;\n}\n</code></pre>";
@@ -16133,9 +16133,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 121 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/documents/api/get-sandbox-credentials.md ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/documents/api/get-sandbox-credentials.md ***!
+  \******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-sandbox-credentials\">Get Sandbox Credentials</h3>\n<p>Retrieves an existing set of sandbox credentials.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the app that has the credentials.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the sandbox credentials.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The sandbox credentials object if it exists and you&#39;re authorized to access it, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -16144,9 +16144,9 @@ module.exports = "<h3 id=\"get-sandbox-credentials\">Get Sandbox Credentials</h3
 /* 122 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/documents/api/get-sandbox-mvs-example.md ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/documents/api/get-sandbox-mvs-example.md ***!
+  \******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/metadata/sandbox-responses\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;sandboxResponses&quot;: [\n    {\n      &quot;request&quot;: {\n        &quot;identifyingFactors&quot;: {\n          &quot;firstName&quot;: &quot;Tony&quot;,\n          &quot;lastName&quot;: &quot;Smith&quot;,\n          &quot;memberId&quot;: &quot;99999999&quot;\n        },\n        &quot;authenticatingFactors&quot;: {\n          &quot;password&quot;: &quot;PASSWORD&quot;\n        }\n      },\n      &quot;response&quot;: {\n         &quot;error&quot;: &quot;INVALID_UPSTREAM_RESPONSE&quot;\n      }\n    },\n    {\n      &quot;request&quot;: {\n        &quot;identifyingFactors&quot;: {\n          &quot;firstName&quot;: &quot;Joe&quot;,\n          &quot;lastName&quot;: &quot;Smith&quot;,\n          &quot;memberId&quot;: &quot;12345678&quot;\n        },\n        &quot;authenticatingFactors&quot;: {\n          &quot;password&quot;: &quot;ABCDEFGH&quot;\n        }\n      },\n      &quot;response&quot;: {\n        &quot;balance&quot;: 205123\n      }\n    },\n    ...\n  ],\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/metadata/sandbox-responses&quot;\n    }\n  }\n}\n</code></pre>";
@@ -16155,9 +16155,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 123 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************!*\
-  !*** ./app/static/documents/api/get-sandbox-mvs.md ***!
-  \*****************************************************/
+/*!**********************************************!*\
+  !*** ./app/documents/api/get-sandbox-mvs.md ***!
+  \**********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-sandbox-mvs\">Get Sandbox MVs</h3>\n<p>Retrieves the list of sandbox MVs that can be used for testing MVs in sandbox mode. Sandbox MVs are LP-specific.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the loyalty program (LP).</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The sandbox MVs for the LP, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -16166,9 +16166,9 @@ module.exports = "<h3 id=\"get-sandbox-mvs\">Get Sandbox MVs</h3>\n<p>Retrieves 
 /* 124 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************************************!*\
-  !*** ./app/static/documents/api/get-sandbox-permissions-example.md ***!
-  \*********************************************************************/
+/*!**************************************************************!*\
+  !*** ./app/documents/api/get-sandbox-permissions-example.md ***!
+  \**************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-permissions/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-permissions/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;operations&quot;: [&quot;mvs&quot;, &quot;debits&quot;, &quot;credits&quot;],\n  &quot;type&quot;: &quot;sandboxPermission&quot;\n}\n</code></pre>";
@@ -16177,9 +16177,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 125 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/documents/api/get-sandbox-permissions.md ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/documents/api/get-sandbox-permissions.md ***!
+  \******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"get-sandbox-permissions\">Get Sandbox Permissions</h3>\n<p>Retrieves the operations that an app can perform in sandbox mode for an LP.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the sandbox permissions object.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The sandbox permissions object if it exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -16188,9 +16188,9 @@ module.exports = "<h3 id=\"get-sandbox-permissions\">Get Sandbox Permissions</h3
 /* 126 */
 /* unknown exports provided */
 /* all exports used */
-/*!***********************************************************!*\
-  !*** ./app/static/documents/api/list-all-apps-example.md ***!
-  \***********************************************************/
+/*!****************************************************!*\
+  !*** ./app/documents/api/list-all-apps-example.md ***!
+  \****************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/?limit=10&amp;offset=0\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;apps&quot;: [\n    {\n      &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n      &quot;description&quot;: &quot;Description of my app&quot;,\n      &quot;links&quot;: {\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;id&gt;&quot;\n        },\n        &quot;reports&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;id&gt;/reports/&quot;\n        }\n      },\n      &quot;liveCredentials&quot;: [],\n      &quot;name&quot;: &quot;My App&quot;,\n      &quot;sandboxCredentials&quot;: [\n        &quot;https://lcp.points.com/v1/apps/&lt;id&gt;/sandbox-credentials/&lt;sc-id&gt;&quot;\n      ],\n      &quot;type&quot;: &quot;app&quot;,\n      &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n    },\n    ...\n  ]\n}\n</code></pre>";
@@ -16199,9 +16199,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 127 */
 /* unknown exports provided */
 /* all exports used */
-/*!***************************************************!*\
-  !*** ./app/static/documents/api/list-all-apps.md ***!
-  \***************************************************/
+/*!********************************************!*\
+  !*** ./app/documents/api/list-all-apps.md ***!
+  \********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"list-all-apps\">List all Apps</h3>\n<p>Retrieves a list of all apps that you have permission to access.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>limit</td>\n            <td>The maximum number of apps to include in the list (optional). If not provided, defaults to 10. Max is 100.</td>\n        </tr>\n        <tr>\n            <td>offset</td>\n            <td>The starting offset when returning a list of apps (optional). Use for pagination. For example, to retrieve the second page of 10 apps, use offset=10. Defaults to 0 if not provided.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The list of apps you have permission to access.</p>\n";
@@ -16210,9 +16210,9 @@ module.exports = "<h3 id=\"list-all-apps\">List all Apps</h3>\n<p>Retrieves a li
 /* 128 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************************!*\
-  !*** ./app/static/documents/api/list-all-credits-example.md ***!
-  \**************************************************************/
+/*!*******************************************************!*\
+  !*** ./app/documents/api/list-all-credits-example.md ***!
+  \*******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/credits/?startCreatedAt=2014-04-19T07:00:00.000000Z&amp;endCreatedAt=2014-04-19T08:00:00.000000Z&amp;limit=10&amp;offset=0\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;credits&quot; : [\n    {\n      &quot;amount&quot;: 2000,\n      &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n      &quot;claimCode&quot;: &quot;TZ9E-9YHMHU-PDEE&quot;,\n      &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n      &quot;creditType&quot;: &quot;base&quot;,\n      &quot;links&quot;: {\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;&quot;\n        }\n      },\n      &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n      &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n      &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;order-id&gt;&quot;,\n      &quot;pic&quot;: &quot;ABC&quot;,\n      &quot;status&quot;: &quot;success&quot;,\n      &quot;transactionId&quot;: &quot;15786560&quot;,\n      &quot;type&quot;: &quot;credit&quot;,\n      &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n    },\n    ...\n  ]\n}\n</code></pre>";
@@ -16221,9 +16221,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 129 */
 /* unknown exports provided */
 /* all exports used */
-/*!******************************************************!*\
-  !*** ./app/static/documents/api/list-all-credits.md ***!
-  \******************************************************/
+/*!***********************************************!*\
+  !*** ./app/documents/api/list-all-credits.md ***!
+  \***********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"list-all-credits\">List all Credits</h3>\n<p>Retrieves the list of all credits that the requestor has permission to access.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>application</td>\n            <td>Filters the list by application (optional).</td>\n        </tr>\n        <tr>\n            <td>endCreatedAt</td>\n            <td>Filters the list to resources created before the given <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time (optional).</td>\n        </tr>\n        <tr>\n            <td>limit</td>\n            <td>The maximum number of resources to include in the list (optional). If not provided, defaults to 10. Max is 100.</td>\n        </tr>\n        <tr>\n            <td>loyaltyProgram</td>\n            <td>Filters the list by loyalty program (optional).</td>\n        </tr>\n        <tr>\n            <td>offset</td>\n            <td>The starting offset when returning a list of resources (optional). Use for pagination. For example, to retrieve the second page of 10 resources, use offset=10. Defaults to 0 if not provided.</td>\n        </tr>\n        <tr>\n            <td>startCreatedAt</td>\n            <td>Filters the list to resources created at or after the given <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time (optional).</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>A list of credits.</p>\n";
@@ -16232,9 +16232,9 @@ module.exports = "<h3 id=\"list-all-credits\">List all Credits</h3>\n<p>Retrieve
 /* 130 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/documents/api/list-all-debits-example.md ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/documents/api/list-all-debits-example.md ***!
+  \******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/debits/?startCreatedAt=2014-04-19T07:00:00.000000Z&amp;endCreatedAt=2014-04-19T08:00:00.000000Z&amp;limit=10&amp;offset=0\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;debits&quot; : [\n    {\n      &quot;amount&quot;: 2000,\n      &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n      &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n      &quot;links&quot;: {\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;&quot;\n        }\n      },\n      &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n      &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n      &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;order-id&gt;&quot;,\n      &quot;pic&quot;: &quot;ABC&quot;,\n      &quot;status&quot;: &quot;success&quot;,\n      &quot;transactionId&quot;: &quot;15786561&quot;,\n      &quot;type&quot;: &quot;debit&quot;,\n      &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n    },\n    ...\n  ]\n}\n</code></pre>";
@@ -16243,9 +16243,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 131 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************!*\
-  !*** ./app/static/documents/api/list-all-debits.md ***!
-  \*****************************************************/
+/*!**********************************************!*\
+  !*** ./app/documents/api/list-all-debits.md ***!
+  \**********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"list-all-debits\">List all Debits</h3>\n<p>Retrieves the list of all debits that the requestor has permission to access.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>application</td>\n            <td>Filters the list by application (optional).</td>\n        </tr>\n        <tr>\n            <td>endCreatedAt</td>\n            <td>Filters the list to resources created before the given <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time (optional).</td>\n        </tr>\n        <tr>\n            <td>limit</td>\n            <td>The maximum number of resources to include in the list (optional). If not provided, defaults to 10. Max is 100.</td>\n        </tr>\n        <tr>\n            <td>loyaltyProgram</td>\n            <td>Filters the list by loyalty program (optional).</td>\n        </tr>\n        <tr>\n            <td>offset</td>\n            <td>The starting offset when returning a list of resources (optional). Use for pagination. For example, to retrieve the second page of 10 resources, use offset=10. Defaults to 0 if not provided.</td>\n        </tr>\n        <tr>\n            <td>startCreatedAt</td>\n            <td>Filters the list to resources created at or after the given <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time (optional).</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>A list of debits.</p>\n";
@@ -16254,9 +16254,9 @@ module.exports = "<h3 id=\"list-all-debits\">List all Debits</h3>\n<p>Retrieves 
 /* 132 */
 /* unknown exports provided */
 /* all exports used */
-/*!***********************************************************************!*\
-  !*** ./app/static/documents/api/list-all-live-permissions-example.md ***!
-  \***********************************************************************/
+/*!****************************************************************!*\
+  !*** ./app/documents/api/list-all-live-permissions-example.md ***!
+  \****************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/live-permissions/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;livePermissions&quot;: [\n    {\n      &quot;links&quot;: {\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/live-permissions/&lt;id&gt;&quot;\n        }\n      },\n      &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n      &quot;operations&quot;: [&quot;mvs&quot;, &quot;debits&quot;, &quot;credits&quot;],\n      &quot;type&quot;: &quot;livePermission&quot;\n    },\n    ...\n  ]\n}\n</code></pre>";
@@ -16265,9 +16265,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 133 */
 /* unknown exports provided */
 /* all exports used */
-/*!***************************************************************!*\
-  !*** ./app/static/documents/api/list-all-live-permissions.md ***!
-  \***************************************************************/
+/*!********************************************************!*\
+  !*** ./app/documents/api/list-all-live-permissions.md ***!
+  \********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"list-all-live-permissions\">List all Live Permissions</h3>\n<p>Retrieves the list of operations that an app can perform in live mode for each LP.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The list of live permissions if the app exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -16276,9 +16276,9 @@ module.exports = "<h3 id=\"list-all-live-permissions\">List all Live Permissions
 /* 134 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************************!*\
-  !*** ./app/static/documents/api/list-all-lps-example.md ***!
-  \**********************************************************/
+/*!***************************************************!*\
+  !*** ./app/documents/api/list-all-lps-example.md ***!
+  \***************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/lps/?limit=10&amp;offset=0&amp;partnerName=Southwest&amp;type=loyaltyProgram\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;lps&quot; : [\n    {\n      &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n      &quot;creditType&quot;: &quot;combinedBaseBonus&quot;,\n      &quot;defaultLanguage&quot;: &quot;en&quot;,\n      &quot;hidden&quot;: false,\n      &quot;links&quot;: {\n        &quot;credits&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/credits/&quot;\n        },\n        &quot;debits&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/debits/&quot;\n        },\n        &quot;memberValidations&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/mvs/&quot;\n        },\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;&quot;\n        }\n      },\n      &quot;name&quot;: &quot;Rapid Rewards&quot;,\n      &quot;partnerId&quot;: &quot;dVNm&quot;,\n      &quot;partnerName&quot;: &quot;Southwest&quot;,\n      &quot;rewardCurrency&quot;: &quot;Points&quot;,\n      &quot;translations&quot;: {\n        &quot;es&quot;: {\n          &quot;name&quot;: &quot;Rapid Rewards&quot;,\n          &quot;partnerName&quot;: &quot;Southwest&quot;,\n          &quot;rewardCurrency&quot;: &quot;puntos&quot;\n      },\n      &quot;type&quot;: &quot;loyaltyProgram&quot;,\n      &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n    },\n    ...\n  ]\n}\n</code></pre>";
@@ -16287,9 +16287,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 135 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************!*\
-  !*** ./app/static/documents/api/list-all-lps.md ***!
-  \**************************************************/
+/*!*******************************************!*\
+  !*** ./app/documents/api/list-all-lps.md ***!
+  \*******************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"list-all-lps\">List all LPs</h3>\n<p>Retrieves the list of all LPs in the platform. Requests using live or sandbox credentials only return LPs that the app has permission to access in live or sandbox mode.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>limit</td>\n            <td>The maximum number of LPs to include in the list (optional). If not provided, defaults to 10. Max is 100.</td>\n        </tr>\n        <tr>\n            <td>name</td>\n            <td>Filters the list by the name associated with the loyalty program (optional).</td>\n        </tr>\n        <tr>\n            <td>offset</td>\n            <td>The starting offset when returning a list of LPs (optional). Use for pagination. For example, to retrieve the second page of 10 LPs, use offset=10. Defaults to 0 if not provided.</td>\n        </tr>\n        <tr>\n            <td>partnerName</td>\n            <td>Filters the list by the partner associated with the loyalty program (optional).</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource (optional). Can be either &quot;loyaltyProgram&quot; or &quot;giftCard&quot;.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>A list of LP objects.</p>\n";
@@ -16298,9 +16298,9 @@ module.exports = "<h3 id=\"list-all-lps\">List all LPs</h3>\n<p>Retrieves the li
 /* 136 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/documents/api/list-all-orders-example.md ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/documents/api/list-all-orders-example.md ***!
+  \******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://sandbox.lcp.points.com/v1/search/orders/?limit=10&amp;offset=0&amp;q=orderType:EXCHANGE_CREDIT\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;orders&quot; : [\n    {\n      &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n      &quot;confirmationNumber&quot;: &quot;3902-2266-8404-8538-1721&quot;,\n      &quot;createdAt&quot;: &quot;2014-02-26T17:47:00.000000Z&quot;,\n      &quot;data&quot;: {\n        &quot;clientIpAddress&quot;: &quot;127.0.0.1&quot;, \n        &quot;clientUserAgent&quot;: &quot;Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0&quot;, \n        &quot;language&quot;: &quot;en-US&quot;, \n        &quot;orderDetails&quot;: {\n          &quot;basePoints&quot;: 2000, \n          &quot;loyaltyProgram&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;\n        }, \n        &quot;user&quot;: {\n          &quot;email&quot;: &quot;jdoe@example.com&quot;,\n          &quot;firstName&quot;: &quot;John&quot;, \n          &quot;lastName&quot;: &quot;Doe&quot;, \n          &quot;memberId&quot;: &quot;1234&quot;, \n          &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;\n        }\n      },\n      &quot;links&quot;: {\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;id&gt;&quot;\n        }\n      },\n      &quot;orderType&quot;: &quot;EXCHANGE_CREDIT&quot;,\n      &quot;status&quot;: &quot;complete&quot;,\n      &quot;type&quot;: &quot;order&quot;,\n      &quot;updatedAt&quot;: &quot;2014-02-26T17:50:00.000000Z&quot;,\n      &quot;updates&quot;: [\n        {\n          &quot;resource&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n          &quot;status&quot;: &quot;success&quot;,\n          &quot;type&quot;: &quot;memberValidation&quot;,\n          &quot;updatedAt&quot;: &quot;2014-02-26T17:47:30.000000Z&quot;\n        },\n        {\n          &quot;resource&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;credit-id&gt;&quot;,\n          &quot;status&quot;: &quot;success&quot;,\n          &quot;type&quot;: &quot;credit&quot;,\n          &quot;updatedAt&quot;: &quot;2014-02-26T17:49:00.000000Z&quot;\n        }\n      ]\n    },\n    ...\n  ]\n}\n</code></pre>";
@@ -16309,9 +16309,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 137 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************!*\
-  !*** ./app/static/documents/api/list-all-orders.md ***!
-  \*****************************************************/
+/*!**********************************************!*\
+  !*** ./app/documents/api/list-all-orders.md ***!
+  \**********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"list-all-orders\">List all Orders</h3>\n<p>Retrieves the list of all orders that the requestor has permission to access.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>limit</td>\n            <td>The maximum number of orders to include in the list (optional). If not provided, defaults to 10. Max is 100.</td>\n        </tr>\n        <tr>\n            <td>offset</td>\n            <td>The starting offset when returning a list of orders (optional). Use for pagination. For example, to retrieve the second page of 10 orders, use offset=10. Defaults to 0 if not provided.</td>\n        </tr>\n        <tr>\n            <td>q</td>\n            <td>Filters the list of orders using <a href=\"http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax\">Elastic Search query string syntax</a> (optional).</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>A list of orders.</p>\n";
@@ -16320,9 +16320,9 @@ module.exports = "<h3 id=\"list-all-orders\">List all Orders</h3>\n<p>Retrieves 
 /* 138 */
 /* unknown exports provided */
 /* all exports used */
-/*!***********************************************************************!*\
-  !*** ./app/static/documents/api/list-all-report-instances-example.md ***!
-  \***********************************************************************/
+/*!****************************************************************!*\
+  !*** ./app/documents/api/list-all-report-instances-example.md ***!
+  \****************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;/instances/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;instances&quot;: [\n    {\n      &quot;contentType&quot;: &quot;application/json&quot;,\n      &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n      &quot;links&quot;: {\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;/instances/&lt;id&gt;&quot;\n        },\n        &quot;data&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;/instances/&lt;id&gt;/data&quot;\n        },\n        &quot;report&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;&quot;\n        }\n      },\n      &quot;status&quot;: &quot;success&quot;,\n      &quot;type&quot;: &quot;reportInstance&quot;,\n      &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n    },\n    ...\n  ]\n}\n</code></pre>";
@@ -16331,9 +16331,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 139 */
 /* unknown exports provided */
 /* all exports used */
-/*!***************************************************************!*\
-  !*** ./app/static/documents/api/list-all-report-instances.md ***!
-  \***************************************************************/
+/*!********************************************************!*\
+  !*** ./app/documents/api/list-all-report-instances.md ***!
+  \********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"list-all-report-instances\">List all Report Instances</h3>\n<p>Retrieves the list of report instances that have been requested.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n        <tr>\n            <td>report-id</td>\n            <td>The identifier of the report.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The list of reports instances if the app and report exist, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -16342,9 +16342,9 @@ module.exports = "<h3 id=\"list-all-report-instances\">List all Report Instances
 /* 140 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************************!*\
-  !*** ./app/static/documents/api/list-all-reports-example.md ***!
-  \**************************************************************/
+/*!*******************************************************!*\
+  !*** ./app/documents/api/list-all-reports-example.md ***!
+  \*******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;reports&quot;: [\n    {\n      &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n      &quot;description&quot;: &quot;Report on all transactions performed by my app&quot;,\n      &quot;links&quot;: {\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;id&gt;&quot;\n        },\n        &quot;instances&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;id&gt;/instances/&quot;\n        }\n      },\n      &quot;name&quot;: &quot;My App’s Transaction Report&quot;,\n      &quot;type&quot;: &quot;report&quot;,\n      &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;,\n      &quot;url&quot;: &quot;https://myapp.com/reports/report-name&quot;\n    },\n    ...\n  ]\n}\n</code></pre>";
@@ -16353,9 +16353,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 141 */
 /* unknown exports provided */
 /* all exports used */
-/*!******************************************************!*\
-  !*** ./app/static/documents/api/list-all-reports.md ***!
-  \******************************************************/
+/*!***********************************************!*\
+  !*** ./app/documents/api/list-all-reports.md ***!
+  \***********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"list-all-reports\">List all Reports</h3>\n<p>Retrieves the list of reports that an app has registered with the LCP.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The list of reports if the app exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -16364,9 +16364,9 @@ module.exports = "<h3 id=\"list-all-reports\">List all Reports</h3>\n<p>Retrieve
 /* 142 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************************************!*\
-  !*** ./app/static/documents/api/list-all-sandbox-permissions-example.md ***!
-  \**************************************************************************/
+/*!*******************************************************************!*\
+  !*** ./app/documents/api/list-all-sandbox-permissions-example.md ***!
+  \*******************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-permissions/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;sandboxPermissions&quot;: [\n    {\n      &quot;links&quot;: {\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-permissions/&lt;id&gt;&quot;\n        }\n      },\n      &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n      &quot;operations&quot;: [&quot;mvs&quot;, &quot;debits&quot;, &quot;credits&quot;],\n      &quot;type&quot;: &quot;sandboxPermission&quot;\n    },\n    ...\n  ]\n}\n</code></pre>";
@@ -16375,9 +16375,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GE
 /* 143 */
 /* unknown exports provided */
 /* all exports used */
-/*!******************************************************************!*\
-  !*** ./app/static/documents/api/list-all-sandbox-permissions.md ***!
-  \******************************************************************/
+/*!***********************************************************!*\
+  !*** ./app/documents/api/list-all-sandbox-permissions.md ***!
+  \***********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"list-all-sandbox-permissions\">List all Sandbox Permissions</h3>\n<p>Retrieves the list of operations that an app can perform in sandbox mode for each LP.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The list of sandbox permissions if the app exists, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -16386,9 +16386,9 @@ module.exports = "<h3 id=\"list-all-sandbox-permissions\">List all Sandbox Permi
 /* 144 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************************!*\
-  !*** ./app/static/documents/api/live-credentials-example.md ***!
-  \**************************************************************/
+/*!*******************************************************!*\
+  !*** ./app/documents/api/live-credentials-example.md ***!
+  \*******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/live-credentials/&lt;id&gt;&quot;\n    }\n  },\n  &quot;macAlgorithm&quot;: &quot;HMAC-SHA1&quot;,\n  &quot;macKey&quot;: &quot;&lt;macKey&gt;&quot;,\n  &quot;macKeyIdentifier&quot;: &quot;&lt;macKeyIdentifier&gt;&quot;,\n  &quot;type&quot;: &quot;liveCredential&quot;\n}\n</code></pre>";
@@ -16397,9 +16397,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 145 */
 /* unknown exports provided */
 /* all exports used */
-/*!******************************************************!*\
-  !*** ./app/static/documents/api/live-credentials.md ***!
-  \******************************************************/
+/*!***********************************************!*\
+  !*** ./app/documents/api/live-credentials.md ***!
+  \***********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"live-credentials\">Live Credentials</h2>\n<p>Live credentials authenticate your app to perform actions on the LCP in live mode. App credentials are different for sandbox and live mode. Live credentials are created by Points when your app is promoted to live mode. Live credentials are available at <code>/apps/&lt;app-id&gt;/live-credentials</code> and are used to sign requests to <code>/lps</code> in live mode. You cannot create or delete live credentials.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>macAlgorithm</td>\n            <td>The MAC algorithm describes the algorithm used to create the signature.</td>\n        </tr>\n        <tr>\n            <td>macKey</td>\n            <td>The MAC key is the shared secret key. It should never be shared with anyone or transmitted in any request. Keep this key secure as you would any private key.</td>\n        </tr>\n        <tr>\n            <td>macKeyIdentifier</td>\n            <td>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier is sent with each request to tell the server which MAC key was used to sign the request.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n";
@@ -16408,9 +16408,9 @@ module.exports = "<h2 id=\"live-credentials\">Live Credentials</h2>\n<p>Live cre
 /* 146 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************************!*\
-  !*** ./app/static/documents/api/live-permissions-example.md ***!
-  \**************************************************************/
+/*!*******************************************************!*\
+  !*** ./app/documents/api/live-permissions-example.md ***!
+  \*******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/live-permissions/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;operations&quot;: [&quot;mvs&quot;, &quot;debits&quot;, &quot;credits&quot;],\n  &quot;type&quot;: &quot;livePermission&quot;\n}\n</code></pre>";
@@ -16419,9 +16419,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 147 */
 /* unknown exports provided */
 /* all exports used */
-/*!******************************************************!*\
-  !*** ./app/static/documents/api/live-permissions.md ***!
-  \******************************************************/
+/*!***********************************************!*\
+  !*** ./app/documents/api/live-permissions.md ***!
+  \***********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"live-permissions\">Live Permissions</h2>\n<p>Live permissions describe what operations an application can do in live mode for each loyalty program.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>loyaltyProgram</td>\n            <td>The URL of the loyalty program.</td>\n        </tr>\n        <tr>\n            <td>operations</td>\n            <td>An array of operations that the application is permitted to do in live mode for the LP.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n\n";
@@ -16430,9 +16430,9 @@ module.exports = "<h2 id=\"live-permissions\">Live Permissions</h2>\n<p>Live per
 /* 148 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************************!*\
-  !*** ./app/static/documents/api/loyalty-programs-example.md ***!
-  \**************************************************************/
+/*!*******************************************************!*\
+  !*** ./app/documents/api/loyalty-programs-example.md ***!
+  \*******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;creditType&quot;: &quot;combinedBaseBonus&quot;,\n  &quot;defaultLanguage&quot;: &quot;en&quot;,\n  &quot;hidden&quot;: false,\n  &quot;links&quot;: {\n    &quot;credits&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/credits/&quot;\n    },\n    &quot;debits&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/debits/&quot;\n    },\n    &quot;memberValidations&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/mvs/&quot;\n    },\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;&quot;\n    }\n  },\n  &quot;name&quot;: &quot;Rapid Rewards&quot;,\n  &quot;partnerId&quot;: &quot;dVNm&quot;,\n  &quot;partnerName&quot;: &quot;Southwest&quot;,\n  &quot;rewardCurrency&quot;: &quot;Points&quot;,\n  &quot;translations&quot;: {\n    &quot;es&quot;: {\n      &quot;name&quot;: &quot;Rapid Rewards&quot;,\n      &quot;partnerName&quot;: &quot;Southwest&quot;,\n      &quot;rewardCurrency&quot;: &quot;puntos&quot;\n  },\n  &quot;type&quot;: &quot;loyaltyProgram&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -16441,9 +16441,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 149 */
 /* unknown exports provided */
 /* all exports used */
-/*!******************************************************!*\
-  !*** ./app/static/documents/api/loyalty-programs.md ***!
-  \******************************************************/
+/*!***********************************************!*\
+  !*** ./app/documents/api/loyalty-programs.md ***!
+  \***********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"loyalty-programs-lps-\">Loyalty Programs (LPs)</h2>\n<p>A loyalty program (LP) allows applications to perform member validations, debits, and credits against the loyalty program’s member database. Loyalty programs are found under the <code>/lps</code> endpoint.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>createdAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was created.</td>\n        </tr>\n        <tr>\n            <td>creditType</td>\n            <td>Indicates whether the LP requires base and bonus points to be fulfilled as one credit or as two separate credits.</td>\n        </tr>\n        <tr>\n            <td>defaultLanguage</td>\n            <td>The default language of the loyalty program. The name, partnerName, and rewardCurrency properties are in this language. <a href=\"http://en.wikipedia.org/wiki/IETF_language_tag\">IETF language tags</a> are used.</td>\n        </tr>\n        <tr>\n            <td>hidden</td>\n            <td>Flag indicating whether the LP is shown in the list of LPs.</td>\n        </tr>\n        <tr>\n            <td>name</td>\n            <td>The name of the loyalty program.</td>\n        </tr>\n        <tr>\n            <td>partnerId</td>\n            <td>A four character string uniquely identifying the loyalty program.</td>\n        </tr>\n        <tr>\n            <td>partnerName</td>\n            <td>The partner associated with the loyalty program.</td>\n        </tr>\n        <tr>\n            <td>rewardCurrency</td>\n            <td>The name of the reward currency (e.g. points or miles).</td>\n        </tr>\n        <tr>\n            <td>translations</td>\n            <td>A set of language translations for the name, partnerName, and rewardCurrency properties. <a href=\"http://en.wikipedia.org/wiki/IETF_language_tag\">IETF language tags</a> are used.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n        <tr>\n            <td>updatedAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was last updated.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
@@ -16452,9 +16452,9 @@ module.exports = "<h2 id=\"loyalty-programs-lps-\">Loyalty Programs (LPs)</h2>\n
 /* 150 */
 /* unknown exports provided */
 /* all exports used */
-/*!****************************************************************!*\
-  !*** ./app/static/documents/api/member-validations-example.md ***!
-  \****************************************************************/
+/*!*********************************************************!*\
+  !*** ./app/documents/api/member-validations-example.md ***!
+  \*********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;authenticatingFactors&quot;: {\n    &quot;password&quot;: &quot;*****&quot;\n  },\n  &quot;balance&quot;: 2000,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;identifyingFactors&quot;: {\n    &quot;firstName&quot;: &quot;John&quot;,\n    &quot;lastName&quot;: &quot;Doe&quot;,\n    &quot;memberId&quot;: &quot;1234&quot;\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;order-id&gt;&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;type&quot;: &quot;memberValidation&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -16463,9 +16463,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 151 */
 /* unknown exports provided */
 /* all exports used */
-/*!********************************************************!*\
-  !*** ./app/static/documents/api/member-validations.md ***!
-  \********************************************************/
+/*!*************************************************!*\
+  !*** ./app/documents/api/member-validations.md ***!
+  \*************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"member-validations-mvs-\">Member Validations (MVs)</h2>\n<p>A member validation (MV) authenticates a member of a loyalty program and retrieves their balance. MVs are required before any other transactions can be performed on a member&#39;s account and each transaction requires a separate MV.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>application</td>\n            <td>The application that created the transaction.</td>\n        </tr>\n        <tr>\n            <td>authenticatingFactors</td>\n            <td>Dictionary of fields that authenticate the loyalty program member (e.g., password, pin). These fields are not displayed. Varies based on the LP’s <a href=\"#mv-request-schema\">MV request schema</a>.</td>\n        </tr>\n        <tr>\n            <td>balance</td>\n            <td>The balance in the loyalty program member&#39;s account.</td>\n        </tr>\n        <tr>\n            <td>createdAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was created.</td>\n        </tr>\n        <tr>\n            <td>identifyingFactors</td>\n            <td>Dictionary of fields that identify the loyalty program member (e.g., firstName, lastName, memberId). Varies based on the LP’s <a href=\"#mv-request-schema\">MV request schema</a>.</td>\n        </tr>\n        <tr>\n            <td>loyaltyProgram</td>\n            <td>The loyalty program involved in the transaction.</td>\n        </tr>\n        <tr>\n            <td>order</td>\n            <td>Link to the order that this member validation belongs to.</td>\n        </tr>\n        <tr>\n            <td>status</td>\n            <td>The status of the member validation. The status is always success.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n        <tr>\n            <td>updatedAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was last updated.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n";
@@ -16474,9 +16474,9 @@ module.exports = "<h2 id=\"member-validations-mvs-\">Member Validations (MVs)</h
 /* 152 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************************!*\
-  !*** ./app/static/documents/api/mv-delegates-example.md ***!
-  \**********************************************************/
+/*!***************************************************!*\
+  !*** ./app/documents/api/mv-delegates-example.md ***!
+  \***************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mv-delegates/&lt;id&gt;&quot;\n  },\n  &quot;type&quot;: &quot;memberValidationDelegate&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -16485,9 +16485,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 153 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************!*\
-  !*** ./app/static/documents/api/mv-delegates.md ***!
-  \**************************************************/
+/*!*******************************************!*\
+  !*** ./app/documents/api/mv-delegates.md ***!
+  \*******************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"mv-delegates\">MV Delegates</h2>\n<p>An MV delegate is a member validation that a loyalty program created for another application. MV delegates are used for Single Sign-On (SSO) behaviour. When a loyalty program application wants to redirect an authenticated member to a 3rd-party application, the loyalty program application can create an MV delegate so that the other application doesn’t need to re-authenticate the user.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>application</td>\n            <td>The application that has permission to access the member validation.</td>\n        </tr>\n        <tr>\n            <td>createdAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was created.</td>\n        </tr>\n        <tr>\n            <td>memberValidation</td>\n            <td>A link to the member validation that the application can access.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n        <tr>\n            <td>updatedAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was last updated.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n";
@@ -16496,9 +16496,9 @@ module.exports = "<h2 id=\"mv-delegates\">MV Delegates</h2>\n<p>An MV delegate i
 /* 154 */
 /* unknown exports provided */
 /* all exports used */
-/*!***************************************************************!*\
-  !*** ./app/static/documents/api/mv-request-schema-example.md ***!
-  \***************************************************************/
+/*!********************************************************!*\
+  !*** ./app/documents/api/mv-request-schema-example.md ***!
+  \********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;presentation&quot;: {\n    &quot;labels&quot;: {\n      &quot;identifyingFactors.firstName&quot;: {\n        &quot;en&quot;: &quot;First Name&quot;\n      },\n      &quot;identifyingFactors.lastName&quot;: {\n        &quot;en&quot;: &quot;Last Name&quot;\n      },\n      &quot;identifyingFactors.memberId&quot;: {\n        &quot;en&quot;: &quot;Membership Number&quot;\n      },\n      &quot;authenticatingFactors.password&quot;: {\n        &quot;en&quot;: &quot;Password&quot;\n      }\n    },\n    &quot;order&quot;: [&quot;identifyingFactors.firstName&quot;, &quot;identifyingFactors.lastName&quot;, &quot;identifyingFactors.memberId&quot;, &quot;authenticatingFactors.password&quot;]\n  },\n  &quot;schema&quot;: {\n    &quot;type&quot;: &quot;object&quot;,\n    &quot;properties&quot;: {\n      &quot;identifyingFactors&quot;: {\n        &quot;type&quot;: &quot;object&quot;,\n        &quot;properties&quot;: {\n          &quot;firstName&quot;: {\n            &quot;type&quot;: &quot;string&quot;,\n            &quot;minLength&quot;: 1,\n            &quot;maxLength&quot;: 100\n          },\n          &quot;lastName&quot;: {\n            &quot;type&quot;: &quot;string&quot;,\n            &quot;minLength&quot;: 1,\n            &quot;maxLength&quot;: 100\n          },\n          &quot;memberId&quot;: {\n            &quot;type&quot;: &quot;string&quot;,\n            &quot;minLength&quot;: 1,\n            &quot;maxLength&quot;: 100\n          }\n        },\n        &quot;required&quot;: [&quot;firstName&quot;, &quot;lastName&quot;, &quot;memberId&quot;],\n        &quot;additionalProperties&quot;: false\n      },\n      &quot;authenticatingFactors&quot;: {\n        &quot;type&quot;: &quot;object&quot;,\n        &quot;properties&quot;: {\n          &quot;password&quot;: {\n            &quot;type&quot;: &quot;string&quot;,\n            &quot;minLength&quot;: 1,\n            &quot;maxLength&quot;: 100\n          }\n        },\n        &quot;required&quot;: [&quot;password&quot;],\n        &quot;additionalProperties&quot;: false\n      }\n    },\n    &quot;required&quot;: [&quot;identifyingFactors&quot;, &quot;authenticatingFactors&quot;],\n    &quot;additionalProperties&quot;: false\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/metadata/schema&quot;\n    }\n  },\n  &quot;type&quot;: &quot;memberValidationRequestSchema&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -16507,9 +16507,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 155 */
 /* unknown exports provided */
 /* all exports used */
-/*!*******************************************************!*\
-  !*** ./app/static/documents/api/mv-request-schema.md ***!
-  \*******************************************************/
+/*!************************************************!*\
+  !*** ./app/documents/api/mv-request-schema.md ***!
+  \************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"mv-request-schema\">MV Request Schema</h2>\n<p>Each LP has an MV request schema that defines the JSON document applications must send to do an MV.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>createdAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was created.</td>\n        </tr>\n        <tr>\n            <td>presentation</td>\n            <td>Describes how to present the MV request schema to the user to obtain their loyalty program credentials. Includes localized labels for each MV request field and the order to present the fields. <a href=\"http://en.wikipedia.org/wiki/IETF_language_tag\">IETF language tags</a> are used.</td>\n        </tr>\n        <tr>\n            <td>schema</td>\n            <td>A JSON schema that defines the format for MV requests. The preferred format is two top-level properties: identifyingFactors and authenticatingFactors. Identifying factors include fields like first name, last name, and member ID. Authenticating factors include fields like password and pin that should not be displayed to users.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n        <tr>\n            <td>updatedAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was last updated.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n";
@@ -16518,9 +16518,9 @@ module.exports = "<h2 id=\"mv-request-schema\">MV Request Schema</h2>\n<p>Each L
 /* 156 */
 /* unknown exports provided */
 /* all exports used */
-/*!****************************************************!*\
-  !*** ./app/static/documents/api/orders-example.md ***!
-  \****************************************************/
+/*!*********************************************!*\
+  !*** ./app/documents/api/orders-example.md ***!
+  \*********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;confirmationNumber&quot;: &quot;3902-2266-8404-8538-1721&quot;,\n  &quot;createdAt&quot;: &quot;2014-02-26T17:47:00.000000Z&quot;,\n  &quot;data&quot;: {\n    &quot;clientIpAddress&quot;: &quot;127.0.0.1&quot;, \n    &quot;clientUserAgent&quot;: &quot;Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0&quot;, \n    &quot;language&quot;: &quot;en-US&quot;, \n    &quot;orderDetails&quot;: {\n      &quot;basePoints&quot;: 2000, \n      &quot;loyaltyProgram&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;\n    }, \n    &quot;user&quot;: {\n      &quot;email&quot;: &quot;jdoe@example.com&quot;,\n      &quot;firstName&quot;: &quot;John&quot;, \n      &quot;lastName&quot;: &quot;Doe&quot;, \n      &quot;memberId&quot;: &quot;1234&quot;, \n      &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;\n    }\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;id&gt;&quot;\n    }\n  },\n  &quot;orderType&quot;: &quot;EXCHANGE_CREDIT&quot;,\n  &quot;status&quot;: &quot;complete&quot;,\n  &quot;type&quot;: &quot;order&quot;,\n  &quot;updatedAt&quot;: &quot;2014-02-26T17:50:00.000000Z&quot;,\n  &quot;updates&quot;: [\n    {\n      &quot;resource&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n      &quot;status&quot;: &quot;success&quot;,\n      &quot;type&quot;: &quot;memberValidation&quot;,\n      &quot;updatedAt&quot;: &quot;2014-02-26T17:47:30.000000Z&quot;\n    },\n    {\n      &quot;resource&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;credit-id&gt;&quot;,\n      &quot;status&quot;: &quot;success&quot;,\n      &quot;type&quot;: &quot;credit&quot;,\n      &quot;updatedAt&quot;: &quot;2014-02-26T17:49:00.000000Z&quot;\n    }\n  ]\n}\n</code></pre>";
@@ -16529,9 +16529,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 157 */
 /* unknown exports provided */
 /* all exports used */
-/*!********************************************!*\
-  !*** ./app/static/documents/api/orders.md ***!
-  \********************************************/
+/*!*************************************!*\
+  !*** ./app/documents/api/orders.md ***!
+  \*************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"orders\">Orders</h2>\n<p>All transactions must be part of an order for them to appear in the order search support tool and the transaction reports in the <a href=\"https://admin.lcp.points.com/\">LCP Admin</a> console. An order is a composite transaction that associates multiple primitive transactions together. Primitive transactions include MVs, debits, and credits. The order contains details about the composite transaction and its fulfillment history. Additional metadata about the order can also be included in the data section. If you have <a href=\"https://www.getpostman.com/\" target=\"_new\">Postman</a> installed, click <a href=\"https://www.getpostman.com/collections/9393bd27614afdd01e6b\">here</a> to install a Postman collection which will take through two examples of what is involved in creating an order on the LCP (in order for it to run, you will first need to download and import <a href=\"HelloLoyaltyWorld.json\">this Postman environment</a>).</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>application</td>\n            <td>The application that created the transaction.</td>\n        </tr>\n        <tr>\n            <td>confirmationNumber</td>\n            <td>The order confirmation number. Provide this number to the user. Use it when contacting Points for support.</td>\n        </tr>\n        <tr>\n            <td>createdAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was created.</td>\n        </tr>\n        <tr>\n            <td>data</td>\n            <td>The details of the order.</td>\n        </tr>\n        <tr>\n            <td>orderType</td>\n            <td>\n                <p>The type of order. Can be one of:\n                    <ul>\n                        <li>&quot;EXCHANGE_CREDIT&quot; for credit orders</li>\n                        <li>&quot;REDEEM_DEBIT&quot; for debit orders</li>\n                    </ul>\n                    Contact Points to determine which order type you should use.\n                </p>\n            </td>\n        </tr>\n        <tr>\n            <td>status</td>\n            <td>\n                <p>The overall status of the order. Can be one of:\n                    <ul>\n                        <li>&quot;initial&quot; when the order is created</li>\n                        <li>&quot;debitFailed&quot; if the debit status is failure</li>\n                        <li>&quot;debitPending&quot; if the debit status is pending</li>\n                        <li>&quot;debitError&quot; if the debit status is systemError</li>\n                        <li>&quot;creditFailed&quot; if the credit status is failure</li>\n                        <li>&quot;creditPending&quot; if the credit status is pending</li>\n                        <li>&quot;creditError&quot; if the credit status is systemError</li>\n                        <li>&quot;complete&quot; if all primitives succeeded</li>\n                        <li>&quot;reversed&quot; if all primitives are reversed</li>\n                        <li>&quot;statusPending&quot; if the order has been updated and needs its status to be recalculated</li>\n                    </ul>\n                </p>\n            </td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n        <tr>\n            <td>updatedAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was last updated.</td>\n        </tr>\n        <tr>\n            <td>updates</td>\n            <td>\n                <p>A list of updates to transactions attached to this order. Each update contains:\n                    <ul>\n                        <li><strong>resource</strong>: a link to the transaction</li>\n                        <li><strong>status</strong>: the status of the transaction</li>\n                        <li><strong>type</strong>: the type of transaction</li>\n                        <li><strong>updatedAt</strong>: the timestamp when the transaction was updated</li>\n                    </ul>\n                </p>\n            </td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
@@ -16540,9 +16540,9 @@ module.exports = "<h2 id=\"orders\">Orders</h2>\n<p>All transactions must be par
 /* 158 */
 /* unknown exports provided */
 /* all exports used */
-/*!***************************************************!*\
-  !*** ./app/static/documents/api/release-notes.md ***!
-  \***************************************************/
+/*!********************************************!*\
+  !*** ./app/documents/api/release-notes.md ***!
+  \********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"release-notes\">Release Notes</h2>\n<table>\n    <thead>\n        <tr>\n            <th>Release Date</th>\n            <th>Notes</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>2016-01-28</td>\n            <td>Added ability to filter LPs by name\n            </td>\n        </tr>\n        <tr>\n            <td>2015-12-08</td>\n            <td>Added member-details to sandbox permissions\n            </td>\n        </tr>\n        <tr>\n            <td>2015-10-28</td>\n            <td>Added sandbox permissions\n            </td>\n        </tr>\n        <tr>\n            <td>2015-10-14</td>\n            <td>Added time zone to accounts\n            <br>Added ability to update an account\n            </td>\n        </tr>\n        <tr>\n            <td>2015-09-16</td>\n            <td>Added ability to update transactionId for debits and credits\n            </td>\n        </tr>\n        <tr>\n            <td>2015-07-28</td>\n            <td>Added sandbox MVs\n            <br>Added identifying and authenticating factors for MVs\n            </td>\n        </tr>\n        <tr>\n            <td>2015-06-30</td>\n            <td>Added roles to accounts\n            </td>\n        </tr>\n        <tr>\n            <td>2015-06-19</td>\n            <td>Added hidden flag to LPs\n            </td>\n        </tr>\n        <tr>\n            <td>2015-06-10</td>\n            <td>Added ability to filter LPs by type\n            <br>Added claimCode to credits\n            </td>\n        </tr>\n        <tr>\n            <td>2015-05-14</td>\n            <td>Added ability to localize LPs\n            <br>Added MV request schema\n            </td>\n        </tr>\n        <tr>\n            <td>2015-05-14</td>\n            <td>Added ability to localize LPs\n            </td>\n        </tr>\n        <tr>\n            <td>2015-04-29</td>\n            <td>Added ability to get loyalty programs (LPs)\n            </td>\n        </tr>\n        <tr>\n            <td>2015-04-02</td>\n            <td>Added ability to get lists of debits and credits and update them\n            </td>\n        </tr>\n        <tr>\n            <td>2015-03-24</td>\n            <td>Added creditType to credits\n            <br>Added new sandbox mode behaviour for debits and credits\n            </td>\n        </tr>\n        <tr>\n            <td>2015-03-11</td>\n            <td>Added ability to update order status\n            </td>\n        </tr>\n        <tr>\n            <td>2015-02-10</td>\n            <td>Added orders\n            </td>\n        </tr>\n        <tr>\n            <td>2015-01-21</td>\n            <td>Removed ability to create an account via the API\n            <br>Added additional MV error codes\n            <br>Added systemError status for debits and credits\n            </td>\n        </tr>\n        <tr>\n            <td>2014-10-16</td>\n            <td>Removed billingInfo fields from debits and credits\n            <br>Added optional pic field to debits and credits\n            </td>\n        </tr>\n        <tr>\n            <td>2014-06-25</td>\n            <td>Added status to member validations\n            </td>\n        </tr>\n        <tr>\n            <td>2014-06-06</td>\n            <td>Added application and loyaltyProgram to transactions\n            </td>\n        </tr>\n        <tr>\n            <td>2014-05-28</td>\n            <td>Added account permissions\n            </td>\n        </tr>\n        <tr>\n            <td>2014-05-14</td>\n            <td>Added type, updatedAt, createdAt to all resources\n            </td>\n        </tr>\n        <tr>\n            <td>2014-04-23</td>\n            <td>Added list of apps\n            </td>\n        </tr>\n        <tr>\n            <td>2014-04-03</td>\n            <td>Added reports and report instances\n            </td>\n        </tr>\n        <tr>\n            <td>2014-02-19</td>\n            <td>Updated MV delegates\n            </td>\n        </tr>\n        <tr>\n            <td>2014-01-23</td>\n            <td>Added MV delegates\n            </td>\n        </tr>\n        <tr>\n            <td>2013-12-20</td>\n            <td>Added billingInfo fields to debits and credits\n            </td>\n        </tr>\n        <tr>\n            <td>2013-12-11</td>\n            <td>Added support for OPTIONS HTTP method\n            </td>\n        </tr>\n        <tr>\n            <td>2013-11-27</td>\n            <td>Added live permissions\n            <br>Added pending status for debit and credit transactions\n            </td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
@@ -16551,9 +16551,9 @@ module.exports = "<h2 id=\"release-notes\">Release Notes</h2>\n<table>\n    <the
 /* 159 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************************!*\
-  !*** ./app/static/documents/api/report-instances-example.md ***!
-  \**************************************************************/
+/*!*******************************************************!*\
+  !*** ./app/documents/api/report-instances-example.md ***!
+  \*******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;contentType&quot;: &quot;application/json&quot;,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;/instances/&lt;id&gt;&quot;\n    },\n    &quot;data&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;/instances/&lt;id&gt;/data&quot;\n    },\n    &quot;report&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;report-id&gt;&quot;\n    }\n  },\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;type&quot;: &quot;reportInstance&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -16562,9 +16562,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 160 */
 /* unknown exports provided */
 /* all exports used */
-/*!******************************************************!*\
-  !*** ./app/static/documents/api/report-instances.md ***!
-  \******************************************************/
+/*!***********************************************!*\
+  !*** ./app/documents/api/report-instances.md ***!
+  \***********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"report-instances\">Report Instances</h2>\n<p>A report instance is a record of a request to generate a copy of an application report. The report instance contains information about when it was created and the status of the request to generate the report. If the report generation was successful, the report instance contains the content type of the report data and a link to get the report data.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>contentType</td>\n            <td>The content type of the data in the report instance.</td>\n        </tr>\n        <tr>\n            <td>createdAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was created.</td>\n        </tr>\n        <tr>\n            <td>status</td>\n            <td>The status of the request to generate a report instance. The status can be success or failure.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n        <tr>\n            <td>updatedAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was last updated.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
@@ -16573,9 +16573,9 @@ module.exports = "<h2 id=\"report-instances\">Report Instances</h2>\n<p>A report
 /* 161 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************!*\
-  !*** ./app/static/documents/api/reports-example.md ***!
-  \*****************************************************/
+/*!**********************************************!*\
+  !*** ./app/documents/api/reports-example.md ***!
+  \**********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;description&quot;: &quot;Report on all transactions performed by my app&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;id&gt;&quot;\n    },\n    &quot;instances&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;id&gt;/instances/&quot;\n    }\n  },\n  &quot;name&quot;: &quot;My App’s Transaction Report&quot;,\n  &quot;type&quot;: &quot;report&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;,\n  &quot;url&quot;: &quot;https://myapp.com/reports/report-name&quot;\n}\n</code></pre>";
@@ -16584,9 +16584,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 162 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************!*\
-  !*** ./app/static/documents/api/reports.md ***!
-  \*********************************************/
+/*!**************************************!*\
+  !*** ./app/documents/api/reports.md ***!
+  \**************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"reports\">Reports</h2>\n<p>Reports allow applications to publish data that is accessible by other users of the LCP. Reports are registered with the LCP for a given application. The application provides the data for the report when the report is requested. A report definition includes the report name, description and a URL belonging to the application where the LCP requests the data.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>createdAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was created.</td>\n        </tr>\n        <tr>\n            <td>description</td>\n            <td>The description of the report.</td>\n        </tr>\n        <tr>\n            <td>name</td>\n            <td>The name of the report.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n        <tr>\n            <td>updatedAt</td>\n            <td>The <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> time when the resource was last updated.</td>\n        </tr>\n        <tr>\n            <td>url</td>\n            <td>The URL to access the report.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
@@ -16595,9 +16595,9 @@ module.exports = "<h2 id=\"reports\">Reports</h2>\n<p>Reports allow applications
 /* 163 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************************!*\
-  !*** ./app/static/documents/api/sandbox-credentials-example.md ***!
-  \*****************************************************************/
+/*!**********************************************************!*\
+  !*** ./app/documents/api/sandbox-credentials-example.md ***!
+  \**********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-credentials/&lt;id&gt;&quot;\n    }\n  },\n  &quot;macAlgorithm&quot;: &quot;HMAC-SHA1&quot;,\n  &quot;macKey&quot;: &quot;&lt;macKey&gt;&quot;,\n  &quot;macKeyIdentifier&quot;: &quot;&lt;macKeyIdentifier&gt;&quot;,\n  &quot;type&quot;: &quot;sandboxCredential&quot;\n}\n</code></pre>";
@@ -16606,9 +16606,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 164 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************************!*\
-  !*** ./app/static/documents/api/sandbox-credentials.md ***!
-  \*********************************************************/
+/*!**************************************************!*\
+  !*** ./app/documents/api/sandbox-credentials.md ***!
+  \**************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"sandbox-credentials\">Sandbox Credentials</h2>\n<p>Sandbox credentials authenticate your app to perform actions on the LCP. A set of sandbox credentials is created automatically when you create your app. App credentials are different for sandbox and live mode. Sandbox credentials are available at <code>/apps/&lt;app-id&gt;/sandbox-credentials</code> and are used to sign requests to <code>/lps</code>.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>macAlgorithm</td>\n            <td>The MAC algorithm describes the algorithm used to create the signature.</td>\n        </tr>\n        <tr>\n            <td>macKey</td>\n            <td>The MAC key is the shared secret key. It should never be shared with anyone or transmitted in any request. Keep this key secure as you would any private key.</td>\n        </tr>\n        <tr>\n            <td>macKeyIdentifier</td>\n            <td>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier is sent with each request to tell the server which MAC key was used to sign the request.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n";
@@ -16617,9 +16617,9 @@ module.exports = "<h2 id=\"sandbox-credentials\">Sandbox Credentials</h2>\n<p>Sa
 /* 165 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************************!*\
-  !*** ./app/static/documents/api/sandbox-mvs-example.md ***!
-  \*********************************************************/
+/*!**************************************************!*\
+  !*** ./app/documents/api/sandbox-mvs-example.md ***!
+  \**************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;sandboxResponses&quot;: [\n    {\n      &quot;request&quot;: {\n        &quot;identifyingFactors&quot;: {\n          &quot;firstName&quot;: &quot;Tony&quot;,\n          &quot;lastName&quot;: &quot;Smith&quot;,\n          &quot;memberId&quot;: &quot;99999999&quot;\n        },\n        &quot;authenticatingFactors&quot;: {\n          &quot;password&quot;: &quot;PASSWORD&quot;\n        }\n      },\n      &quot;response&quot;: {\n         &quot;error&quot;: &quot;INVALID_UPSTREAM_RESPONSE&quot;\n      }\n    },\n    {\n      &quot;request&quot;: {\n        &quot;identifyingFactors&quot;: {\n          &quot;firstName&quot;: &quot;Joe&quot;,\n          &quot;lastName&quot;: &quot;Smith&quot;,\n          &quot;memberId&quot;: &quot;12345678&quot;\n        },\n        &quot;authenticatingFactors&quot;: {\n          &quot;password&quot;: &quot;ABCDEFGH&quot;\n        }\n      },\n      &quot;response&quot;: {\n        &quot;balance&quot;: 205123\n      }\n    },\n    ...\n  ],\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/metadata/sandbox-responses&quot;\n    }\n  }\n}\n</code></pre>";
@@ -16628,9 +16628,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 166 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************!*\
-  !*** ./app/static/documents/api/sandbox-mvs.md ***!
-  \*************************************************/
+/*!******************************************!*\
+  !*** ./app/documents/api/sandbox-mvs.md ***!
+  \******************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"sandbox-mvs\">Sandbox MVs</h2>\n<p>Each LP has a set of sandbox MVs that can be used for testing MVs in sandbox mode. If the MV request matches one of the sandbox MVs, the specified MV response or error is returned. If none of the sandbox MV requests match then UNKNOWN_MEMBER is returned.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>sandboxResponses</td>\n            <td>A list of request/response pairs. Each request matches the <a href=\"#mv-request-schema\">MV request schema</a> for the LP. Each response can be either an MV response or an <a href=\"./?doc=reference-manual#errors\">error code</a> of INVALID_UPSTREAM_RESPONSE, INELIGIBLE, or MAXIMUM_ATTEMPTS_EXCEEDED.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n";
@@ -16639,9 +16639,9 @@ module.exports = "<h2 id=\"sandbox-mvs\">Sandbox MVs</h2>\n<p>Each LP has a set 
 /* 167 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************************!*\
-  !*** ./app/static/documents/api/sandbox-permissions-example.md ***!
-  \*****************************************************************/
+/*!**********************************************************!*\
+  !*** ./app/documents/api/sandbox-permissions-example.md ***!
+  \**********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-permissions/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;operations&quot;: [&quot;mvs&quot;, &quot;debits&quot;, &quot;credits&quot;],\n  &quot;type&quot;: &quot;sandboxPermission&quot;\n}\n</code></pre>";
@@ -16650,9 +16650,9 @@ module.exports = "<h4 id=\"example-object\">Example Object</h4>\n<pre><code>{\n 
 /* 168 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************************!*\
-  !*** ./app/static/documents/api/sandbox-permissions.md ***!
-  \*********************************************************/
+/*!**************************************************!*\
+  !*** ./app/documents/api/sandbox-permissions.md ***!
+  \**************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h2 id=\"sandbox-permissions\">Sandbox Permissions</h2>\n<p>Sandbox permissions describe what operations an application can do in sandbox mode for each loyalty program.</p>\n<h4 id=\"properties\">Properties</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>loyaltyProgram</td>\n            <td>The URL of the loyalty program.</td>\n        </tr>\n        <tr>\n            <td>operations</td>\n            <td>An array of operations that the application is permitted to do in sandbox mode for the LP.</td>\n        </tr>\n        <tr>\n            <td>type</td>\n            <td>The type of resource.</td>\n        </tr>\n    </tbody>\n</table>\n\n\n\n\n\n\n\n\n\n";
@@ -16661,9 +16661,9 @@ module.exports = "<h2 id=\"sandbox-permissions\">Sandbox Permissions</h2>\n<p>Sa
 /* 169 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/documents/api/update-a-credit-example.md ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/documents/api/update-a-credit-example.md ***!
+  \******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PATCH https://lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;transactionId&quot;: &quot;15786560&quot;\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;amount&quot;: 2000,\n  &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;claimCode&quot;: &quot;TZ9E-9YHMHU-PDEE&quot;,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;creditType&quot;: &quot;base&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;memberValidation&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;order-id&gt;&quot;,\n  &quot;pic&quot;: &quot;ABC&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;transactionId&quot;: &quot;15786560&quot;,\n  &quot;type&quot;: &quot;credit&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -16672,9 +16672,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PA
 /* 170 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************!*\
-  !*** ./app/static/documents/api/update-a-credit.md ***!
-  \*****************************************************/
+/*!**********************************************!*\
+  !*** ./app/documents/api/update-a-credit.md ***!
+  \**********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"update-an-credit\">Update an Credit</h3>\n<p>Points or the loyalty program may update the status of live credits to success or failure when pending credits are processed or to correct system errors caused by connection problems. You can test how your application responds to these changes by updating the status of sandbox credits using your <a href=\"#account-credentials\">account credentials</a>.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the <a href=#loyalty-programs>loyalty program</a> (LP).</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the credit.</td>\n        </tr>\n        <tr>\n            <td>status</td>\n            <td>The updated status of the credit (optional). Must be &quot;failure&quot; or &quot;success&quot;.</td>\n        </tr>\n        <tr>\n            <td>transactionId</td>\n            <td>The updated transaction ID of the credit (optional).</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The credit resource if successful. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if you do not have permission to change the credit or if the new status is not valid.</p>\n";
@@ -16683,9 +16683,9 @@ module.exports = "<h3 id=\"update-an-credit\">Update an Credit</h3>\n<p>Points o
 /* 171 */
 /* unknown exports provided */
 /* all exports used */
-/*!************************************************************!*\
-  !*** ./app/static/documents/api/update-a-debit-example.md ***!
-  \************************************************************/
+/*!*****************************************************!*\
+  !*** ./app/documents/api/update-a-debit-example.md ***!
+  \*****************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PATCH https://lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;transactionId&quot;: &quot;15786561&quot;\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;amount&quot;: 2000,\n  &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;/debits/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;memberValidation&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;order-id&gt;&quot;,\n  &quot;pic&quot;: &quot;ABC&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;transactionId&quot;: &quot;15786561&quot;,\n  &quot;type&quot;: &quot;debit&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -16694,9 +16694,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PA
 /* 172 */
 /* unknown exports provided */
 /* all exports used */
-/*!****************************************************!*\
-  !*** ./app/static/documents/api/update-a-debit.md ***!
-  \****************************************************/
+/*!*********************************************!*\
+  !*** ./app/documents/api/update-a-debit.md ***!
+  \*********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"update-an-debit\">Update an Debit</h3>\n<p>Points or the loyalty program may update the status of live debits to success or failure when pending debits are processed or to correct system errors caused by connection problems. You can test how your application responds to these changes by updating the status of sandbox debits using your <a href=\"#account-credentials\">account credentials</a>.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the <a href=#loyalty-programs>loyalty program</a> (LP).</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the debit.</td>\n        </tr>\n        <tr>\n            <td>status</td>\n            <td>The updated status of the debit (optional). Must be &quot;failure&quot; or &quot;success&quot;.</td>\n        </tr>\n        <tr>\n            <td>status</td>\n            <td>The updated transaction ID of the debit (optional).</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The debit resource if successful. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if you do not have permission to change the debit or if the new status is not valid.</p>\n";
@@ -16705,9 +16705,9 @@ module.exports = "<h3 id=\"update-an-debit\">Update an Debit</h3>\n<p>Points or 
 /* 173 */
 /* unknown exports provided */
 /* all exports used */
-/*!*********************************************************!*\
-  !*** ./app/static/documents/api/update-a-mv-example.md ***!
-  \*********************************************************/
+/*!**************************************************!*\
+  !*** ./app/documents/api/update-a-mv-example.md ***!
+  \**************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PATCH https://lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;order-id&gt;&quot;\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;authenticatingFactors&quot;: {\n    &quot;password&quot;: &quot;*****&quot;\n  },\n  &quot;balance&quot;: 2000,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;identifyingFactors&quot;: {\n    &quot;firstName&quot;: &quot;John&quot;,\n    &quot;lastName&quot;: &quot;Doe&quot;,\n    &quot;memberId&quot;: &quot;1234&quot;\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;order-id&gt;&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;type&quot;: &quot;memberValidation&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -16716,9 +16716,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PA
 /* 174 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************!*\
-  !*** ./app/static/documents/api/update-a-mv.md ***!
-  \*************************************************/
+/*!******************************************!*\
+  !*** ./app/documents/api/update-a-mv.md ***!
+  \******************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"update-an-mv\">Update an MV</h3>\n<p>Update a member validation to add it to an order.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>lp-id</td>\n            <td>The identifier of the loyalty program (LP).</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the member validation (MV).</td>\n        </tr>\n        <tr>\n            <td>order</td>\n            <td>Link to the order that this member validation belongs to.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The MV object if it was updated successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if the MV does not exist.</p>\n";
@@ -16727,9 +16727,9 @@ module.exports = "<h3 id=\"update-an-mv\">Update an MV</h3>\n<p>Update a member 
 /* 175 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/documents/api/update-a-report-example.md ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/documents/api/update-a-report-example.md ***!
+  \******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PUT https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;description&quot;: &quot;Report on all transactions performed by my app&quot;,\n  &quot;name&quot;: &quot;My App’s Transaction Report&quot;,\n  &quot;url&quot;: &quot;https://myapp.com/reports/report-name&quot;\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;description&quot;: &quot;Report on all transactions performed by my app&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;id&gt;&quot;\n    },\n    &quot;instances&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/reports/&lt;id&gt;/instances/&quot;\n    }\n  },\n  &quot;name&quot;: &quot;My App’s Transaction Report&quot;,\n  &quot;type&quot;: &quot;report&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;,\n  &quot;url&quot;: &quot;https://myapp.com/reports/report-name&quot;\n}\n</code></pre>";
@@ -16738,9 +16738,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PU
 /* 176 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************!*\
-  !*** ./app/static/documents/api/update-a-report.md ***!
-  \*****************************************************/
+/*!**********************************************!*\
+  !*** ./app/documents/api/update-a-report.md ***!
+  \**********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"update-a-report\">Update a Report</h3>\n<p>Update the name, description or URL of an application report. Provide a name and description for your report as well as a URL where the LCP can get the report data when it is requested by a user.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the report.</td>\n        </tr>\n        <tr>\n            <td>description</td>\n            <td>The description of the report (optional).</td>\n        </tr>\n        <tr>\n            <td>name</td>\n            <td>The name of the report.</td>\n        </tr>\n        <tr>\n            <td>url</td>\n            <td>The URL to access the report. Must be HTTPS.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The updated report object if it was updated successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if the report does not exist or if the validation of the JSON fields failed.</p>\n";
@@ -16749,9 +16749,9 @@ module.exports = "<h3 id=\"update-a-report\">Update a Report</h3>\n<p>Update the
 /* 177 */
 /* unknown exports provided */
 /* all exports used */
-/*!************************************************************************!*\
-  !*** ./app/static/documents/api/update-account-permissions-example.md ***!
-  \************************************************************************/
+/*!*****************************************************************!*\
+  !*** ./app/documents/api/update-account-permissions-example.md ***!
+  \*****************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PUT https://lcp.points.com/v1/apps/&lt;app-id&gt;/account-permissions\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;support&quot;: [\n    &quot;https://lcp.points.com/v1/accounts/&lt;account-id1&gt;&quot;,\n    &quot;https://lcp.points.com/v1/accounts/&lt;account-id2&gt;&quot;\n  ]\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/account-permissions&quot;\n    }\n  },\n  &quot;support&quot;: [\n    &quot;https://lcp.points.com/v1/accounts/&lt;account-id1&gt;&quot;,\n    &quot;https://lcp.points.com/v1/accounts/&lt;account-id2&gt;&quot;\n  ],\n  &quot;type&quot;: &quot;accountPermission&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -16760,9 +16760,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PU
 /* 178 */
 /* unknown exports provided */
 /* all exports used */
-/*!****************************************************************!*\
-  !*** ./app/static/documents/api/update-account-permissions.md ***!
-  \****************************************************************/
+/*!*********************************************************!*\
+  !*** ./app/documents/api/update-account-permissions.md ***!
+  \*********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"update-account-permissions\">Update Account Permissions</h3>\n<p>Update the list of accounts that have permission to access the application and its resources.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n        <tr>\n            <td>support</td>\n            <td>A list of <a href=\"#accounts\">accounts</a> that have permission to support the application. Accounts with support permissions have read-only access to the application and all of the application’s transactions.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The updated account permissions if it was updated successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if the application does not exist or if the validation of the JSON fields failed.</p>\n";
@@ -16771,9 +16771,9 @@ module.exports = "<h3 id=\"update-account-permissions\">Update Account Permissio
 /* 179 */
 /* unknown exports provided */
 /* all exports used */
-/*!***************************************************************!*\
-  !*** ./app/static/documents/api/update-an-account-example.md ***!
-  \***************************************************************/
+/*!********************************************************!*\
+  !*** ./app/documents/api/update-an-account-example.md ***!
+  \********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PATCH https://lcp.points.com/v1/accounts/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;firstName&quot;: &quot;First Name&quot;,\n  &quot;lastName&quot;: &quot;Last Name&quot;,\n  &quot;organizationName&quot;: &quot;Company&quot;,\n  &quot;phone&quot;: &quot;416-555-1234&quot;,\n  &quot;timeZone&quot;: &quot;America/Toronto&quot;\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;accountCredentials&quot;: [\n    {\n      &quot;links&quot;: {\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/&lt;id&gt;/account-credentials/&lt;ac-id&gt;&quot;\n        }\n      },\n      &quot;macAlgorithm&quot;: &quot;HMAC-SHA1&quot;,\n      &quot;macKey&quot;: &quot;&lt;macKey&gt;&quot;,\n      &quot;macKeyIdentifier&quot;: &quot;&lt;macKeyIdentifier&gt;&quot;\n    }\n  ],\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;email&quot;: &quot;youremail@yourcompany.com&quot;,\n  &quot;firstName&quot;: &quot;First Name&quot;,\n  &quot;lastName&quot;: &quot;Last Name&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/&lt;id&gt;&quot;\n    },\n    &quot;friendly&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/youremail%40yourcompany.com&quot;\n    }\n  },\n  &quot;organizationName&quot;: &quot;Company&quot;,\n  &quot;phone&quot;: &quot;416-555-1234&quot;,\n  &quot;roles&quot;: [\n    &quot;appDeveloper&quot;\n  ],\n  &quot;timeZone&quot;: &quot;America/Toronto&quot;,\n  &quot;type&quot;: &quot;account&quot;,\n  &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n}\n</code></pre>";
@@ -16782,9 +16782,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PA
 /* 180 */
 /* unknown exports provided */
 /* all exports used */
-/*!*******************************************************!*\
-  !*** ./app/static/documents/api/update-an-account.md ***!
-  \*******************************************************/
+/*!************************************************!*\
+  !*** ./app/documents/api/update-an-account.md ***!
+  \************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"update-an-account\">Update an Account</h3>\n<p>Updates your account details.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the account.</td>\n        </tr>\n        <tr>\n            <td>firstName</td>\n            <td>Your first name (optional).</td>\n        </tr>\n        <tr>\n            <td>lastName</td>\n            <td>Your last name (optional).</td>\n        </tr>\n        <tr>\n            <td>organizationName</td>\n            <td>Your organization (optional).</td>\n        </tr>\n        <tr>\n            <td>phone</td>\n            <td>Your phone number (optional).</td>\n        </tr>\n        <tr>\n            <td>timeZone</td>\n            <td>Your time zone (optional). Use time zones in the <a href=\"https://en.wikipedia.org/wiki/List_of_tz_database_time_zones\">tz database</a>.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The account object if it was updated successfully, otherwise returns an <a href=\"./?doc=reference-manual#errors\">error</a>.</p>\n";
@@ -16793,9 +16793,9 @@ module.exports = "<h3 id=\"update-an-account\">Update an Account</h3>\n<p>Update
 /* 181 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************************!*\
-  !*** ./app/static/documents/api/update-an-order-example.md ***!
-  \*************************************************************/
+/*!******************************************************!*\
+  !*** ./app/documents/api/update-an-order-example.md ***!
+  \******************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PATCH https://sandbox.lcp.points.com/v1/orders/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;status&quot;: &quot;complete&quot;,\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/&lt;app-id&gt;&quot;,\n  &quot;confirmationNumber&quot;: &quot;3902-2266-8404-8538-1721&quot;,\n  &quot;createdAt&quot;: &quot;2014-02-26T17:47:00.000000Z&quot;,\n  &quot;data&quot;: {\n    &quot;clientIpAddress&quot;: &quot;127.0.0.1&quot;, \n    &quot;clientUserAgent&quot;: &quot;Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0&quot;, \n    &quot;language&quot;: &quot;en-US&quot;, \n    &quot;orderDetails&quot;: {\n      &quot;basePoints&quot;: 2000, \n      &quot;loyaltyProgram&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;\n    }, \n    &quot;user&quot;: {\n      &quot;email&quot;: &quot;jdoe@example.com&quot;,\n      &quot;firstName&quot;: &quot;John&quot;, \n      &quot;lastName&quot;: &quot;Doe&quot;, \n      &quot;memberId&quot;: &quot;1234&quot;, \n      &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;\n    }\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/&lt;id&gt;&quot;\n    }\n  },\n  &quot;orderType&quot;: &quot;EXCHANGE_CREDIT&quot;,\n  &quot;status&quot;: &quot;complete&quot;,\n  &quot;type&quot;: &quot;order&quot;,\n  &quot;updatedAt&quot;: &quot;2014-02-26T17:50:00.000000Z&quot;,\n  &quot;updates&quot;: [\n    {\n      &quot;resource&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/mvs/&lt;mv-id&gt;&quot;,\n      &quot;status&quot;: &quot;success&quot;,\n      &quot;type&quot;: &quot;memberValidation&quot;,\n      &quot;updatedAt&quot;: &quot;2014-02-26T17:47:30.000000Z&quot;\n    },\n    {\n      &quot;resource&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;credit-id&gt;&quot;,\n      &quot;status&quot;: &quot;success&quot;,\n      &quot;type&quot;: &quot;credit&quot;,\n      &quot;updatedAt&quot;: &quot;2014-02-26T17:49:00.000000Z&quot;\n    }\n  ]\n}\n</code></pre>";
@@ -16804,9 +16804,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PA
 /* 182 */
 /* unknown exports provided */
 /* all exports used */
-/*!*****************************************************!*\
-  !*** ./app/static/documents/api/update-an-order.md ***!
-  \*****************************************************/
+/*!**********************************************!*\
+  !*** ./app/documents/api/update-an-order.md ***!
+  \**********************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"update-an-order\">Update an Order</h3>\n<p>Update the status of an order. The application must manage the order status. When a primitive is added to an order, the order status changes to &quot;statusPending&quot;. These orders require their status to be updated.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the order.</td>\n        </tr>\n        <tr>\n            <td>status</td>\n            <td>\n                <p>The new status of the order. Can be one of:\n                    <ul>\n                        <li>&quot;debitFailed&quot; if the debit status is failure</li>\n                        <li>&quot;debitPending&quot; if the debit status is pending</li>\n                        <li>&quot;debitError&quot; if the debit status is systemError</li>\n                        <li>&quot;creditFailed&quot; if the credit status is failure</li>\n                        <li>&quot;creditPending&quot; if the credit status is pending</li>\n                        <li>&quot;creditError&quot; if the credit status is systemError</li>\n                        <li>&quot;complete&quot; if all primitives succeeded</li>\n                        <li>&quot;reversed&quot; if all primitives are reversed</li>\n                    </ul>\n                </p>\n            </td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The order object if it was updated successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if the order does not exist or if the order status cannot be updated.</p>\n";
@@ -16815,9 +16815,9 @@ module.exports = "<h3 id=\"update-an-order\">Update an Order</h3>\n<p>Update the
 /* 183 */
 /* unknown exports provided */
 /* all exports used */
-/*!************************************************************************!*\
-  !*** ./app/static/documents/api/update-sandbox-permissions-example.md ***!
-  \************************************************************************/
+/*!*****************************************************************!*\
+  !*** ./app/documents/api/update-sandbox-permissions-example.md ***!
+  \*****************************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PATCH https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-permissions/&lt;id&gt;\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;operations&quot;: [&quot;mvs&quot;, &quot;debits&quot;, &quot;credits&quot;]\n}\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/apps/&lt;app-id&gt;/sandbox-permissions/&lt;id&gt;&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;&quot;,\n  &quot;operations&quot;: [&quot;mvs&quot;, &quot;debits&quot;, &quot;credits&quot;],\n  &quot;type&quot;: &quot;sandboxPermission&quot;\n}\n</code></pre>";
@@ -16826,9 +16826,9 @@ module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>PA
 /* 184 */
 /* unknown exports provided */
 /* all exports used */
-/*!****************************************************************!*\
-  !*** ./app/static/documents/api/update-sandbox-permissions.md ***!
-  \****************************************************************/
+/*!*********************************************************!*\
+  !*** ./app/documents/api/update-sandbox-permissions.md ***!
+  \*********************************************************/
 /***/ (function(module, exports) {
 
 module.exports = "<h3 id=\"update-sandbox-permissions\">Update Sandbox Permissions</h3>\n<p>Updates permissions for an application to perform operations in sandbox mode on an LP.</p>\n<h4 id=\"parameters\">Parameters</h4>\n<table>\n    <thead>\n        <tr>\n            <th>Name</th>\n            <th>Description</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>app-id</td>\n            <td>The identifier of the application.</td>\n        </tr>\n        <tr>\n            <td>id</td>\n            <td>The identifier of the sandbox permissions object.</td>\n        </tr>\n        <tr>\n            <td>operations</td>\n            <td>An array of operations that the applications is permitted to do in sandbox mode for the LP. Must be one or more of &quot;mvs&quot;, &quot;member-details&quot;, &quot;mv-delegates&quot;, &quot;debits&quot;, &quot;credits&quot;, &quot;credit-delegates&quot;.</td>\n        </tr>\n    </tbody>\n</table>\n\n<h4 id=\"returns\">Returns</h4>\n<p>The sandbox permissions object if it was created successfully. Returns an <a href=\"./?doc=reference-manual#errors\">error</a> if the app or sandbox permissions object doesn’t exist or if an invalid operation is provided.</p>\n";
@@ -16837,9 +16837,9 @@ module.exports = "<h3 id=\"update-sandbox-permissions\">Update Sandbox Permissio
 /* 185 */
 /* unknown exports provided */
 /* all exports used */
-/*!*************************************************!*\
-  !*** ./app/static/documents/getting-started.md ***!
-  \*************************************************/
+/*!******************************************!*\
+  !*** ./app/documents/getting-started.md ***!
+  \******************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = "<h1 id=\"lcp-getting-started-guide\">LCP Getting Started Guide</h1>\n<p>For Points Loyalty Commerce Platform - Version 1.0</p>\n<h2 id=\"document-overview\">Document Overview</h2>\n<p>The purpose of this document is to provide a beginner’s guide to the Points\nLoyalty Commerce Platform (LCP). You will find below an introduction to the LCP,\nthings you need to know before you get started and a step-by-step guide on how\nto use the APIs to check member balances. To accomplish this, this document will\nintroduce you to the <code>/accounts</code>, <code>/apps</code> and <code>/lps</code> resources that are exposed\nin the API. The sample code provided uses\n<a href=\"http://en.wikipedia.org/wiki/CURL\">cURL</a> to communicate with the LCP. For a\nmore detailed description of the LCP and its capabilities see the <a href=\"./?doc=reference-manual\">LCP Reference\nManual</a> and the <a href=\"./?doc=api-reference\">LCP API\nReference</a>.</p>\n<h2 id=\"introducing-the-loyalty-commerce-platform-api\">Introducing the Loyalty Commerce Platform API</h2>\n<p>The LCP&#39;s capabilities are exposed to developers through a <a href=\"https://en.wikipedia.org/wiki/Representational_state_transfer#RESTful_web_APIs\">RESTful web\nAPI</a>.\nThe API consists of a set of resources that can be operated on using standard\nHTTP methods. The top-level resources in the LCP are accounts, apps, and lps.</p>\n<p><strong>Accounts</strong> - Your developer account information and credentials are stored\nunder <code>/accounts</code>. Once you create your account you can access it at\n<code>/accounts/&lt;account-id&gt;</code></p>\n<p><strong>Apps</strong> - Your apps are stored under the <code>/apps</code> endpoint. Each app will be\ngiven a unique ID under <code>/apps</code>.</p>\n<p><strong>LPs</strong> - Loyalty programs (LPs) are stored under <code>/lps</code>. Each LP will have it’s\nown ID under <code>/lps</code>.</p>\n<p>Some actions can be performed on the collection of resources, while others must\nbe performed on individual resources. Resources can be created, read, updated,\nand deleted using standard HTTP methods.</p>\n<p><strong>POST</strong> - Used to create a resource by sending resource data to the collection.\nIf successful, returns a <code>201 (Created)</code> status code with a Location header that\nspecifies the location of the newly created resource. All method parameters must\nbe passed as part of request body using JSON.</p>\n<p><strong>GET</strong> - Used to retrieve a resource from the LCP. This operation is\n<a href=\"http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.1.2\">idempotent</a> and\nhas no side effects from submitting the same request multiple times. If\nsuccessful, returns a <code>200 (OK)</code> status code with the resource content.</p>\n<p><strong>PUT</strong> - Used to update an existing resource. This operation is\n<a href=\"http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.1.2\">idempotent</a> and\nhas no side effects from submitting the same request multiple times. If\nsuccessful, returns a <code>200 (OK)</code> status code with the resource content. All\nmethod parameters must be passed as part of request body using JSON.</p>\n<p><strong>DELETE</strong> - Used to delete a resource. This operation is\n<a href=\"http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.7\">idempotent</a> and\nhas no side effects from submitting same request multiple times. If successful,\nreturns a <code>204 (No Content)</code> status code with an empty response body.</p>\n<p><strong>OPTIONS</strong> - Used to determine which of the above operations are permitted for\na given resource. If the resource exists, returns a <code>200 (OK)</code> status code with the\nlist of permitted HTTP methods in the Allow header.</p>\n<p>All request and response payloads are <a href=\"http://en.wikipedia.org/wiki/UTF8\">UTF8</a>\nencoded <a href=\"http://en.wikipedia.org/wiki/JSON\">JSON</a>.\n<a href=\"http://en.wikipedia.org/wiki/Https\">HTTPS</a> is used for all requests to ensure\nsecure communication. When consuming APIs in the LCP, developers must use <a href=\"http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02\">OAuth\n2.0 Message Authentication Code (MAC) Tokens (draft\n02)</a> to authenticate\nthemselves.\n<a href=\"https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util\">Utilities</a>\nare available to simplify the request signing process.  See the\n<a href=\"#security\">Security</a> section of this document for more details.</p>\n<h2 id=\"things-you-should-know-about-using-the-lcp\">Things You Should Know About Using the LCP</h2>\n<p>The Loyalty Commerce Platform (LCP) allows you to write apps that can access\nmany loyalty programs. The LCP handles the complexity of working with each\nloyalty program, creating one simple interface for working with any number of\nprograms.</p>\n<p><img src=\"" + __webpack_require__(/*! ../images/getting-started.png */ 23) + "\" alt=\"Getting Started\"></p>\n<h3 id=\"sandbox-vs-live-mode\">Sandbox vs. Live Mode</h3>\n<p>The LCP supports two different modes of operation: sandbox mode and live mode.\nDuring development, your application will operate in sandbox mode so that it\ndoesn’t make changes to any loyalty program member’s account. In sandbox mode,\nthe LCP never communicates with the loyalty program. All operations are\nsimulated. When you&#39;re ready to deploy your application, Points will promote\nyour application to live mode.</p>\n<p>Sandbox mode is accessed through <code>https://sandbox.lcp.points.com</code> while live mode\nthrough <code>https://lcp.points.com</code>. Each app has two sets of credentials to access\nthe LCP: one set for sandbox mode and another set for live mode. When accessing\nthe LCP in sandbox mode, the sandbox credentials must be used. When your app is\npromoted to live mode, Points will provide you with live mode credentials.</p>\n<h3 id=\"security\">Security</h3>\n<p>This section describes things you will need to know about LCP security to get\nyou started with building applications on the LCP.</p>\n<p><strong>All requests to and responses from the LCP are made using HTTPS.</strong> Using HTTPS\nhas a couple of benefits:</p>\n<ol>\n<li>HTTPS protects network traffic from eavesdropping by encrypting all traffic\nto and from the LCP so that only the sender and receiver are able to read\nrequests and responses.</li>\n<li>HTTPS permits clients to verify the identity of the server to ensure the\ncorrect server is receiving its requests.</li>\n</ol>\n<p><strong>All requests include an HTTP Authorization header</strong> to enable the LCP to\nvalidate the sender’s identity. <a href=\"http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02\">OAuth 2.0 Message Authentication Code (MAC)\nTokens</a>\nare used to sign all requests to the LCP after you’ve created your account.\nOAuth 2.0 MAC is an evolving variant of OAuth 2.0.</p>\n<p>MAC tokens provide enhanced security over OAuth 2.0 Bearer tokens because unlike\nBearer tokens, MAC tokens are never sent between the client and the server. A\nbearer token is a shared secret key that is passed from the client to the server\nfor authentication. However, because bearer tokens involves transmitting the\nshared secret key between the client and the server, it can be vulnerable to\nattack if a third party gains access to any HTTP request. MAC tokens avoid this\nsecurity vulnerability by never transmitting the shared secret key. Instead the\nclient sends a signature that is generated using the shared secret key and\ndetails about the request. The server also generates the signature using the\nsame key and request details. If the signatures match then the server knows that\nthe signatures were generated using the same key and that the message was not\nmodified during transmission.</p>\n<p>The downside of MAC tokens is that the standard is still evolving and has\nlimited support at this time. This version of the LCP complies with <a href=\"http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02\">draft 02 of\nthe OAuth 2.0 MAC\nstandard</a>. When\nusing this scheme it is highly recommended that you use one of the <a href=\"https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util\">LCP Client\nUtilities</a> to issue\nplatform requests because these utilities will compute MACs for you.</p>\n<p>The credentials required for MAC authentication include a MAC key identifier, a\nMAC key and a MAC algorithm. Below is an example of a JSON document representing\nthe credentials for use with MAC authentication.</p>\n<pre><code>{\n  &quot;macKeyIdentifier&quot;: &quot;97ee420faaa343d4a04b7378b319b48b&quot;,\n  &quot;macKey&quot;: &quot;NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4&quot;,\n  &quot;macAlgorithm&quot;: &quot;HMAC-SHA1&quot;\n}\n</code></pre><p>The MAC key identifier uniquely identifies the MAC key. The MAC key identifier\nis sent with each request to tell the server which MAC key was used to sign the\nrequest. The MAC key is the shared secret key. It should never be shared with\nanyone or transmitted in any request. Keep this key secure as you would any\nprivate key. Finally, the MAC algorithm describes the algorithm used to create\nthe signature.</p>\n<p>The LCP defines 2 different types of credentials:</p>\n<ol>\n<li><strong>Account credentials</strong><ul>\n<li>Account credentials authenticate you to perform actions on your developer account.</li>\n<li>A set of account credentials is created automatically when you create your developer account.</li>\n<li>Account credentials are the same for both sandbox and live mode.</li>\n<li>They are available at <code>/accounts/&lt;account-id&gt;</code>.</li>\n<li>They are used to sign requests to <code>/accounts</code> and <code>/apps</code>.</li>\n</ul>\n</li>\n<li><strong>Application credentials</strong><ul>\n<li>Application credentials authenticate your app to perform actions on the LCP.</li>\n<li>Each app has two sets of application credentials: one for sandbox mode and one for live mode.</li>\n<li>A set of sandbox credentials is created automatically when you create an app.</li>\n<li>Live credentials are created by Points when your app is promoted to live mode.</li>\n<li>Application credentials are available at <code>/apps/&lt;app-id&gt;</code>.</li>\n<li>They are used to sign requests to <code>/lps</code>.</li>\n</ul>\n</li>\n</ol>\n<p>If your credentials are compromised, you can create additional credentials and\ndelete your existing credentials. See the <a href=\"./?doc=api-reference\">LCP API\nReference</a>\nfor details.</p>\n<h3 id=\"hateoas\">HATEOAS</h3>\n<p>HATEOAS or <a href=\"http://en.wikipedia.org/wiki/HATEOAS\">Hypermedia as the Engine of Application\nState</a> is a characteristic of REST APIs.\nIn practical terms, it means each response from the LCP contains URLs to other\nresources that are relevant to the current resource. This helps makes the API\ndiscoverable and means you don’t need to know how to construct URLs to access\nthe LCP platform after the first request. In addition, if resource locations are\nmoved in a later version of the API, your application can automatically follow\nthe new links without modification. All the information necessary to navigate\nthe API is in the resource itself.</p>\n<p>JSON response documents that are returned by the LCP contain a &quot;links&quot; property.\nThis property contains URLs that help you consume further resources within the\nLCP REST API. For example:</p>\n<pre><code>{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/1234&quot;\n    },\n    &quot;friendly&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/email@company.com&quot;\n    }\n  }\n}\n</code></pre><p>All links sections provided by the LCP contain a &quot;self&quot; link that represents a\nURL that can be used to obtain the document again if needed.</p>\n<p>Some calls also return a URL called &quot;friendly&quot; which contains a more\nuser-friendly and readable URL to consume a particular resource.</p>\n<h2 id=\"getting-started\">Getting Started</h2>\n<p>Now that you&#39;ve read through some of the background information and familiarized\nyourself with some of the key principles, you&#39;re ready to dive in. In this section\nyou&#39;ll find a set of steps needed to start working with the Loyalty Commerce Platform\n(LCP). By following these steps, you&#39;ll have everything you need to to build a\nuniversal balance checker to retrieve member balances across multiple loyalty\nprograms. The steps needed are:</p>\n<ol>\n<li>Create an account</li>\n<li>Create an app</li>\n<li>Get your app&#39;s sandbox credentials</li>\n<li>Perform a member validation (MV)</li>\n</ol>\n<h3 id=\"create-an-account\">Create an Account</h3>\n<p>To create a universal balance checker, your first step is to create an LCP developer\naccount. A developer account allows you to create one or more applications that\ninterface with the LCP.</p>\n<p>To create your developer account, go to the <a href=\"https://admin.lcp.points.com/\">LCP\nAdmin</a> and select &quot;Sign Up&quot;. Follow the instructions\nto create your account.</p>\n<h3 id=\"create-an-app\">Create an App</h3>\n<p>Once logged into your account, click on &quot;Apps&quot; in the left-hand navigation to see\nyour list of apps.</p>\n<p><img src=\"" + __webpack_require__(/*! ../images/empty-app-list.png */ 21) + "\" alt=\"Empty App List\"></p>\n<p>There are no apps so far, so create one by clicking the &quot;Create a new App&quot; button.\nFill in the name and description of your app and click &quot;Create App&quot;.</p>\n<p><img src=\"" + __webpack_require__(/*! ../images/create-an-app.png */ 20) + "\" alt=\"Create An App\"></p>\n<p>You&#39;ve now created your first app.</p>\n<p><img src=\"" + __webpack_require__(/*! ../images/example-app.png */ 22) + "\" alt=\"Example App\"></p>\n<h3 id=\"get-your-app-s-sandbox-credentials\">Get your App&#39;s Sandbox Credentials</h3>\n<p>To access the LCP API, your app needs credentials to authenticate with the LCP. There\nare two types of application credentials: sandbox credentials and live credentials.\nWhen developing your application, you will use sandbox credentials to make requests\nin sandbox mode. Sandbox mode simulates all transactions with the loyalty programs.\nOnce you&#39;re ready to promote your application to live mode, Points will issue you\nlive credentials. For now, your app only has sandbox credentials.</p>\n<p>Click &quot;Show Key&quot; to view your sandbox credentials. You need to re-enter your password\nto confirm your identity.</p>\n<p><img src=\"" + __webpack_require__(/*! ../images/sandbox-credentials.png */ 26) + "\" alt=\"Sandbox Credentials\"></p>\n<p>The MAC key identifier tells the LCP which MAC key you are using. The MAC key is a\nshared secret key between you and the platform that you will use to sign requests.\nKeep it safe as you would a private cryptographic key. It should never be shared with\nanyone or sent directly to the LCP.</p>\n<h3 id=\"perform-a-member-validation-mv-\">Perform a Member Validation (MV)</h3>\n<p>Now you&#39;re ready to make API requests. A universal balance checker needs to retrieve\nthe balance in a loyalty program member’s account. This is done by performing a\nmember validation or MV. An MV authenticates a member of a loyalty program and\nretrieves their balance.</p>\n<p>Click on &quot;Loyalty Programs&quot; in the left-hand navigation to see the list of loyalty\nprograms that are supported. You can also get the list of loyalty programs through\nthe <a href=\"./?doc=api-reference#list-all-lps\">API</a>. Let&#39;s start with the Flying Blue program\nfrom Air France KLM. Click on &quot;FlyingBlue&quot;. The LP URL provides the base URL for the\nloyalty program. Operations against the loyalty program are under this URL. The LP URL is\nfor live mode. Instead, let&#39;s use the LP URL for sandbox mode by changing the server from\n&quot;lcp.points.com&quot; to &quot;sandbox.lcp.points.com&quot;:</p>\n<pre><code>https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6\n</code></pre><p>To perform a member validation for Flying Blue in sandbox mode, POST to:</p>\n<pre><code>https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/\n</code></pre><p>and provide the member’s credentials in the body of the request as a JSON object. The\nmember credentials required for an MV vary for each loyalty program. For example, some\nloyalty programs may require a member ID and password, while others may require a first\nname, last name, and member ID. To determine which fields are required for a particular\nloyalty program, you can get its <a href=\"./?doc=api-reference#mv-request-schema\">MV request schema</a>,\nwhich defines the JSON schema for the MV request. Flying Blue requires a member ID and\npassword. Let’s create an MV using curl:</p>\n<pre><code>curl -v -X POST -H &quot;Content-Type: application/json&quot; \\\n-d &#39;{&quot;identifyingFactors&quot;: {&quot;memberId&quot;: &quot;1234&quot;}, &quot;authenticatingFactors&quot;: {&quot;password&quot;: &quot;ABCD&quot;}}&#39; \\\n&quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/&quot;\n</code></pre><p>The server returns a 401 status code indicating you are not authorized to POST to the\nMV collection:</p>\n<pre><code>HTTP/1.1 401 UNAUTHORIZED\n{\n  &quot;errors&quot;: [\n    {\n      &quot;code&quot;: &quot;UNAUTHORIZED&quot;,\n      &quot;description&quot;: &quot;The server could not verify that you are authorized to access the URL requested.&quot;,\n      &quot;field&quot;: null\n    }\n  ]\n}\n</code></pre><p>This error is because we sent an unauthenticated request to the LCP. To authenticate,\nyou need to include an authorization header in your request. The LCP uses <a href=\"http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02\">OAuth 2.0\nMAC</a> for authentication.\nThe <code>lcp_curl.py</code> Python script provided in <a href=\"https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util\">LCP\nUtilities</a>\nmakes this easy. For more details building the authorization header for OAuth 2.0\nMAC, see <a href=\"#appendix-a-signing-requests\">Appendix A: Signing Requests</a>.</p>\n<p><code>lcp_curl.py</code> is a wrapper around curl to add the authorization header. It requires a\n-u parameter and your MAC key identifier and MAC key obtained in the previous step.\nIt passes all other arguments on to curl. It also adds the &quot;Content-Type: application/json&quot;\nheader so we don’t need to provide that. Let’s try to create an MV again using <code>lcp_curl.py</code>:</p>\n<pre><code>lcp_curl.py -v -X POST \\\n-u ee83b9af340741e3bec0ad96cb976142:RrvufcCh3Kb3bsqG-wfh8JrQXF8tZG4q3H-_gTACfjM \\\n-d &#39;{&quot;identifyingFactors&quot;: {&quot;memberId&quot;: &quot;1234&quot;}, &quot;authenticatingFactors&quot;: {&quot;password&quot;: &quot;ABCD&quot;}}&#39; \\\n&quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/&quot;\n</code></pre><p>Behind the scenes, <code>lcp_curl.py</code> generates the MAC signature, builds the authorization header, and\nincludes it in a call to curl like so:</p>\n<pre><code>curl -v -X POST \\\n-H &#39;Authorization: MAC id=&quot;ee83b9af340741e3bec0ad96cb976142&quot;, ts=&quot;1438107842&quot;,\nnonce=&quot;11SChlLd7+w=&quot;, ext=&quot;c2e5a99d639f902217f2322d4c4d1374ceda3a71&quot;,\nmac=&quot;2U8yq4PQ3IXw86zAaxEF3fw4YkI=&quot;&#39; \\\n-d &#39;{&quot;identifyingFactors&quot;: {&quot;memberId&quot;: &quot;1234&quot;}, &quot;authenticatingFactors&quot;: {&quot;password&quot;: &quot;ABCD&quot;}}&#39; \\\n&quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/&quot;\n</code></pre><p>Now the request is authenticated but we get a different error indicating there is no\nmember with member ID 1234 and password ABCD in the sandbox:</p>\n<pre><code>HTTP/1.1 422 UNPROCESSABLE ENTITY\n{\n  &quot;errors&quot;: [\n    {\n      &quot;code&quot;: &quot;UNKNOWN_MEMBER&quot;,\n      &quot;description&quot;: &quot;No member could be found with the given credentials.&quot;\n    }\n  ]\n}\n</code></pre><p>If you still received 401 unauthorized, check that your computer&#39;s time is accurate\nor is synced with an internet time server. <code>lcp_curl.py</code> adds a timestamp to each\nrequest and the LCP verifies that the timestamp is within 30 seconds of the server&#39;s\ntime to prevent replay attacks.</p>\n<p>To simulate a successful MV in sandbox mode, we need to use one of the pre-configured\nsandbox MVs. You can get the list of <a href=\"./?doc=api-reference#sandbox-mvs\">sandbox MVs</a>\nfor the loyalty program using the API. For Flying Blue, one of the sandbox MVs has a\nmember ID to &quot;2202&quot; and a password of &quot;PASSWORD&quot;. Let’s do the MV again using these values:</p>\n<pre><code>lcp_curl.py -v -X POST \\\n-u ee83b9af340741e3bec0ad96cb976142:RrvufcCh3Kb3bsqG-wfh8JrQXF8tZG4q3H-_gTACfjM \\\n-d &#39;{&quot;identifyingFactors&quot;: {&quot;memberId&quot;: &quot;2202&quot;}, &quot;authenticatingFactors&quot;: {&quot;password&quot;: &quot;PASSWORD&quot;}}&#39; \\\n&quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/&quot;\n</code></pre><p>This creates a successful MV with a balance of 100,000 miles as specified in the sandbox MV:</p>\n<pre><code>HTTP/1.1 201 CREATED\n{\n  &quot;application&quot;: &quot;https://lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc&quot;,\n  &quot;authenticatingFactors&quot;: {\n    &quot;password&quot;: &quot;*****&quot;\n  },\n  &quot;balance&quot;: 100000,\n  &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n  &quot;identifyingFactors&quot;: {\n    &quot;memberId&quot;: &quot;2202&quot;\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;type&quot;: &quot;memberValidation&quot;,\n  &quot;updatedAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;\n}\n</code></pre><p>You can retrieve a previous MV by performing a GET on the self link. This\nretrieves the MV and balance in the state it was when it was created. To get an\nupdated member’s balance, create a new MV.</p>\n<p>Congratulations, you’ve successfully performed a member validation. This is all\nyou need to complete your universal balance checker.</p>\n<p>To learn more about the capabilities of the LCP, including moving points in and\nout of member accounts, refer to the <a href=\"./?doc=reference-manual\">LCP Reference\nManual</a>\nand the <a href=\"./?doc=api-reference\">LCP API\nReference</a>.</p>\n<h2 id=\"appendix-a-signing-requests\">Appendix A: Signing Requests</h2>\n<p>This appendix contains a step-by-step guide for signing requests with OAuth\n2.0 MAC tokens as well as sample code. Follow these steps if you want to write\nyour own module to sign requests.</p>\n<ol>\n<li>Generate a timestamp. The timestamp is the number of seconds since January 1,\n1970 00:00:00 UTC. This is also known as POSIX time or Unix time. Requests\nare only valid within 30 seconds of the timestamp.</li>\n<li>Generate a nonce. A nonce is an arbitrary string that must be different for\neach request in a 30 second window with the same MAC ID.</li>\n<li>Generate the extension string. The extension string is blank for GET and\nDELETE requests. For PUT and POST requests, concatenate the value of the\nContent-Type header (e.g. &quot;application/json&quot;) with the request body and hash\nit with SHA1.</li>\n<li>Build the normalized request string as follows:\n<table>\n<thead>\n <tr>\n   <th>Format</th>\n   <th>GET Example</th>\n   <th>POST Example</th>\n </tr>\n</thead>\n<tbody>\n <tr>\n   <td>Timestamp\\n<br>Nonce\\n<br>HTTP Method (all caps)\\n<br>Path\\n<br>Hostname\\n<br>Port\\n<br>Extension\\n</td>\n   <td>1377721336\\n<br>4FvtoumTybo=\\n<br>GET\\n<br>/v1/apps/\\n<br>lcp.points.com\\n<br>443\\n<br>\\n</td>\n   <td>1377724146\\n<br>u8BNUfE5Gu8=\\n<br>POST\\n<br>/v1/apps/\\n<br>lcp.points.com\\n<br>443\\n<br>a9d46382c97bd4b0475b5b152dddaf2d61c0a30d\\n</td>\n </tr>\n</tbody>\n</table><ol start=\"5\">\n<li>Decode the MAC key from Base64 if you haven’t already. The MAC key is encoded in Base64 using a URL-safe alphabet. You may need to add padding to the MAC key to decode it.</li>\n<li>Generate the signature by using the HMAC-SHA1 algorithm and the MAC key over the normalized request string.</li>\n<li>Encode the signature in Base64. You do not need to use the URL-safe alphabet.</li>\n<li>Generate the authorization header for the request.</li>\n</ol>\n\n</li>\n</ol>\n<h4 id=\"example-request-\">Example request:</h4>\n<pre><code>GET /v1/accounts/342d7d81-c6d0-4968-8518-3525ed71bdb5 HTTP/1.1\nHost: lcp.points.com\nAuthorization: MAC id=&quot;97ee420faaa343d4a04b7378b319b48b&quot;,\n                   ts=&quot;1379541939&quot;,\n                   nonce=&quot;OK3HY80lkQ0=&quot;,\n                   ext=&quot;&quot;,\n                   mac=&quot;EmYShgBbKjp7XB3gbZq9e0zZy+8=&quot;\n</code></pre><h4 id=\"example-c-code-\">Example C# code:</h4>\n<pre><code>using System.Security.Cryptography;\n\npublic string GetAuthorizationHeaderValue(\n    string httpMethod,\n    Uri url,\n    string macKeyIdentifier,\n    string macKey,\n    string contentType,\n    string body)\n{\n    // Step 1: Generate timestamp\n    TimeSpan t = (DateTime.UtcNow - new DateTime(1970, 1, 1));\n    string ts = ((int)t.TotalSeconds).ToString();\n\n    // Step 2: Generate nonce\n    string nonce = new Random().Next().ToString();\n\n    // Step 3: Generate ext\n    string ext = &quot;&quot;;\n    if (contentType != null &amp;&amp; body != null &amp;&amp;\n        contentType.Length &gt; 0 &amp;&amp; body.Length &gt; 0)\n    {\n        string contentTypePlusBody = contentType + body;\n        SHA1 sha = new SHA1CryptoServiceProvider();\n        ext = BitConverter.ToString(sha.ComputeHash(\n            Encoding.ASCII.GetBytes(contentTypePlusBody)));\n        ext = ext.Replace(&quot;-&quot;, &quot;&quot;).ToLower();\n    }\n\n    // Step 4: Build normalized request string\n    string normalizedRequestString =\n        string.Format(&quot;{0}\\n{1}\\n{2}\\n{3}\\n{4}\\n{5}\\n{6}\\n&quot;,\n            ts,\n            nonce,\n            httpMethod,\n            url.AbsolutePath,\n            url.Host,\n            url.Port,\n            ext);\n\n    // Step 5: Base64 decode the MAC key from URL-safe alphabet\n    // and add padding if needed\n    macKey = macKey.Replace(&#39;-&#39;, &#39;+&#39;).Replace(&#39;_&#39;, &#39;/&#39;);\n    macKey += new string(&#39;=&#39;, (4 - macKey.Length % 4));\n    HashAlgorithm hashGenerator = new HMACSHA1(\n        System.Convert.FromBase64String(macKey));\n\n    // Step 6: Generate the signature\n    byte[] signature = hashGenerator.ComputeHash(\n        Encoding.ASCII.GetBytes(normalizedRequestString));\n\n    // Step 7: Base64 encode the result\n    string mac = System.Convert.ToBase64String(signature);\n\n    // Step 8: Build Authorization header\n    StringBuilder authorizationHeader = new StringBuilder();\n    authorizationHeader.AppendFormat(@&quot;MAC id=&quot;&quot;{0}&quot;&quot;, ts=&quot;&quot;{1}&quot;&quot;, nonce=&quot;&quot;{2}&quot;&quot;, ext=&quot;&quot;{3}&quot;&quot;, mac=&quot;&quot;{4}&quot;&quot;&quot;, macKeyIdentifier, ts, nonce, ext, mac);\n\n    return authorizationHeader.ToString();\n}\n</code></pre><h4 id=\"example-python-code-\">Example Python code:</h4>\n<pre><code>import urlparse\nimport httplib\nimport base64\nimport hmac\nimport hashlib\nimport time\nimport os\n\ndef generate_authorization_header_value(\n        http_method,\n        url,\n        mac_key_identifier,\n        mac_key,\n        content_type,\n        body):\n\n    url_parts = urlparse.urlparse(url)\n    port = url_parts.port\n    if not port:\n        if url_parts.scheme == &#39;https&#39;:\n            port = httplib.HTTPS_PORT\n        else:\n            port = httplib.HTTP_PORT\n\n    # Step 1: Generate timestamp\n    ts = str(int(time.time()))\n\n    # Step 2: Generate nonce\n    nonce = base64.b64encode(os.urandom(8))\n\n    # Step 3: Generate ext\n    if content_type is not None and body is not None and len(content_type) &gt; 0 and len(body) &gt; 0:\n        content_type_plus_body = content_type + body\n        content_type_plus_body_hash = hashlib.sha1(content_type_plus_body)\n        ext = content_type_plus_body_hash.hexdigest()\n    else:\n        ext = &quot;&quot;\n\n    # Step 4: Build normalized request string\n    normalized_request_string = (\n        ts + &#39;\\n&#39; +\n        nonce + &#39;\\n&#39; +\n        http_method + &#39;\\n&#39; +\n        url_parts.path + &#39;\\n&#39; +\n        url_parts.hostname + &#39;\\n&#39; +\n        str(port) + &#39;\\n&#39; +\n        ext + &#39;\\n&#39;\n    )\n\n    # Step 5: Base64 decode the MAC key from URL-safe alphabet\n    # and add padding if needed\n    mac_key += &#39;=&#39; * (4 - len(mac_key) % 4)\n    mac_key = base64.urlsafe_b64decode(mac_key)\n\n    # Step 6: Generate the signature\n    signature = hmac.new(mac_key, normalized_request_string, hashlib.sha1)\n\n    # Step 7: Base64 encode the result\n    mac = base64.b64encode(signature.digest())\n\n    # Step 8: Build Authorization header\n    return &#39;MAC id=&quot;{0}&quot;, ts=&quot;{1}&quot;, nonce=&quot;{2}&quot;, ext=&quot;{3}&quot;, mac=&quot;{4}&quot;&#39;.format(mac_key_identifier, ts, nonce, ext, mac)\n</code></pre>";
@@ -16848,9 +16848,9 @@ module.exports = "<h1 id=\"lcp-getting-started-guide\">LCP Getting Started Guide
 /* 186 */
 /* unknown exports provided */
 /* all exports used */
-/*!**********************************************!*\
-  !*** ./app/static/documents/lp-reference.md ***!
-  \**********************************************/
+/*!***************************************!*\
+  !*** ./app/documents/lp-reference.md ***!
+  \***************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = "<h1 id=\"loyalty-partner-api-reference-manual\">Loyalty Partner API Reference Manual</h1>\n<p>For Points Loyalty Commerce Platform - Version 1.0</p>\n<h2 id=\"document-overview\">Document Overview</h2>\n<p>This document describes the RESTful API services a Loyalty Partner must implement to enable members using Loyalty Commerce Applications built on the Points Loyalty Commerce Platform (LCP) to transact.</p>\n<h2 id=\"introducing-the-loyalty-partner-api\">Introducing the Loyalty Partner API</h2>\n<p>As a Loyalty Partner (LP), you can integrate with the LCP and all its applications with these simple calls.</p>\n<ol>\n<li>Member Validation</li>\n<li>Credit/Debit Posting</li>\n<li>Transfer Points to/from a member&#39;s account</li>\n<li>Transaction Retry (posting or transfer)</li>\n<li>Transaction Reversal</li>\n<li>Single Sign On (SSO)</li>\n</ol>\n<p><img src=\"" + __webpack_require__(/*! ../images/lp-overview.png */ 25) + "\" alt=\"LP API\"></p>\n<p>When an application executes a member validation, credit, or debit operation to you (the Loyalty Partner) via the LCP, the LCP will find the pre-configured URL for your loyalty program&#39;s API and that specific operation, and send an HTTP request to that URL.</p>\n<p>For example, in a typical Buy transaction, an MV will precede a credit posting in the sequence illustrated.</p>\n<p><img src=\"" + __webpack_require__(/*! ../images/lp-api-buy.png */ 24) + "\" alt=\"LP API - Buy example\"></p>\n<p>A reference implementation for the LP API&#39;s member validation and credit/debit postings can be found in the <a href=\"https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples\">Loyalty Commerce Platform Github repository</a>. Our example web server will be &quot;<a href=\"http://api.loyaltyprogram.com\">http://api.loyaltyprogram.com</a>&quot; below.</p>\n<h2 id=\"validate-a-member\">Validate a Member</h2>\n<p>The basic API call for all LCP partners is the member validation (MV). Applications on the LCP will submit an MV request to determine if a member exists and check the balance of a loyalty program member&#39;s account.</p>\n<p>The MV is the only configurable call. As a Loyalty Partner, you define what data fields you receive and share with applications. An MV <strong>request</strong> body will contain a member&#39;s details (e.g. account ID, name) and an MV <strong>response</strong> confirms the validity of a member and may include additional member data. Data fields in both the MV request and response are specified in their respective schemas. During the onboarding process, Points configures these schemas on your behalf.</p>\n<p>The following parameters are recommended for MV requests:</p>\n<table>\n  <thead>\n    <tr>\n      <th>Parameter</th>\n      <th>Description</th>\n      <th>Required</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>firstName</td>\n      <td>First name of the loyalty program member</td>\n      <td>Y</td>\n    </tr>\n    <tr>\n      <td>lastName</td>\n      <td>Last name of the loyalty program member</td>\n      <td>Y</td>\n    </tr>\n    <tr>\n      <td>memberId</td>\n      <td>Member ID of the loyalty program member</td>\n      <td>Y</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Sample MV request from applications via the LCP:</p>\n<pre><code>POST http://api.loyaltyprogram.com/MemberValidation\n{\n  &quot;firstName&quot;: &quot;John&quot;,\n  &quot;lastName&quot;: &quot;Doe&quot;,\n  &quot;memberId&quot;: &quot;A1234567890&quot;\n}\n</code></pre><p>A successful MV response from you will include member details similar to those below if the member exists and is valid for use. You can return additional data to applications on the LCP to enable them to offer personalized loyalty experiences to consumers (e.g. targeted offers).</p>\n<pre><code>200 OK\n{\n &quot;status&quot;: &quot;success&quot;,\n &quot;memberId&quot;: &quot;A1234567890&quot;,\n &quot;accountCreationDate&quot;: &quot;2015-12-31&quot;,\n &quot;countryCode&quot;: &quot;CA&quot;,\n &quot;cobrand&quot;: &quot;XYZ Co&quot;\n &quot;balance&quot;: 200000,\n &quot;membershipLevel&quot;: &quot;Gold&quot;,\n &quot;accountStatus&quot;: &quot;Active&quot;,\n &quot;email&quot;: &quot;test@example.com&quot;,\n &quot;eligibility&quot;: &quot;TransferToAny&quot;\n}\n</code></pre><p>An MV response for an invalid member must return a <strong>status</strong> and <strong>statusMessage</strong> with a helpful descriptor:</p>\n<pre><code>200 OK\n{\n   &quot;status&quot;: &quot;failure&quot;,\n   &quot;statusMessage&quot;: &quot;Error: Unknown Member&quot;\n}\n</code></pre><h2 id=\"credit-or-debit-an-account\">Credit or Debit an Account</h2>\n<p>As your loyalty members earn or redeem points, this service allows applications on the LCP to post a debit and/or credit to a member’s account.</p>\n<p>The following parameters are included in posting requests:</p>\n<table>\n  <thead>\n    <tr>\n      <th>Name</th>\n      <th>Description</th>\n      <th>Required</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>callback</td>\n      <td>The callback is a URI passed as a string that uniquely identifies a transaction in the LCP. This is helpful for Points&#39; and your support teams if troubleshooting is required and it is strongly recommended that you store this string.</td>\n      <td>Y</td>\n    </tr>\n    <tr>\n      <td>order</td>\n      <td>Details of the order that this debit/credit is executed as part of</td>\n      <td>N</td>\n    </tr>\n    <tr>\n      <td>bonus</td>\n      <td>A boolean value indicating if this is a bonus posting</td>\n      <td>N</td>\n    </tr>\n    <tr>\n      <td>amount</td>\n      <td>Number of points to be added or removed from the member&#39;s account. This number is negative for debits and positive for credits.</td>\n      <td>Y</td>\n    </tr>\n    <tr>\n      <td>pic</td>\n      <td>Product identification code</td>\n      <td>N</td>\n    </tr>\n    <tr>\n      <td>firstName</td>\n      <td>First name of the loyalty program member</td>\n      <td>N</td>\n    </tr>\n    <tr>\n      <td>lastName</td>\n      <td>Last name of the loyalty program member</td>\n      <td>N</td>\n    </tr>\n    <tr>\n      <td>memberId</td>\n      <td>Member ID of the loyalty program member. This is identical to the member ID in the MV.</td>\n      <td>Y</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Sample posting request from applications via the LCP:</p>\n<pre><code>POST http://api.loyaltyprogram.com/Posting\n{\n   &quot;callback&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;&quot;,\n   &quot;amount&quot;: 100,\n   &quot;bonus&quot;: true|false,\n   &quot;order&quot; : {\n      &quot;orderType&quot;: &quot;GIFT&quot;,\n      &quot;createdAt&quot;: &quot;2014-11-25T15:24:00.000000Z&quot;,      \n      &quot;confirmationNumber&quot;: &quot;1111-2222-3333-4444-5555&quot;\n   },\n   &quot;pic&quot;: &quot;POINTSGIFT&quot;,\n   &quot;memberId&quot;: &quot;A1234567890&quot;\n}\n</code></pre><p>A posting response returns the <strong>transactionId</strong> and the <strong>status</strong>. In case of a <em>failure</em>, the response must also include a <strong>statusMessage</strong>. The <strong>transactionId</strong> is a string with a maximum length of 100 characters used by the Points support team to troubleshoot and for <a href=\"./?doc=lp-reference#retry-a-transaction\">transaction retries</a>.</p>\n<pre><code>200 OK\n{  \n   &quot;status&quot;: &quot;success|failure&quot;,\n   &quot;statusMessage&quot;: &quot;Error: Limit exceeded&quot;,\n   &quot;transactionId&quot;: &quot;12345678&quot;\n}\n</code></pre><h2 id=\"transfer-points-between-accounts\">Transfer Points Between Accounts</h2>\n<p>As part of your loyalty program features, you may wish to provide a service to allow applications on the LCP to perform one-shot points transfers between loyalty member accounts. This API call withdraws/debits points from one account and deposits/credits them to another in a single transaction.</p>\n<p>The following parameters are included in transfer requests:</p>\n<table>\n  <thead>\n    <tr>\n      <th>Name</th>\n      <th>Description</th>\n      <th>Required</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>callback</td>\n      <td>The callback is a URI passed as a string that uniquely identifies a transaction in the LCP. This is helpful for Points&#39; and your support teams if troubleshooting is required and it is strongly recommended that you store this string.</td>\n      <td>Y</td>\n    </tr>\n    <tr>\n      <td>order</td>\n      <td>Details of the order that this debit/credit is executed as part of.</td>\n      <td>N</td>\n    </tr>\n    <tr>\n      <td>amount</td>\n      <td>Number of points to be removed from the member&#39;s account and added to the recipient&#39;s. This number is negative (for debits).</td>\n      <td>Y</td>\n    </tr>\n    <tr>\n      <td>pic</td>\n      <td>Product identification code</td>\n      <td>N</td>\n    </tr>\n    <tr>\n      <td>member/firstName</td>\n      <td>First name of the loyalty program member transacting</td>\n      <td>N</td>\n    </tr>\n    <tr>\n      <td>member/lastName</td>\n      <td>Last name of the loyalty program member transacting</td>\n      <td>N</td>\n    </tr>\n    <tr>\n      <td>member/memberId</td>\n      <td>Member ID of the loyalty program member transacting. This is identical to the member ID in the MV.</td>\n      <td>Y</td>\n    </tr>\n    <tr>\n      <td>recipient/firstName</td>\n      <td>First name of the loyalty program member receiving the points</td>\n      <td>N</td>\n    </tr>\n    <tr>\n      <td>recipient/lastName</td>\n      <td>Last name of the loyalty program member receiving the points</td>\n      <td>N</td>\n    </tr>\n    <tr>\n      <td>recipient/memberId</td>\n      <td>Member ID of the loyalty program member receiving the points</td>\n      <td>Y</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Sample point transfer request from applications via the LCP:</p>\n<pre><code>POST http://api.loyaltyprogram.com/Transfer\n{\n   &quot;callback&quot;: &quot;https://lcp.points.com/v1/lps/&lt;lp-id&gt;/credits/&lt;id&gt;&quot;,\n   &quot;amount&quot;: 100,\n   &quot;order&quot; : {\n      &quot;orderType&quot;: &quot;TRANSFER&quot;,\n      &quot;createdAt&quot;: &quot;2015-11-25T15:24:00.000000Z&quot;,\n      &quot;confirmationNumber&quot;: &quot;1111-2222-3333-4444-5555&quot;\n   },\n   &quot;pic&quot;: &quot;TRANSFER&quot;,\n   &quot;member&quot;: {\n      &quot;memberId&quot;: &quot;A1234567890&quot;\n   },\n   &quot;recipient&quot;: {\n      &quot;memberId&quot;: &quot;B1234567890&quot;\n   }\n}\n</code></pre><p>A point transfer response returns the <strong>transactionId</strong> and the <strong>status</strong>. In case of a <em>failure</em>, the response must include a <strong>statusMessage</strong>.</p>\n<pre><code>200 OK\n{  \n   &quot;status&quot;: &quot;success|failure&quot;,\n   &quot;statusMessage&quot;: &quot;Error: Insufficient balance&quot;,\n   &quot;transactionId&quot;: &quot;12345678&quot;\n}\n</code></pre><h2 id=\"retry-a-transaction\">Retry a Transaction</h2>\n<p>Occasionally, your system may undergo maintenance or experience downtime. During this time, you can return a status of &quot;<em>systemError</em>&quot; instead of &quot;<em>failure</em>&quot; to the LCP for any transactions (credit/debit posting, transfer) received. &quot;<em>systemError</em>&quot; informs the application on the LCP that the request passed may be correct For these transactions, your API should accept a call with the <strong>transactionId</strong>. The Points support team can then retry the transaction at a later time by sending the same <strong>transactionId</strong> used on the original request.</p>\n<p>The following parameter is included in retry requests:</p>\n<table>\n  <thead>\n    <tr>\n      <th>Name</th>\n      <th>Description</th>\n      <th>Required</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>transactionId</td>\n      <td>ID of the transaction being reattempted. This should be used to ensure that the initial transaction was indeed not successful.</td>\n      <td>Y</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Sample retry request from the LCP:</p>\n<pre><code>POST http://api.loyaltyprogram.com/RetryTransaction\n{\n   &quot;transactionId&quot;: &quot;12345678&quot;\n}\n</code></pre><p>A transaction retry response returns the <strong>transactionId</strong> and the <strong>status</strong>. In case of a <em>failure</em>, the response must include a <strong>statusMessage</strong>.</p>\n<pre><code>200 OK\n{  \n   &quot;status&quot;: &quot;success|failure&quot;,\n   &quot;statusMessage&quot;: &quot;Error: Transaction already succeeded&quot;,\n   &quot;transactionId&quot;: &quot;12345678&quot;\n}\n</code></pre><h2 id=\"transaction-reversals\">Transaction Reversals</h2>\n<p>Transactions (postings or transfers) may be cancelled for any number of reasons and members&#39; balances should be updated in a timely manner. You may wish to provide a service to handle reversals automatically.</p>\n<p>A transaction can be fully or partially reversed by sending the same <strong>transactionId</strong> used on the original request. The amount of points to reverse will always be specified and the sign (+/-) will indicate the operation to the member&#39;s points account. Amounts greater than 0 should add points into a member&#39;s account, while a negative amount should remove points.</p>\n<p>Each reversal will be made on a successful transaction. If the cumulative amount to be reversed is more than the points originally transacted, the reversal should be rejected.</p>\n<p>The following parameters are included in reversal requests:</p>\n<table>\n  <thead>\n    <tr>\n      <th>Name</th>\n      <th>Description</th>\n      <th>Required</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>transactionId</td>\n      <td>ID of the transaction being reattempted. This should be used to ensure that the initial transaction was indeed not successful.</td>\n      <td>Y</td>\n    </tr>\n    <tr>\n      <td>amount</td>\n      <td>Number of points to reverse for the transaction. This field will be populated for all reversals.</td>\n      <td>Y</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Sample reversal request from the LCP to remove 2000 points from the member account corresponding to the transactionId:</p>\n<pre><code>POST http://api.loyaltyprogram.com/Reversal\n{\n   &quot;transactionId&quot;: &quot;12345678&quot;,\n   &quot;amount&quot;: -2000\n}\n</code></pre><p>A reversal response returns the <strong>transactionId</strong> and the <strong>status</strong>. In case of a <em>failure</em>, the response must include a <strong>statusMessage</strong>.</p>\n<pre><code>200 OK\n{  \n   &quot;status&quot;: &quot;success&quot;,\n   &quot;transactionId&quot;: &quot;12345678&quot;\n}\n\n400 BAD REQUEST\n{  \n   &quot;status&quot;: &quot;failure&quot;,\n   &quot;statusMessage&quot;: &quot;Error: No such transactionId&quot;,\n   &quot;transactionId&quot;: &quot;12345678&quot;\n}\n</code></pre><h2 id=\"call-authorization\">Call Authorization</h2>\n<p>We recommend using with Basic Auth (an encrypted username/password pair) to authorize calls from the LCP.</p>\n<h2 id=\"single-sign-on-sso-\">Single Sign On (SSO)</h2>\n<p>Your loyalty members only sign in once on your loyalty program site and can continue logged in to applications on the LCP. With SSO, LCP applications do not need member credentials (i.e. password) for members to browse and transact.</p>\n<p><img src=\"" + __webpack_require__(/*! ../images/sso-mv.png */ 27) + "\" alt=\"SSO MV\"></p>\n<p>When the member is signed in and visits a link on your loyalty program’s website to an LCP application, your loyalty program can provide the member’s info to the LCP and allow the LCP application to retrieve it without sharing any confidential information about the member through the web browser.</p>\n<p>SSO is a five-step process:</p>\n<ol>\n<li><strong>Your loyalty program <a href=\"https://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#create-a-mv-delegate\">creates an MV delegate</a> on the LCP.</strong> Your loyalty program provides the member info needed to create an MV and &quot;delegates&quot; the MV to the application so that the application has permission to access the MV. The LCP creates the MV and returns the MV URL to your loyalty program.</li>\n<li><strong>Your loyalty program redirects the user to the application and provides the application with the MV delegate URL.</strong> No member information is passed in the redirect. It is securely stored in the LCP.</li>\n<li><strong>The application <a href=\"https://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#get-a-mv-delegate\">gets the MV delegate</a> from the LCP using the MV delegate URL</strong> to securely obtain the location of the MV.</li>\n<li><strong>The application <a href=\"https://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#get-a-mv\">gets the MV</a> from the LCP using the MV URL</strong> in the MV delegate to securely obtain information about the member and perform transactions. Authenticating factors like the member’s password are not shared with the application.</li>\n<li>If necessary, the application gets the member details from the LCP by appending &quot;/member-details&quot; to the MV URL to securely obtain additional information about the member.</li>\n</ol>\n<p>A <a href=\"https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples/java/sso-reference-implementation\">reference implementation of the SSO API</a> can be found in the LCP Github repository.</p>\n";
@@ -16859,9 +16859,9 @@ module.exports = "<h1 id=\"loyalty-partner-api-reference-manual\">Loyalty Partne
 /* 187 */
 /* unknown exports provided */
 /* all exports used */
-/*!**************************************************!*\
-  !*** ./app/static/documents/reference-manual.md ***!
-  \**************************************************/
+/*!*******************************************!*\
+  !*** ./app/documents/reference-manual.md ***!
+  \*******************************************/
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = "<h1 id=\"lcp-reference-manual\">LCP Reference Manual</h1>\n<p>For Points Loyalty Commerce Platform - Version 1.0</p>\n<h2 id=\"document-overview\">Document Overview</h2>\n<p>This document contains an in-depth description of the Points Loyalty Commerce\nPlatform (LCP). You will find below descriptions of the platform,\nauthentication, and error codes. This document assumes have read the <a href=\"./\">LCP Getting\nStarted Guide for Developers</a>. For a detailed description of the API, see the <a href=\"./?doc=api-reference\">LCP\nAPI Reference</a>.</p>\n<h2 id=\"sandbox-vs-live\">Sandbox vs Live</h2>\n<p>The LCP operates in two modes: sandbox mode and live mode. Sandbox mode is\naccessed at <code>https://sandbox.lcp.points.com</code> while live mode is accessed at\n<code>https://lcp.points.com</code>. Each has a separate set of credentials for\nauthentication. When you create an application, you will get a set of sandbox\ncredentials for use in the sandbox environment. Live mode credentials are issued\nby Points when you’re ready to deploy your application.</p>\n<p>Use sandbox mode during development and to test your application. In the\nSandbox, you can test your application against one or more loyalty programs\nwithout affecting live member accounts of the loyalty programs. Sandbox mode\nnever affects member accounts; all operations are simulated. The API reference\ndescribes how to simulate different success and failure conditions in sandbox\nmode that your app will experience in live mode.</p>\n<p>To go live, you’ll need to request live credentials from Points. Once your\nreceive them, you’ll need to update your application to use the live credentials\nand the live endpoint located at <code>https://lcp.points.com</code>. Only Live credentials\nhave permission to access this endpoint. Once in the live environment, we\nrecommend you run additional tests using live test accounts for each of the\nloyalty programs your app interacts.</p>\n<h2 id=\"versioning\">Versioning</h2>\n<p>The LCP uses version numbering in the URI. To access the version of the API\ndescribed in this document use <code>https://sandbox.lcp.points.com/v1/</code> or\n<code>https://lcp.points.com/v1/</code>. New versions will be created for backwards\nincompatible changes to the API. We will notify you of new versions of the API\nand give you time to transition to the new version before discontinuing support\nfor the old version.</p>\n<h2 id=\"multiple-data-centers\">Multiple Data Centers</h2>\n<p>The LCP is a high availability service operating in multiple data centers\nglobally. The platform is designed to maximize availability and scalability but\nunderstanding how the LCP works will ensure your Application knows what to\nexpect.</p>\n<p>Requests to the LCP are routed to the closest data center. Unless that data\ncenter fails or you change geographies (significantly) your requests will\ncontinue to be routed to the same data center. Requests that change data in one\ndata center are replicated to the other data centers. Replication happens\nquickly and in the background so as not to delay processing of your requests.\nSince your requests typically hit the same data center, replication is generally\ninvisible to your application. This characteristic of the LCP is called eventual\nconsistency. For more background information on this topic please reference\n<a href=\"http://www.allthingsdistributed.com/2008/12/eventually_consistent.html\">Eventually Consistent -\nRevisited</a>.</p>\n<p>In the unlikely event of a data center failing, the LCP will automatically\nfailover to a secondary data center. This may result in recently created\nresources not being immediately available in the data center to which you fail\nover until replication has completed. To get started don&#39;t worry about this\nfailure scenario. However, keep in mind that you in rare instances, you may need\nto wait and resend your request to access recently created or modified data.</p>\n<h2 id=\"authorization\">Authorization</h2>\n<p>The LCP uses OAuth 2.0 Message Authentication Code (MAC) Tokens to authenticate\nrequests to the platform. This version of the LCP API matches <a href=\"http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02\">draft 02 of the\nOAuth 2.0 MAC Token\nspecification</a>. We\nhave provided a set of <a href=\"https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util\">LCP Client\nUtilities</a>\nto help you get started with OAuth 2.0 MAC authentication.</p>\n<h3 id=\"types-of-credentials\">Types of Credentials</h3>\n<p>There are three types of MAC credentials used in the LCP:</p>\n<ol>\n<li><a href=\"./?doc=api-reference#account-credentials\">Account credentials</a> are\nused to authenticate you when accessing <code>/accounts</code> and\n<code>/apps</code> resources. Account credentials are created automatically when you\ncreate an account.</li>\n<li><a href=\"./?doc=api-reference#sandbox-credentials\">Sandbox credentials</a> are\nused by your app to authenticate its requests to the <code>/lps</code> resource in the\nsandbox environment. Sandbox credentials are created automatically when you\ncreate an app.</li>\n<li><a href=\"./?doc=api-reference#live-credentials\">Live credentials</a> are used by\nyour app to authenticate its requests to the <code>/lps</code> resource in the live\nenvironment. Live credentials are managed by Points.</li>\n</ol>\n<p>Each set of credentials include a MAC key identifier, a MAC key and a MAC\nalgorithm. The MAC key identifier uniquely identifies the MAC key. The MAC key\nidentifier is sent with each request to tell the server which MAC key was used\nto sign the request. The MAC key is the shared secret key. It should never be\nshared with anyone or transmitted in any request. Keep this key secure as you\nwould any private key. Finally, the MAC algorithm describes the algorithm used\nto create the signature. It is always set to <code>HMAC-SHA1</code>.</p>\n<pre><code>{\n  &quot;macKeyIdentifier&quot;: &quot;97ee420faaa343d4a04b7378b319b48b&quot;,\n  &quot;macKey&quot;: &quot;NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4&quot;,\n  &quot;macAlgorithm&quot;: &quot;HMAC-SHA1&quot;\n}\n</code></pre><p>NOTE: The MAC key is <a href=\"http://tools.ietf.org/html/rfc4648\">Base64</a> encoded using\na URL-safe alphabet, which substitutes <code>-</code> instead of <code>+</code> and <code>_</code> instead of <code>/</code>\nin the standard Base64 alphabet. TheMAC key also may not contain padding\n(represented with the <code>=</code> character). Prior to using the MAC key, decode it from\nBase64.</p>\n<h3 id=\"the-authorization-header\">The Authorization Header</h3>\n<p>Except when creating an account, all requests to the platform must include an\nauthorization header. The authorization header includes the authorization type\n“MAC” and the following five fields:</p>\n<table>\n  <thead>\n    <tr>\n      <th>Field</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>id</td>\n      <td>The MAC key identifier that uniquely identifies the MAC key used to generated the MAC signature.</td>\n    </tr>\n    <tr>\n      <td>ts</td>\n      <td>An integer timestamp equal to the number of seconds since January 1, 1970 00:00:00 UTC. This is also known as POSIX time or Unix time. Requests are only valid within 30 seconds of the timestamp.</td>\n    </tr>\n    <tr>\n      <td>nonce</td>\n      <td>An arbitrary string that must be different for each request in a 30 second window with the same MAC key identifier. Used to prevent replay attacks.</td>\n    </tr>\n    <tr>\n      <td>ext</td>\n      <td>The extension string is used to verify the contents of the request. It is an empty string for GET and DELETE request. For PUT and POST requests, concatenate the value of the Content-Type header (e.g. “application/json”) with the request body and hash it with SHA1.</td>\n    </tr>\n    <tr>\n      <td>mac</td>\n      <td>The MAC signature for this request. The MAC signature is a Base64 encoded string that is generated by the HMAC-SHA1 algorithm, the MAC key, and the normalized request string. This process is described in the next section.</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Note that the MAC key is not included in the authorization header. This key is a\nsecret and should not be included in any request. Here is an example of an\nauthorization header:</p>\n<pre><code>Authorization: MAC id=&quot;97ee420faaa343d4a04b7378b319b48b&quot;,\n                   ts=&quot;1379541939&quot;,\n                   nonce=&quot;OK3HY80lkQ0=&quot;,\n                   ext=&quot;&quot;,\n                   mac=&quot;EmYShgBbKjp7XB3gbZq9e0zZy+8=&quot;\n</code></pre><p>When this authorization header is provided in requests to protected resources,\nthe LCP authenticates the request using the following steps:</p>\n<ol>\n<li>Checks that the timestamp is within 30 seconds of the current time.</li>\n<li>Checks that the nonce has not been used in a previous request with the same\nMAC key identifier in the 30 second window.</li>\n<li>Checks the MAC signature by using the same process as the client. Using the\nMAC key that corresponds to the MAC key identifier and the request details,\nthe LCP generates a MAC signature for this request and compares it to the one\nthat was passed in the authorization header.</li>\n<li>Generates the extension string and verifies that it matches the string provided in the authorization header.</li>\n</ol>\n<p>If all of these conditions are met the request is authenticated.</p>\n<h3 id=\"generating-the-mac-signature\">Generating the MAC Signature</h3>\n<p>The MAC signature is generated using the MAC key and a normalized request string\nthat contains the details of the request. The normalized request string is\nassembled as follows (<code>\\n</code> indicates a new line character at the end of every\nline):</p>\n<table>\n  <thead>\n    <tr>\n      <th>Format</th>\n      <th>GET Example</th>\n      <th>POST Example</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>\n        Timestamp\\n<br>\n        Nonce\\n<br>\n        HTTP Method (all caps)\\n<br>\n        Path\\n<br>\n        Hostname\\n<br>\n        Port\\n<br>\n        Extension\\n<br>\n      </td>\n      <td>\n        1377721336\\n<br>\n        4FvtoumTybo=\\n<br>\n        GET\\n<br>\n        /v1/apps/\\n<br>\n        lcp.points.com\\n<br>\n        443\\n<br>\n        \\n<br>\n      </td>\n      <td>\n        1377724146\\n<br>\n        u8BNUfE5Gu8=\\n<br>\n        POST\\n<br>\n        /v1/apps/\\n<br>\n        lcp.points.com\\n<br>\n        443\\n<br>\n        a9d46382c97bd4b0475b5b152dddaf2d61c0a30d\\n<br>\n      </td>\n    </tr>\n  </tbody>\n</table>\n\n<ul>\n<li><strong>Timestamp:</strong> The number of seconds since January 1, 1970 00:00:00 UTC. This\nis also known as POSIX time or Unix time. Requests are only valid within 30\nseconds of the timestamp.</li>\n<li><strong>Nonce:</strong> An arbitrary string that must be different for each request in a 30\nsecond window with the same MAC ID.</li>\n<li><strong>HTTP Method:</strong> One of GET, PUT, POST, or DELETE (must be uppercase).</li>\n<li><strong>Path:</strong> The path to the resource on the server. Starts with the slash after\nthe hostname/port in the URI.</li>\n<li><strong>Hostname:</strong> The hostname of the server in the HTTP request. Do not include\nthe protocol (<code>https://</code>), port or path.</li>\n<li><strong>Port:</strong> The port for the HTTP request. Use 443 for HTTPS.</li>\n<li><strong>Extension:</strong> Blank for GET and DELETE request. For PUT and POST requests,\nconcatenate the value of the Content-Type header (e.g. <code>application/json</code>)\nwith the request body and hash it with SHA1.</li>\n</ul>\n<p>This normalized request string and the MAC key are fed into the HMAC-SHA1\nalgorithm to obtained the binary MAC signature. The binary signature is\n<a href=\"http://tools.ietf.org/html/rfc4648\">Base64</a> encoded for inclusion in the\n<a href=\"#the-authorization-header\">authorization header</a> for the request.</p>\n<p>Here is an example of using the HMAC-SHA1 algorithm to generate the signature in Python:</p>\n<pre><code>def generate_signature(mac_key, normalized_request_string):\n    &quot;&quot;&quot;Generate a request&#39;s MAC given a normalized request string (aka\n    a summary of the key elements of the request and the mac key (shared\n    secret).&quot;&quot;&quot;\n\n    import hmac\n    import hashlib\n    import base64\n\n    # Add padding to the MAC key if needed\n    mac_key+= &#39;=&#39; * (4 - len(mac_key) % 4)\n\n    # Base64 decode the MAC key using URL-safe alphabet\n    mac_key= base64.urlsafe_b64decode(mac_key)\n\n    # Create the hash\n    hashed = hmac.new(mac_key, normalized_request_string, hashlib.sha1)\n\n    # Base64 encode the result\n    return base64.b64encode(hashed.digest())\n</code></pre><h2 id=\"correlation-id\">Correlation ID</h2>\n<p>Every request sent to the LCP is assigned a correlation ID. This value is returned\nin the API response in the <code>PTS-LCP-CID</code> header. When inquiring about a request, send\nthis value to Points to help us find your request as quickly as possible.</p>\n<h2 id=\"single-sign-on-sso-\">Single Sign-On (SSO)</h2>\n<p>There are two ways to validate loyalty program member credentials and obtain account\nbalances: direct MV and SSO MV.</p>\n<p><img src=\"" + __webpack_require__(/*! ../images/sso.png */ 28) + "\" alt=\"SSO\"></p>\n<h3 id=\"direct-mv\">Direct MV</h3>\n<p>Applications perform a member validation against a loyalty program. Applications\n<a href=\"./?doc=api-reference#create-a-mv\">create an MV</a> and provide the member’s\ncredentials. The LCP verifies these credentials with the loyalty program and returns\nthe member’s account balance to the application. This is the simplest solution for\nboth applications and loyalty programs, but requires the application to collect\nmember credentials.</p>\n<h3 id=\"sso-mv\">SSO MV</h3>\n<p>Single sign-on doesn’t require any application built on top of the Loyalty Commerce Platform to collect member credentials and\navoids requiring the member to login with both the loyalty program website and the\napplication. If the member is already signed in on the loyalty program’s website and\nthe loyalty program’s website links to the application, the loyalty program can\nprovide the member’s info to the LCP and allow the application to retrieve it without\nsharing any confidential information about the member through the web browser. SSO is\na five step process:</p>\n<ol>\n<li>The Loyalty Program <a href=\"./?doc=api-reference#create-a-mv-delegate\">creates an MV delegate</a>\non the LCP. The loyalty program provides the member info needed to create an MV and\n&quot;delegates&quot; the MV to the application so that the application has permission to access\nthe MV. The LCP creates the MV and returns the MV URL to the loyalty program.</li>\n<li>The loyalty program redirects the user to the application and provides the\napplication with the MV delegate URL. No member information is passed in the redirect. It\nis securely stored in the LCP.</li>\n<li>The application <a href=\"./?doc=api-reference#get-a-mv-delegate\">gets the MV delegate</a> from the LCP using the MV delegate\nURL to securely obtain the location of the MV.</li>\n<li>The application <a href=\"./?doc=api-reference#get-a-mv\">gets the MV</a> from the LCP using the MV\nURL in the MV delegate to securely obtain information about the member and perform transactions.\nAuthenticating factors like the member’s password are not shared with the application.</li>\n<li>If necessary, the application gets the member details from the LCP by appending &quot;/member-details&quot;\nto the MV URL to securly obtain additional information about the member.</li>\n</ol>\n<p>To see a reference implementation of this, please proceed to the <a href=\"https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples/java/sso-reference-implementation\">LCP Samples</a>.</p>\n<h2 id=\"real-time-vs-batch\">Real-time vs Batch</h2>\n<p>Moving points in or out of loyalty accounts can happen either in real-time or in a\nperiodic batch process. The process used depends on the loyalty program. Applications\nshould be built to handle both cases so they can work with any loyalty program. Even\nwhen using a single loyalty program, applications should test both processes in\nsandbox mode in case the loyalty program changes their process in the future.</p>\n<p><img src=\"" + __webpack_require__(/*! ../images/batch.png */ 19) + "\" alt=\"Batch\"></p>\n<h3 id=\"real-time\">Real-time</h3>\n<p>Most loyalty programs process debits and credits in real-time. When applications\ncreate debits or credits, the LCP forwards the request to the loyalty program and the\nloyalty program processes the request immediately. The LCP tells the application\nwhether the debit or credit succeeded.</p>\n<h3 id=\"batch\">Batch</h3>\n<p>A few loyalty programs process debits and/or credits in a batch process. When the LCP\nreceives a request, it returns a status of pending and queues the request.\nPeriodically, the LCP sends the queued requests to the loyalty program for processing\n(this happens once a day for most LPs). Some time later (typically within 24 hours),\nthe LP returns the result of all the debits and credits in the batch. The application\nshould periodically poll pending debits or credits to determine their result.</p>\n<h2 id=\"using-orders\">Using Orders</h2>\n<p>All transactions must be part of an order for them to appear in the order search\nsupport tool and the transaction reports in the <a href=\"https://admin.lcp.points.com/\">LCP\nAdmin</a> console. An order is a composite transaction\nthat associates multiple primitive transactions together. Primitive transactions\ninclude MVs, debits, and credits. The order contains details about the composite\ntransaction and its fulfillment history. Additional metadata about the order can also\nbe included in the data section.</p>\n<p>There are six steps for using orders:</p>\n<ol>\n<li>Create an MV</li>\n<li>Create an order</li>\n<li>Add the MV to the order</li>\n<li>Create the debit or credit</li>\n<li>Update the status of the order</li>\n<li>Search for updated orders</li>\n</ol>\n<h3 id=\"create-an-mv\">Create an MV</h3>\n<p>The first step is to <a href=\"./?doc=api-reference#create-a-mv\">create a member validation\n(MV)</a> to validate the member&#39;s credentials. Let&#39;s\ncreate a sandbox MV for Flying Blue like we did in the <a href=\"./#perform-a-member-validation-mv-\">LCP Getting Started\nGuide</a>. Use your application&#39;s sandbox\ncredentials to sign the request.</p>\n<pre><code>POST https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;identifyingFactors&quot;: {\n    &quot;memberId&quot;: &quot;2202&quot;\n  },\n  &quot;authenticatingFactors&quot;: {\n    &quot;password&quot;: &quot;PASSWORD&quot;\n  }\n}\n</code></pre><p>If the member credentials are correct, you&#39;ll receive the member&#39;s balance:</p>\n<pre><code>201 CREATED\nlocation: https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54\n{\n  &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc&quot;,\n  &quot;authenticatingFactors&quot;: {\n    &quot;password&quot;: &quot;*****&quot;\n  },\n  &quot;balance&quot;: 100000,\n  &quot;createdAt&quot;: &quot;2014-02-26T17:46:00.000000Z&quot;,\n  &quot;identifyingFactors&quot;: {\n    &quot;memberId&quot;: &quot;2202&quot;\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;type&quot;: &quot;memberValidation&quot;,\n  &quot;updatedAt&quot;: &quot;2014-02-26T17:46:00.000000Z&quot;\n}\n</code></pre><h3 id=\"create-an-order\">Create an Order</h3>\n<p>After the user has successfully validated their credentials, you can <a href=\"./?doc=api-reference#create-an-order\">create an\norder</a> for them. The order type can be either\nEXCHANGE_CREDIT for credit orders or REDEEM_DEBIT for debit orders. Contact Points to\ndetermine which order type you should use.</p>\n<pre><code>POST https://sandbox.lcp.points.com/v1/orders/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;data&quot;: {\n    &quot;clientIpAddress&quot;: &quot;127.0.0.1&quot;,\n    &quot;clientUserAgent&quot;: &quot;Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0&quot;,\n    &quot;language&quot;: &quot;en-US&quot;,\n    &quot;orderDetails&quot;: {\n      &quot;basePoints&quot;: 2000,\n      &quot;loyaltyProgram&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6&quot;\n    },\n    &quot;user&quot;: {\n      &quot;email&quot;: &quot;jdoe@example.com&quot;,\n      &quot;firstName&quot;: &quot;John&quot;,\n      &quot;lastName&quot;: &quot;Doe&quot;,\n      &quot;memberId&quot;: &quot;2202&quot;,\n      &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54&quot;\n    }\n  },\n  &quot;orderType&quot;: &quot;EXCHANGE_CREDIT&quot;\n}\n</code></pre><p>The order is created with the order details. The order confirmation number can be\nprovided to the user in case they need to inquire about their order later. The order\nstatus is set to &quot;initial&quot;.</p>\n<pre><code>201 CREATED\nlocation: https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0\n{\n  &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc&quot;,\n  &quot;confirmationNumber&quot;: &quot;3902-2266-8404-8538-1721&quot;,\n  &quot;createdAt&quot;: &quot;2014-02-26T17:47:00.000000Z&quot;,\n  &quot;data&quot;: {\n    &quot;clientIpAddress&quot;: &quot;127.0.0.1&quot;,\n    &quot;clientUserAgent&quot;: &quot;Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0&quot;,\n    &quot;language&quot;: &quot;en-US&quot;,\n    &quot;orderDetails&quot;: {\n      &quot;basePoints&quot;: 2000,\n      &quot;loyaltyProgram&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6&quot;\n    },\n    &quot;user&quot;: {\n      &quot;email&quot;: &quot;jdoe@example.com&quot;,\n      &quot;firstName&quot;: &quot;John&quot;,\n      &quot;lastName&quot;: &quot;Doe&quot;,\n      &quot;memberId&quot;: &quot;2202&quot;,\n      &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54&quot;\n    }\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0&quot;\n    }\n  },\n  &quot;orderType&quot;: &quot;EXCHANGE_CREDIT&quot;,\n  &quot;status&quot;: &quot;initial&quot;,\n  &quot;type&quot;: &quot;order&quot;,\n  &quot;updatedAt&quot;: &quot;2014-02-26T17:47:00.000000Z&quot;,\n  &quot;updates&quot;: []\n}\n</code></pre><h3 id=\"add-the-mv-to-the-order\">Add the MV to the Order</h3>\n<p>The MV you created in the first step needs to be associated with the new order you just\ncreated. To do that, <a href=\"./?doc=api-reference#update-a-mv\">PATCH the MV</a> with a link to\nthe order:</p>\n<pre><code>PATCH https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0&quot;\n}\n</code></pre><p>The updated MV is returned in the response:</p>\n<pre><code>200 OK\n{\n  &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc&quot;,\n  &quot;authenticatingFactors&quot;: {\n    &quot;password&quot;: &quot;*****&quot;\n  },\n  &quot;balance&quot;: 100000,\n  &quot;createdAt&quot;: &quot;2014-02-26T17:46:00.000000Z&quot;,\n  &quot;identifyingFactors&quot;: {\n    &quot;memberId&quot;: &quot;2202&quot;\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6&quot;,\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;type&quot;: &quot;memberValidation&quot;,\n  &quot;updatedAt&quot;: &quot;2014-02-26T17:47:30.000000Z&quot;\n}\n</code></pre><h3 id=\"create-the-debit-or-credit\">Create the Debit or Credit</h3>\n<p>Now you can add (credit) or remove (debit) points from the member&#39;s account. In this\nexample, we&#39;ll <a href=\"./?doc=api-reference#create-a-credit\">create a credit</a> to add 2000\npoints to the member&#39;s account:</p>\n<pre><code>POST https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/credits/\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;amount&quot;: 2000,\n  &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54&quot;\n}\n</code></pre><p>The credit is automatically added to the same order as the MV. The credit status can\nbe success, failure, systemError or pending. Failure means that the LP rejected the\nrequest. A system error means there was a problem communicating with the LP. Points\nwill investigate system errors to determine if the transaction went through. Pending\nmeans the credit will be sent in a nightly batch file to the LP and it will be\nupdated later with the result. This credit came back successful:</p>\n<pre><code>201 CREATED\nlocation: https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/credits/d38a9ecf-0863-4a7f-81d6-0efaf15a4425\n{\n  &quot;amount&quot;: 2000,\n  &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc&quot;,\n  &quot;createdAt&quot;: &quot;2014-02-26T17:49:00.000000Z&quot;,\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/credits/d38a9ecf-0863-4a7f-81d6-0efaf15a4425&quot;\n    }\n  },\n  &quot;loyaltyProgram&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6&quot;,\n  &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54&quot;,\n  &quot;order&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0&quot;,\n  &quot;status&quot;: &quot;success&quot;,\n  &quot;transactionId&quot;: &quot;15786560&quot;,\n  &quot;type&quot;: &quot;credit&quot;,\n  &quot;updatedAt&quot;: &quot;2014-02-26T17:49:00.000000Z&quot;\n}\n</code></pre><h3 id=\"update-the-status-of-the-order\">Update the Status of the Order</h3>\n<p>The next step is to <a href=\"./?doc=api-reference#update-an-order\">update the order</a> with its\nstatus. Update the order status based on the status of the debit or credit:</p>\n<table>\n  <thead>\n    <tr>\n      <th>Debit/Credit Status</th>\n      <th>Order Status</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>success</td>\n      <td>complete</td>\n    </tr>\n    <tr>\n      <td>failure</td>\n      <td>debitFailed/creditFailed</td>\n    </tr>\n    <tr>\n      <td>systemError</td>\n      <td>debitError/creditError</td>\n    </tr>\n    <tr>\n      <td>pending</td>\n      <td>debitPending/creditPending</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>In this case, the credit status is &quot;success&quot; so let’s update the order status to\n&quot;complete&quot;:</p>\n<pre><code>PATCH https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n{\n  &quot;status&quot;: &quot;complete&quot;\n}\n</code></pre><p>The order with the updated status is returned. Note that the &quot;updates&quot; section of the\norder includes the order fulfillment history including the MV and the credit.</p>\n<pre><code>200 OK\n{\n  &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc&quot;,\n  &quot;confirmationNumber&quot;: &quot;3902-2266-8404-8538-1721&quot;,\n  &quot;createdAt&quot;: &quot;2014-02-26T17:47:00.000000Z&quot;,\n  &quot;data&quot;: {\n    &quot;clientIpAddress&quot;: &quot;127.0.0.1&quot;,\n    &quot;clientUserAgent&quot;: &quot;Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0&quot;,\n    &quot;language&quot;: &quot;en-US&quot;,\n    &quot;orderDetails&quot;: {\n      &quot;basePoints&quot;: 2000,\n      &quot;loyaltyProgram&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6&quot;\n    },\n    &quot;user&quot;: {\n      &quot;email&quot;: &quot;jdoe@example.com&quot;,\n      &quot;firstName&quot;: &quot;John&quot;,\n      &quot;lastName&quot;: &quot;Doe&quot;,\n      &quot;memberId&quot;: &quot;2202&quot;,\n      &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54&quot;\n    }\n  },\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0&quot;\n    }\n  },\n  &quot;orderType&quot;: &quot;EXCHANGE_CREDIT&quot;,\n  &quot;status&quot;: &quot;complete&quot;,\n  &quot;type&quot;: &quot;order&quot;,\n  &quot;updatedAt&quot;: &quot;2014-02-26T17:50:00.000000Z&quot;,\n  &quot;updates&quot;: [\n    {\n      &quot;resource&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54&quot;,\n      &quot;status&quot;: &quot;success&quot;,\n      &quot;type&quot;: &quot;memberValidation&quot;,\n      &quot;updatedAt&quot;: &quot;2014-02-26T17:47:30.000000Z&quot;\n    },\n    {\n      &quot;resource&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/credits/d38a9ecf-0863-4a7f-81d6-0efaf15a4425&quot;,\n      &quot;status&quot;: &quot;success&quot;,\n      &quot;type&quot;: &quot;credit&quot;,\n      &quot;updatedAt&quot;: &quot;2014-02-26T17:49:00.000000Z&quot;\n    }\n  ]\n}\n</code></pre><h3 id=\"search-for-updated-orders\">Search for Updated Orders</h3>\n<p>Orders can be updated at a later time for the following reasons:</p>\n<ul>\n<li>A pending debit or credit succeeded or failed</li>\n<li>A debit or credit with a status of systemError has been investigated and updated to\nsuccess or failure</li>\n<li>The debit or credit has been reversed and the points have been added back to or removed\nfrom the user&#39;s account</li>\n</ul>\n<p>If any of these events happen, the order will have a new entry in its &quot;updates&quot;\nsection describing the change. This section is append only so old entries are not\nreplaced, which allows you to see the order fulfillment history. When the order is\nupdated, its status changes to &quot;statusPending&quot; indicating you need to recalculate the\nstatus of the order. Periodically, you should <a href=\"./?doc=api-reference#list-all-orders\">search for\norders</a> with a status of &quot;statusPending&quot; and\nupdate their status:</p>\n<pre><code>GET https://sandbox.lcp.points.com/v1/search/orders/?q=status:statusPending\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><p>Here is an order where the batch credit was updated from &quot;pending&quot; to &quot;success&quot;. The\norder status needs to be updated to &quot;complete&quot;.</p>\n<pre><code>200 OK\n{\n  &quot;orders&quot; : [\n    {\n      &quot;application&quot;: &quot;https://sandbox.lcp.points.com/v1/apps/3ac20648-bce1-4385-9725-83ba3a2161cc&quot;,\n      &quot;confirmationNumber&quot;: &quot;3902-2266-8404-8538-1721&quot;,\n      &quot;createdAt&quot;: &quot;2014-02-26T17:47:00.000000Z&quot;,\n      &quot;data&quot;: {\n        &quot;clientIpAddress&quot;: &quot;127.0.0.1&quot;,\n        &quot;clientUserAgent&quot;: &quot;Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0&quot;,\n        &quot;language&quot;: &quot;en-US&quot;,\n        &quot;orderDetails&quot;: {\n          &quot;basePoints&quot;: 2000,\n          &quot;loyaltyProgram&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6&quot;\n        },\n        &quot;user&quot;: {\n          &quot;email&quot;: &quot;jdoe@example.com&quot;,\n          &quot;firstName&quot;: &quot;John&quot;,\n          &quot;lastName&quot;: &quot;Doe&quot;,\n          &quot;memberId&quot;: &quot;2202&quot;,\n          &quot;memberValidation&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54&quot;\n        }\n      },\n      &quot;links&quot;: {\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://sandbox.lcp.points.com/v1/orders/12f5a924-1126-4e0c-900a-0a103f4146c0&quot;\n        }\n      },\n      &quot;orderType&quot;: &quot;EXCHANGE_CREDIT&quot;,\n      &quot;status&quot;: &quot;statusPending&quot;,\n      &quot;type&quot;: &quot;order&quot;,\n      &quot;updatedAt&quot;: &quot;2014-02-26T17:50:00.000000Z&quot;,\n      &quot;updates&quot;: [\n        {\n          &quot;resource&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54&quot;,\n          &quot;status&quot;: &quot;success&quot;,\n          &quot;type&quot;: &quot;memberValidation&quot;,\n          &quot;updatedAt&quot;: &quot;2014-02-26T17:47:30.000000Z&quot;\n        },\n        {\n          &quot;resource&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/credits/d38a9ecf-0863-4a7f-81d6-0efaf15a4425&quot;,\n          &quot;status&quot;: &quot;pending&quot;,\n          &quot;type&quot;: &quot;credit&quot;,\n          &quot;updatedAt&quot;: &quot;2014-02-26T17:49:00.000000Z&quot;\n        },\n        {\n          &quot;resource&quot;: &quot;https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/credits/d38a9ecf-0863-4a7f-81d6-0efaf15a4425&quot;,\n          &quot;status&quot;: &quot;success&quot;,\n          &quot;type&quot;: &quot;credit&quot;,\n          &quot;updatedAt&quot;: &quot;2014-02-27T06:00:00.000000Z&quot;\n        }\n      ]\n    },\n    ...\n  ]\n}\n</code></pre><h2 id=\"http-status-codes\">HTTP Status Codes</h2>\n<p>HTTP status codes are used to indicate success or failure. Status codes in the\n<code>200s</code> indicate the request was successful. Status codes in the <code>400s</code> indicate\nclient errors. Status codes in the <code>500s</code> indicate server errors. Details of\nthe success or failure are contained in the body of the response.</p>\n<table>\n  <thead>\n    <tr>\n      <th>HTTP Status Code</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>200 OK</td>\n      <td>The request completed successfully. The resource is contained in the body of the response.</td>\n    </tr>\n    <tr>\n      <td>201 Created</td>\n      <td>Request to create a resource completed successful. The URI of the created resource is included in the Location header in the response.</td>\n    </tr>\n    <tr>\n      <td>204 No Content</td>\n      <td>The request completed successfully with no content in the body of the message. Usually a response from a request to delete a resource.</td>\n    </tr>\n    <tr>\n      <td>400 Bad Request</td>\n      <td>The data provided in the request has incorrect. Check the JSON error response for details.</td>\n    </tr>\n    <tr>\n      <td>401 Unauthorized</td>\n      <td>Either the authorization header was not provided or was invalid.</td>\n    </tr>\n    <tr>\n      <td>404 Not Found</td>\n      <td>The requested resource was not found or the current user does not have permission to access it.</td>\n    </tr>\n    <tr>\n      <td>415 Unsupported Media Type</td>\n      <td>Returned if the request provided an unsupported content type. Only application/json is supported.</td>\n    </tr>\n    <tr>\n      <td>422 Unprocessable Entity</td>\n      <td>The data provided in the request is valid, but the request could not be completed for another reason. Check the JSON error response for details.</td>\n    </tr>\n    <tr>\n      <td>500 Internal Server Error</td>\n      <td>The server encountered an unexpected error.</td>\n    </tr>\n    <tr>\n      <td>502 Bad Gateway</td>\n      <td>An external upstream service issued an invalid response.</td>\n    </tr>\n  </tbody>\n</table>\n\n<h2 id=\"errors\">Errors</h2>\n<p>When the HTTP status code indicates a failure, the response includes a JSON\ndocument that lists the errors in a predictable format. The JSON contains a hash\ncalled “errors” that is an array of the errors encountered in the request. Here\nis an example of an error response:</p>\n<pre><code>{\n  &quot;errors&quot;: [\n    {\n      &quot;code&quot;: &quot;MISSING_FIELD&quot;,\n      &quot;description&quot;: &quot;&#39;name&#39; is required.&quot;,\n      &quot;field&quot;: &quot;name&quot;\n    },\n    {\n      &quot;code&quot;: &quot;MISSING_FIELD&quot;,\n      &quot;description&quot;: &quot;&#39;description&#39; is required.&quot;,\n      &quot;field&quot;: &quot;description&quot;\n    }\n  ]\n}\n</code></pre><p>Each error array element contains the following fields:</p>\n<table>\n  <thead>\n    <tr>\n      <th>Error Field</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>code</td>\n      <td>A standard code describing the error. You can use this code to programmatically handle the error and take appropriate action. See below for a list of standard error codes.</td>\n    </tr>\n    <tr>\n      <td>description</td>\n      <td>A description of the error that further explains the error that can be displayed to the end-user</td>\n    </tr>\n    <tr>\n      <td>field</td>\n      <td>The name of the field in the request that caused the error (if applicable).</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Here is a list of possible error codes that the LCP may return:</p>\n<table>\n  <thead>\n    <tr>\n      <th>Error Code</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>BAD_REQUEST</td>\n      <td>The browser (or proxy) sent a request that this server could not understand.</td>\n    </tr>\n    <tr>\n      <td>ELEMENTS_NOT_UNIQUE</td>\n      <td>The array requires that all elements are unique and it had duplicate items.</td>\n    </tr>\n    <tr>\n      <td>FORBIDDEN_LAST_CREDENTIALS</td>\n      <td>Unable to delete last set of credentials.</td>\n    </tr>\n    <tr>\n      <td>INCORRECT_TYPE</td>\n      <td>The value provided is of incorrect type. For example, a string was provided when an integer is required.</td>\n    </tr>\n    <tr>\n      <td>INELIGIBLE</td>\n      <td>The member is not eligible to perform this transaction.</td>\n    </tr>\n    <tr>\n      <td>INTERNAL_SERVER_ERROR</td>\n      <td>The server encountered an unexpected error.</td>\n    </tr>\n    <tr>\n      <td>INVALID_UPSTREAM_RESPONSE</td>\n      <td>An external upstream service issued an invalid response.</td>\n    </tr>\n    <tr>\n      <td>INVALID_VALUE</td>\n      <td>The value provided is not allowed. For example, the requested debit amount is greater than the balance on the member validation.</td>\n    </tr>\n    <tr>\n      <td>MAXIMUM_ATTEMPTS_EXCEEDED</td>\n      <td>The maximum number of incorrect MV attempts has been exceeded for this user.</td>\n    </tr>\n    <tr>\n      <td>MISSING_FIELD</td>\n      <td>A required field was not provided in the body of the request. The “field” property of the returned error object contains which required field was not provided.</td>\n    </tr>\n    <tr>\n      <td>MISSING_REPRESENTATION</td>\n      <td>The request expected a JSON object to be provided in the body of the request and none was provided.</td>\n    </tr>\n    <tr>\n      <td>MV_ALREADY_USED</td>\n      <td>The member validation has already been used with another transaction. Member validations can only be used for one transaction.</td>\n    </tr>\n    <tr>\n      <td>MV_LP_MISMATCH</td>\n      <td>The member validation provided was created for a different loyalty program.</td>\n    </tr>\n    <tr>\n      <td>NOT_FOUND</td>\n      <td>The requested URL was not found on the server.  If you entered the URL manually please check your spelling and try again.</td>\n    </tr>\n    <tr>\n      <td>NO_ENUM_MATCH</td>\n      <td>The enum field did not match any of the possible values.</td>\n    </tr>\n    <tr>\n      <td>NO_MATCH</td>\n      <td>A field provided in the request did not match the regular expression used to validate the field. The field name and regular expression is provided in the description of the error message.</td>\n    </tr>\n    <tr>\n      <td>TOO_FEW_ITEMS</td>\n      <td>The array did not have the minimum number of items.</td>\n    </tr>\n    <tr>\n      <td>UNAUTHORIZED</td>\n      <td>The server could not verify that you are authorized to access the URL requested.  You either supplied the wrong credentials (e.g. a bad password), or your browser doesn&#39;t understand how to supply the credentials required.</td>\n    </tr>\n    <tr>\n      <td>UNEXPECTED_PROPERTY</td>\n      <td>A JSON field was provided in the body of the request that is not supported. The “field” property of the returned error object contains the field that is not supported.</td>\n    </tr>\n    <tr>\n      <td>UNKNOWN_MEMBER</td>\n      <td>The loyalty program couldn&#39;t find a member with the given credentials.</td>\n    </tr>\n    <tr>\n      <td>UNSUPPORTED_MEDIA_TYPE</td>\n      <td>The server does not support the media type transmitted in the request. Only Content-Type: application/json is supported.</td>\n    </tr>\n    <tr>\n      <td>VALUE_NOT_UNIQUE</td>\n      <td>One of the fields you provided must be unique but the data provided already exists in the system.</td>\n    </tr>\n    <tr>\n      <td>VALUE_OUT_OF_RANGE</td>\n      <td>The number provided is outside of the range of valid input for the field. For example, a negative integer was provided when the number must be positive.</td>\n    </tr>\n    <tr>\n      <td>VALUE_TOO_LONG</td>\n      <td>A string in the JSON document exceeds the maximum length supported for this field.</td>\n    </tr>\n    <tr>\n      <td>VALUE_TOO_SHORT</td>\n      <td>A string in the JSON document does not meet the minimum length requirement for this field.</td>\n    </tr>\n  </tbody>\n</table>\n\n<h2 id=\"whitespace\">Whitespace</h2>\n<p>The LCP does not accept leading or trailing whitespace in any field in a JSON\ndocument. For example, if a user enters their first name as “John “ and your\napplication passes this onto the LCP in a member validation, the LCP will reject\nthis request. To avoid this type of error, always remove leading and trailing\nwhitespace from user input before passing it onto the LCP.</p>\n<h2 id=\"links\">Links</h2>\n<p>JSON response documents that are returned by the LCP contain a “links” property.\nThis property contains URLs that help you consume further resources within the\nLCP REST API. You should not create your own links to access and platform and\ninstead should follow the links provided. This allows your code to be less\ndependent on the implementation details of the API.</p>\n<p>The types of links provided are:</p>\n<table>\n  <thead>\n    <tr>\n      <th>Link Type</th>\n      <th>Description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>self</td>\n      <td>A link to the current resource.</td>\n    </tr>\n    <tr>\n      <td>friendly</td>\n      <td>A more user-friendly link to the current resource.</td>\n    </tr>\n  </tbody>\n</table>\n\n<p>Each link has an href property that contains the link. For example:</p>\n<pre><code>{\n  &quot;links&quot;: {\n    &quot;self&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/&lt;id&gt;&quot;\n    },\n    &quot;friendly&quot;: {\n      &quot;href&quot;: &quot;https://lcp.points.com/v1/accounts/&lt;email&gt;&quot;\n    }\n  }\n}\n</code></pre>";

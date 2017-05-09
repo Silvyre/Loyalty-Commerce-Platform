@@ -1135,7 +1135,7 @@ body {
   margin: 0 0 10px;
 }
 .one-document > p {
-  background: url(static/images/separator.png) no-repeat 50% bottom;
+  background: url(images/separator.png) no-repeat 50% bottom;
   background-size: 700px auto;
   padding-bottom: 30px;
 }
