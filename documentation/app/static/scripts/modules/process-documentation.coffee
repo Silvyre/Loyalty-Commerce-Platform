@@ -1,137 +1,131 @@
-define [
-  'jquery'
-  'prettify'
-  'jquery.fixto'
-  'modules/scrollspy'
-  'modules/responsive-tables'
-  'nprogress'
-], (
-  $
-  __prettify
-  __fixTo
-  Scrollspy
-  responsiveTables
-  __nprogress
-) ->
-  class ProcessDocumentation
-    constructor: (@options) ->
-      if @options then {@elements} = options
+$ = require('jquery');
+require('fixto');
 
-    isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+prettify = require('google-code-prettify');
 
-    initFixTo: ->
-      el = @elements
+Scrollspy = require('./scrollspy.coffee')
+responsiveTables = require('./responsive-tables.coffee')
 
-      $(el.header).fixTo 'body'
-      $(el.nav).fixTo 'body', mind: el.header
-      $(el.humans).fixTo '.document', mind: el.header
-      $(el.machines).each (i, obj) ->
-        $document = $(obj).parents '.document'
-        $(obj).fixTo $document, mind: el.header
 
-    destroyFixTo: ->
-      el = @elements
+module.exports = class ProcessDocumentation
+  constructor: (@options) ->
+    if @options then {@elements} = @options
 
-      $(el.header).fixTo 'destroy'
-      $(el.nav).fixTo 'destroy'
+  isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
-    scrollSpyController: (type) ->
-      if type is 'init' then scrollSpy = new Scrollspy()
-      hash = window.location.hash
+  initFixTo: ->
+    el = @elements
 
-      $imgs = $(@elements.doc).find 'img'
-      imgLength = $imgs.length
-      imgLoaded = 0
+    $(el.header).fixTo 'body'
+    $(el.nav).fixTo 'body', mind: el.header
+    $(el.humans).fixTo '.document', mind: el.header
+    $(el.machines).each (i, obj) ->
+      $document = $(obj).parents '.document'
+      $(obj).fixTo $document, mind: el.header
 
-      initOrRefresh = =>
-        if type is 'init'
-          scrollSpy.init()
-        else
-          $('body').scrollspy 'refresh'
-          $(@elements.nav).find('a[href="'+hash+'"]').parent().addClass 'active'
+  destroyFixTo: ->
+    el = @elements
 
-      @scrollToHash(hash, 200)
+    $(el.header).fixTo 'destroy'
+    $(el.nav).fixTo 'destroy'
 
-      if imgLength is 0
-        initOrRefresh()
+  scrollSpyController: (type) ->
+    if type is 'init' then scrollSpy = new Scrollspy()
+    hash = window.location.hash
+
+    $imgs = $(@elements.doc).find 'img'
+    imgLength = $imgs.length
+    imgLoaded = 0
+
+    initOrRefresh = =>
+      if type is 'init'
+        scrollSpy.init()
       else
-        $imgs.on 'load', =>
-          imgLoaded++
+        $('body').scrollspy 'refresh'
+        $(@elements.nav).find('a[href="'+hash+'"]').parent().addClass 'active'
 
-          if imgLoaded is imgLength
-            initOrRefresh()
+    @scrollToHash(hash, 200)
 
-    processHtml: ->
-      $('pre').addClass 'prettyprint'
-      prettyPrint()
+    if imgLength is 0
+      initOrRefresh()
+    else
+      $imgs.on 'load', =>
+        imgLoaded++
 
-      $(@elements.doc).find('img').parent().addClass('center')
-      $(@elements.doc).find('table').wrap '<div class="definitions" />'
+        if imgLoaded is imgLength
+          initOrRefresh()
 
-      title = $('h1').text()
-      $('title').text 'Points - '+title
+  processHtml: ->
+    $('pre').addClass 'prettyprint'
+    prettyPrint()
 
-      if @doc is undefined
-        $(@elements.header).find('li:first').addClass 'active'
-      else
-        $(@elements.header).find('a:contains("'+title+'")').parent().addClass 'active'
+    $(@elements.doc).find('img').parent().addClass('center')
+    $(@elements.doc).find('table').wrap '<div class="definitions" />'
 
-    bindDocNavEvents: ->
-      $(@elements.nav).find('a').on 'click', (evt) =>
+    title = $('h1').text()
+    $('title').text 'Points - '+title
+
+    if @doc is undefined
+      $(@elements.header).find('li:first').addClass 'active'
+    else
+      $(@elements.header).find('a:contains("'+title+'")').parent().addClass 'active'
+
+  bindDocNavEvents: ->
+    $(@elements.nav).find('a').on 'click', (evt) =>
+      evt.preventDefault()
+      hash = $(evt.currentTarget).attr('href')
+      @scrollToHash(hash, 0)
+
+  scrollToHash: (hash, time) ->
+    if hash
+      $('html, body').animate
+        scrollTop: $(hash).offset().top, time
+
+  bindHeaderNavEvents: ->
+    $(@elements.header).find('a').on 'click', (evt) =>
+      if history.pushState and @isMobile isnt true
+        NProgress.start()
         evt.preventDefault()
-        hash = $(evt.currentTarget).attr('href')
-        @scrollToHash(hash, 0)
 
-    scrollToHash: (hash, time) ->
-      if hash
-        $('html, body').animate
-          scrollTop: $(hash).offset().top, time
+        $ct = $(evt.currentTarget)
+        currentUrl = $(@elements.header).find('.active a').attr 'href'
+        url = $ct.attr 'href'
+        title = $ct.text
 
-    bindHeaderNavEvents: ->
-      $(@elements.header).find('a').on 'click', (evt) =>
-        if history.pushState and @isMobile isnt true
-          NProgress.start()
-          evt.preventDefault()
-
-          $ct = $(evt.currentTarget)
-          currentUrl = $(@elements.header).find('.active a').attr 'href'
-          url = $ct.attr 'href'
-          title = $ct.text
-
-          $(@elements.header).find('li').removeClass 'active'
-          $ct.parent().addClass 'active'
-          $('body').removeClass 'api-page'
-
-          history.pushState(url: currentUrl, title, url)
-
-          $(@elements.nav).empty()
-          $(@elements.doc).empty()
-          window.scrollTo(0,0)
-
-          @reload()
-          NProgress.done()
-
-    bindPopstate: ->
-      $activeLink = $(@elements.header).find('a[href="'+url+'"]')
-      title = $activeLink.text()
-      url = $activeLink.attr 'href'
-      history.pushState(url: url, title, url)
-
-      $(window).on 'popstate', (evt) =>
         $(@elements.header).find('li').removeClass 'active'
+        $ct.parent().addClass 'active'
         $('body').removeClass 'api-page'
+
+        history.pushState(url: currentUrl, title, url)
+
         $(@elements.nav).empty()
         $(@elements.doc).empty()
+        window.scrollTo(0,0)
 
         @reload()
+        NProgress.done()
 
-    reload: ->
-      @destroyFixTo()
-      @init()
-      @scrollSpyController()
+  bindPopstate: ->
+    $activeLink = $(@elements.header).find('a[href="'+url+'"]')
+    title = $activeLink.text()
+    url = $activeLink.attr 'href'
+    history.pushState(url: url, title, url)
 
-    initProcess: ->
-      @processHtml()
-      responsiveTables 'table'
-      if @isMobile isnt true then @initFixTo()
-      @bindDocNavEvents()
+    $(window).on 'popstate', (evt) =>
+      $(@elements.header).find('li').removeClass 'active'
+      $('body').removeClass 'api-page'
+      $(@elements.nav).empty()
+      $(@elements.doc).empty()
+
+      @reload()
+
+  reload: ->
+    @destroyFixTo()
+    @init()
+    @scrollSpyController()
+
+  initProcess: ->
+    @processHtml()
+    responsiveTables 'table'
+    if @isMobile isnt true then @initFixTo()
+    @bindDocNavEvents()

@@ -78,7 +78,7 @@ many loyalty programs. The LCP handles the complexity of working with each
 loyalty program, creating one simple interface for working with any number of
 programs.
 
-![Getting Started](static/images/getting-started.png)
+![Getting Started](../images/getting-started.png)
 
 ### Sandbox vs. Live Mode
 
@@ -236,16 +236,16 @@ to create your account.
 Once logged into your account, click on "Apps" in the left-hand navigation to see
 your list of apps.
 
-![Empty App List](static/images/empty-app-list.png)
+![Empty App List](../images/empty-app-list.png)
 
 There are no apps so far, so create one by clicking the "Create a new App" button.
 Fill in the name and description of your app and click "Create App".
 
-![Create An App](static/images/create-an-app.png)
+![Create An App](../images/create-an-app.png)
 
 You've now created your first app.
 
-![Example App](static/images/example-app.png)
+![Example App](../images/example-app.png)
 
 ### Get your App's Sandbox Credentials
 
@@ -259,7 +259,7 @@ live credentials. For now, your app only has sandbox credentials.
 Click "Show Key" to view your sandbox credentials. You need to re-enter your password
 to confirm your identity.
 
-![Sandbox Credentials](static/images/sandbox-credentials.png)
+![Sandbox Credentials](../images/sandbox-credentials.png)
 
 The MAC key identifier tells the LCP which MAC key you are using. The MAC key is a
 shared secret key between you and the platform that you will use to sign requests.

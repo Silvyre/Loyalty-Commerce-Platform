@@ -168,7 +168,7 @@ the LCP authenticates the request using the following steps:
 1. Checks the MAC signature by using the same process as the client. Using the
    MAC key that corresponds to the MAC key identifier and the request details,
    the LCP generates a MAC signature for this request and compares it to the one
-   that was passed in the authorization header. 
+   that was passed in the authorization header.
 1. Generates the extension string and verifies that it matches the string provided in the authorization header.
 
 If all of these conditions are met the request is authenticated.
@@ -275,7 +275,7 @@ this value to Points to help us find your request as quickly as possible.
 There are two ways to validate loyalty program member credentials and obtain account
 balances: direct MV and SSO MV.
 
-![SSO](static/images/sso.png)
+![SSO](../images/sso.png)
 
 ### Direct MV
 
@@ -310,9 +310,9 @@ a five step process:
    Authenticating factors like the member’s password are not shared with the application.
 1. If necessary, the application gets the member details from the LCP by appending "/member-details"
    to the MV URL to securly obtain additional information about the member.
-   
+
 To see a reference implementation of this, please proceed to the [LCP Samples](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples/java/sso-reference-implementation).
-   
+
 ## Real-time vs Batch
 
 Moving points in or out of loyalty accounts can happen either in real-time or in a
@@ -321,7 +321,7 @@ should be built to handle both cases so they can work with any loyalty program. 
 when using a single loyalty program, applications should test both processes in
 sandbox mode in case the loyalty program changes their process in the future.
 
-![Batch](static/images/batch.png)
+![Batch](../images/batch.png)
 
 ### Real-time
 
@@ -413,18 +413,18 @@ determine which order type you should use.
     Authorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."
     {
       "data": {
-        "clientIpAddress": "127.0.0.1", 
-        "clientUserAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0", 
-        "language": "en-US", 
+        "clientIpAddress": "127.0.0.1",
+        "clientUserAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0",
+        "language": "en-US",
         "orderDetails": {
-          "basePoints": 2000, 
+          "basePoints": 2000,
           "loyaltyProgram": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6"
-        }, 
+        },
         "user": {
           "email": "jdoe@example.com",
-          "firstName": "John", 
-          "lastName": "Doe", 
-          "memberId": "2202", 
+          "firstName": "John",
+          "lastName": "Doe",
+          "memberId": "2202",
           "memberValidation": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
         }
       },
@@ -442,18 +442,18 @@ status is set to "initial".
       "confirmationNumber": "3902-2266-8404-8538-1721",
       "createdAt": "2014-02-26T17:47:00.000000Z",
       "data": {
-        "clientIpAddress": "127.0.0.1", 
-        "clientUserAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0", 
-        "language": "en-US", 
+        "clientIpAddress": "127.0.0.1",
+        "clientUserAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0",
+        "language": "en-US",
         "orderDetails": {
-          "basePoints": 2000, 
+          "basePoints": 2000,
           "loyaltyProgram": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6"
-        }, 
+        },
         "user": {
           "email": "jdoe@example.com",
-          "firstName": "John", 
-          "lastName": "Doe", 
-          "memberId": "2202", 
+          "firstName": "John",
+          "lastName": "Doe",
+          "memberId": "2202",
           "memberValidation": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
         }
       },
@@ -596,18 +596,18 @@ order includes the order fulfillment history including the MV and the credit.
       "confirmationNumber": "3902-2266-8404-8538-1721",
       "createdAt": "2014-02-26T17:47:00.000000Z",
       "data": {
-        "clientIpAddress": "127.0.0.1", 
-        "clientUserAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0", 
-        "language": "en-US", 
+        "clientIpAddress": "127.0.0.1",
+        "clientUserAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0",
+        "language": "en-US",
         "orderDetails": {
-          "basePoints": 2000, 
+          "basePoints": 2000,
           "loyaltyProgram": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6"
-        }, 
+        },
         "user": {
           "email": "jdoe@example.com",
-          "firstName": "John", 
-          "lastName": "Doe", 
-          "memberId": "2202", 
+          "firstName": "John",
+          "lastName": "Doe",
+          "memberId": "2202",
           "memberValidation": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
         }
       },
@@ -668,18 +668,18 @@ order status needs to be updated to "complete".
           "confirmationNumber": "3902-2266-8404-8538-1721",
           "createdAt": "2014-02-26T17:47:00.000000Z",
           "data": {
-            "clientIpAddress": "127.0.0.1", 
-            "clientUserAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0", 
-            "language": "en-US", 
+            "clientIpAddress": "127.0.0.1",
+            "clientUserAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0",
+            "language": "en-US",
             "orderDetails": {
-              "basePoints": 2000, 
+              "basePoints": 2000,
               "loyaltyProgram": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6"
-            }, 
+            },
             "user": {
               "email": "jdoe@example.com",
-              "firstName": "John", 
-              "lastName": "Doe", 
-              "memberId": "2202", 
+              "firstName": "John",
+              "lastName": "Doe",
+              "memberId": "2202",
               "memberValidation": "https://sandbox.lcp.points.com/v1/lps/3b6a77e6-cb40-4b28-a146-341c5862fab6/mvs/09651217-c154-4bcb-853f-cdf379ad7e54"
             }
           },
@@ -984,23 +984,3 @@ Each link has an href property that contains the link. For example:
         }
       }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

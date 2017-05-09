@@ -1,64 +1,54 @@
-define [
-  'modules/process-documentation'
-  'jquery'
-  'json!../api-documents.json'
-  'hbars!../../templates/navigation'
-  'hbars!../../templates/api-section'
-  'hbars!../../templates/api-article'
-  'modules/load-markdown-documents'
-], (
-  ProcessDocumentation
-  $
-  documents
-  tmplNavigation
-  tmplApiSection
-  tmplApiArticle
-  markdownDocuments
-) ->
+$ = require('jquery')
+ProcessDocumentation = require('./process-documentation.coffee')
+markdownDocuments = require('./load-markdown-documents.coffee')
 
-  class ApiDocumentation extends ProcessDocumentation
-    md: markdownDocuments
+documents = require('../api-documents.json')
 
-    attachArticleAndNav: (id, parent) ->
-      if parent is ''
-        $(@elements.nav).append tmplNavigation @oneArticle
-        $(@elements.doc).append tmplApiSection @oneArticle
-        $('#section-'+id).append tmplApiArticle @oneArticle
-      else
-        $parentLink = $(@elements.nav).find('a[href="#'+parent+'"]')
+tmplNavigation = require('../../templates/navigation.html')
+tmplApiSection = require('../../templates/api-section.html')
+tmplApiArticle = require('../../templates/api-article.html')
 
-        if $parentLink.parent().children('ul').length is 0
-          $parentLink.parent().append '<ul />'
+module.exports = class ApiDocumentation extends ProcessDocumentation
+  md: markdownDocuments
 
-        $parentLink.parent().find('ul').append tmplNavigation @oneArticle
-        $('#section-'+parent).append tmplApiArticle @oneArticle
+  attachArticleAndNav: (id, parent) ->
+    if parent is ''
+      $(@elements.nav).append tmplNavigation @oneArticle
+      $(@elements.doc).append tmplApiSection @oneArticle
+      $('#section-'+id).append tmplApiArticle @oneArticle
+    else
+      $parentLink = $(@elements.nav).find('a[href="#'+parent+'"]')
 
-    createArticle: (article, content, example) ->
-      id      = article.id
-      parent  = article.parent
+      if $parentLink.parent().children('ul').length is 0
+        $parentLink.parent().append '<ul />'
 
-      @oneArticle =
-        id      : id
-        title   : article.title
-        content : content
-        example : example
+      $parentLink.parent().find('ul').append tmplNavigation @oneArticle
+      $('#section-'+parent).append tmplApiArticle @oneArticle
 
-      @attachArticleAndNav(id, parent)
+  createArticle: (article, content, example) ->
+    id      = article.id
+    parent  = article.parent
 
-    loadApiDocs: ->
-      $('body').addClass 'api-page'
-      $('#documentation').html '<div class="dark-bg" />'
+    @oneArticle =
+      id      : id
+      title   : article.title
+      content : content
+      example : example
 
-      $.each documents.articles, (i, article) =>
+    @attachArticleAndNav(id, parent)
 
-        id = article.id.replace(/\-/g, '_')
-        content = @md[id]
+  loadApiDocs: ->
+    $('body').addClass 'api-page'
+    $('#documentation').html '<div class="dark-bg" />'
 
-        if article.exampleId isnt ''
-          exampleId = article.exampleId.replace(/\-/g, '_')
-          example = @md[exampleId]
+    $.each documents.articles, (i, article) =>
 
-        @createArticle(article, content, example)
-        if (i+1) is documents.articles.length then @initProcess()
+      id = article.id.replace(/\-/g, '_')
+      content = @md[id]
 
-  return ApiDocumentation
+      if article.exampleId isnt ''
+        exampleId = article.exampleId.replace(/\-/g, '_')
+        example = @md[exampleId]
+
+      @createArticle(article, content, example)
+      if (i+1) is documents.articles.length then @initProcess()
