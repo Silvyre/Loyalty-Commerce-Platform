@@ -1,6 +1,5 @@
 var CleanWebpackPlugin = require('clean-webpack-plugin')
 var CopyWebpackPlugin = require('copy-webpack-plugin');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var marked = require("marked");
 var path = require('path');
 
@@ -16,6 +15,7 @@ module.exports = {
     path: resolve('dist'),
     pathinfo: true,
     filename: 'static/documentation.js',
+    publicPath: `/`
   },
   resolve: {
     modules: [
@@ -56,10 +56,22 @@ module.exports = {
       },
       {
         test: /\.(css|less)$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: ['css-loader', 'less-loader']
-        })
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              importLoaders: 1
+            }
+          },
+          {
+            loader: 'less-loader',
+            options: {
+              importLoaders: 1,
+              sourceMap: true
+            }
+          }
+        ]
       },
       {
         test: /\.(html)$/,
@@ -90,10 +102,7 @@ module.exports = {
         from: '*',
         to: resolve('dist')
       }
-    ]),
-    new ExtractTextPlugin({
-      filename: '/static/documentation.css'
-    })
+    ])
   ],
   node: {
     fs: 'empty',

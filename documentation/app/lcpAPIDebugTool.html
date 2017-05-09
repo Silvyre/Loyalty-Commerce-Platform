@@ -2,9 +2,9 @@
 <head>
 <title> LCP API Debug Tool </title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="static/scripts/hmac-sha1.js"></script>
-<script src="static/scripts/sha1.js"></script>
-<script src="static/scripts/enc-base64-min.js"></script>
+<script src="/hmac-sha1.js"></script>
+<script src="/sha1.js"></script>
+<script src="/enc-base64-min.js"></script>
 <script>
 var defaultCurlTagStart="<pre class=\"embedcurl\" width=\"620\">"
 var defaultCurlTagEnd="</pre>"
@@ -86,56 +86,54 @@ function updateCurl() {
 </head>
 <body>
     <table class="inputDataTable">
-                <colgroup>
-                    <col style="text-align: right;"/>
-                    <col/>
-                </colgroup>
-                <tr>
-                    <td>Mac Key</td>
-                    <td colspan="2"><input type="text" id="macKey" /></td>
-                </tr>
-                <tr>
-                    <td>Mac Id</td>
-                    <td colspan="2"><input type="text" id="macId" /></td>
-                </tr>
-                <tr>
-                    <td>Server</td>
-                    <td colspan="2">
-                    	<select id="server">
-                    		<option value="staging.lcp.points.com" >Staging</option>
-                    		<option value="lcp.points.com" selected="selected">Production</option>
-                    		<option value="sandbox.lcp.points.com">Production Sandbox</option>
-                    		<option value="sandbox-staging.lcp.points.com">Staging Sandbox</option>
-                    	</select>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Method</td>
-                    <td colspan="2">
-                    	<select id="method">
-                    		<option value="GET" selected="selected">GET</option>
-                    		<option value="POST">POST</option>
-                    		<option value="PUT">PUT</option>
-                    		<option value="DELETE">DELETE</option>
-                    		<option value="PATCH">PATCH</option>
-                    	</select>
-                    </td>
-                </tr>
-                <tr>
-				     <td>Path</td>
-				     <td><input type="text" id="path" /></td>
-				     <td>E.g. /v1/lps/24425742-5380-4ea6-a419-6c7e2f3c994e</td>
-                </tr>
-                <tr>
-                	<td>Body</td>
-                    <td colspan="2"><textarea id="data" cols="50" rows="20"></textarea></td>
-                </tr>
-             </table>
-            <br/>
-            <h2>LCP API request:</h2>
-            <p id="data_access_curl" style="height: 100px;"></p>
-
-  </body>
-
+      <colgroup>
+          <col style="text-align: right;"/>
+          <col/>
+      </colgroup>
+      <tr>
+          <td>Mac Key</td>
+          <td colspan="2"><input type="text" id="macKey" /></td>
+      </tr>
+      <tr>
+          <td>Mac Id</td>
+          <td colspan="2"><input type="text" id="macId" /></td>
+      </tr>
+      <tr>
+          <td>Server</td>
+          <td colspan="2">
+          	<select id="server">
+          		<option value="staging.lcp.points.com" >Staging</option>
+          		<option value="lcp.points.com" selected="selected">Production</option>
+          		<option value="sandbox.lcp.points.com">Production Sandbox</option>
+          		<option value="sandbox-staging.lcp.points.com">Staging Sandbox</option>
+          	</select>
+          </td>
+      </tr>
+      <tr>
+          <td>Method</td>
+          <td colspan="2">
+          	<select id="method">
+          		<option value="GET" selected="selected">GET</option>
+          		<option value="POST">POST</option>
+          		<option value="PUT">PUT</option>
+          		<option value="DELETE">DELETE</option>
+          		<option value="PATCH">PATCH</option>
+          	</select>
+          </td>
+      </tr>
+      <tr>
+   <td>Path</td>
+   <td><input type="text" id="path" /></td>
+   <td>E.g. /v1/lps/24425742-5380-4ea6-a419-6c7e2f3c994e</td>
+      </tr>
+      <tr>
+      	<td>Body</td>
+          <td colspan="2"><textarea id="data" cols="50" rows="20"></textarea></td>
+      </tr>
+   </table>
+  <br/>
+  <h2>LCP API request:</h2>
+  <p id="data_access_curl" style="height: 100px;"></p>
+</body>
 
 </html>
