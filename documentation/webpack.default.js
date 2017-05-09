@@ -1,12 +1,12 @@
 var CleanWebpackPlugin = require('clean-webpack-plugin')
 var CopyWebpackPlugin = require('copy-webpack-plugin');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var marked = require("marked");
 var path = require('path');
 
+
 var renderer = new marked.Renderer();
 
-const resolve = function resolve(target) {
+var resolve = function resolve(target) {
   return path.resolve(__dirname, target);
 };
 
@@ -55,13 +55,6 @@ module.exports = {
         ],
       },
       {
-        test: /\.(css|less)$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: ['css-loader', 'less-loader']
-        })
-      },
-      {
         test: /\.(html)$/,
         include: resolve('app/static/templates'),
         use: [{
@@ -90,10 +83,7 @@ module.exports = {
         from: '*',
         to: resolve('dist')
       }
-    ]),
-    new ExtractTextPlugin({
-      filename: '/static/documentation.css'
-    })
+    ])
   ],
   node: {
     fs: 'empty',
