@@ -1,5 +1,3 @@
-var CleanWebpackPlugin = require('clean-webpack-plugin')
-var CopyWebpackPlugin = require('copy-webpack-plugin');
 var marked = require("marked");
 var path = require('path');
 
@@ -11,11 +9,11 @@ var resolve = function resolve(target) {
 };
 
 module.exports = {
-  entry: resolve('app/static/scripts/main.coffee'),
+  entry: resolve('app/scripts/main.coffee'),
   output: {
     path: resolve('dist'),
     pathinfo: true,
-    filename: 'static/documentation.js',
+    filename: 'documentation.js',
   },
   resolve: {
     modules: [
@@ -41,7 +39,7 @@ module.exports = {
       },
       {
         test: /\.(md)$/,
-        include: resolve('app/static/documents'),
+        include: resolve('app/documents'),
         use: [
           {
             loader: "html-loader"
@@ -56,7 +54,7 @@ module.exports = {
       },
       {
         test: /\.(html)$/,
-        include: resolve('app/static/templates'),
+        include: resolve('app/templates'),
         use: [{
           loader: 'handlebars-loader'
         }]
@@ -65,26 +63,11 @@ module.exports = {
         test: /\.(ico|jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2)(\?.*)?$/,
         loader: 'file-loader',
         query: {
-          name: 'static/images/[name].[ext]'
+          name: 'images/[name].[ext]'
         }
       }
     ],
   },
-  plugins: [
-    new CleanWebpackPlugin(
-      resolve('dist'),
-      {
-        exclude: ['.git']
-      }
-    ),
-    new CopyWebpackPlugin([
-      {
-        context: resolve('app'),
-        from: '*',
-        to: resolve('dist')
-      }
-    ])
-  ],
   node: {
     fs: 'empty',
     net: 'empty',
