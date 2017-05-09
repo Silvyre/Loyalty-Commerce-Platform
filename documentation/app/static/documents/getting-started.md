@@ -312,14 +312,14 @@ MV collection:
         }
       ]
     }
-    
+
 This error is because we sent an unauthenticated request to the LCP. To authenticate,
 you need to include an authorization header in your request. The LCP uses [OAuth 2.0
 MAC](http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-02) for authentication.
 The `lcp_curl.py` Python script provided in [LCP
 Utilities](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util)
 makes this easy. For more details building the authorization header for OAuth 2.0
-MAC, see [Appendix A: Signing Requests](#appendix-a-signing-requests). 
+MAC, see [Appendix A: Signing Requests](#appendix-a-signing-requests).
 
 `lcp_curl.py` is a wrapper around curl to add the authorization header. It requires a
 -u parameter and your MAC key identifier and MAC key obtained in the previous step.
@@ -353,7 +353,7 @@ member with member ID 1234 and password ABCD in the sandbox:
         }
       ]
     }
-    
+
 If you still received 401 unauthorized, check that your computer's time is accurate
 or is synced with an internet time server. `lcp_curl.py` adds a timestamp to each
 request and the LCP verifies that the timestamp is within 30 seconds of the server's
@@ -408,7 +408,7 @@ Reference](./?doc=api-reference).
 
 ## Appendix A: Signing Requests
 
-This appendix contains the a step-by-step guide for signing requests with OAuth
+This appendix contains a step-by-step guide for signing requests with OAuth
 2.0 MAC tokens as well as sample code. Follow these steps if you want to write
 your own module to sign requests.
 
@@ -544,7 +544,7 @@ your own module to sign requests.
             else:
                 port = httplib.HTTP_PORT
 
-        # Step 1: Generate timestamp 
+        # Step 1: Generate timestamp
         ts = str(int(time.time()))
 
         # Step 2: Generate nonce
@@ -582,9 +582,3 @@ your own module to sign requests.
 
         # Step 8: Build Authorization header
         return 'MAC id="{0}", ts="{1}", nonce="{2}", ext="{3}", mac="{4}"'.format(mac_key_identifier, ts, nonce, ext, mac)
-
-
-
-
-
-
