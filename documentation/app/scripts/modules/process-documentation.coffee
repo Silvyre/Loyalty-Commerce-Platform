@@ -16,18 +16,10 @@ module.exports = class ProcessDocumentation
   initFixTo: ->
     el = @elements
 
-    $(el.header).fixTo 'body'
-    $(el.nav).fixTo 'body', mind: el.header
     $(el.humans).fixTo '.document', mind: el.header
     $(el.machines).each (i, obj) ->
       $document = $(obj).parents '.document'
       $(obj).fixTo $document, mind: el.header
-
-  destroyFixTo: ->
-    el = @elements
-
-    $(el.header).fixTo 'destroy'
-    $(el.nav).fixTo 'destroy'
 
   scrollSpyController: (type) ->
     if type is 'init' then scrollSpy = new Scrollspy()
@@ -120,7 +112,6 @@ module.exports = class ProcessDocumentation
       @reload()
 
   reload: ->
-    @destroyFixTo()
     @init()
     @scrollSpyController()
 
