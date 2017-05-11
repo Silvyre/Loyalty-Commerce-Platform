@@ -12240,10 +12240,6 @@ module.exports = ProcessDocumentation = (function() {
   ProcessDocumentation.prototype.initFixTo = function() {
     var el;
     el = this.elements;
-    $(el.header).fixTo('body');
-    $(el.nav).fixTo('body', {
-      mind: el.header
-    });
     $(el.humans).fixTo('.document', {
       mind: el.header
     });
@@ -12254,13 +12250,6 @@ module.exports = ProcessDocumentation = (function() {
         mind: el.header
       });
     });
-  };
-
-  ProcessDocumentation.prototype.destroyFixTo = function() {
-    var el;
-    el = this.elements;
-    $(el.header).fixTo('destroy');
-    return $(el.nav).fixTo('destroy');
   };
 
   ProcessDocumentation.prototype.scrollSpyController = function(type) {
@@ -12378,7 +12367,6 @@ module.exports = ProcessDocumentation = (function() {
   };
 
   ProcessDocumentation.prototype.reload = function() {
-    this.destroyFixTo();
     this.init();
     return this.scrollSpyController();
   };

@@ -794,11 +794,13 @@ body {
   clear: both;
 }
 #header {
+  z-index: 80;
+  position: fixed;
+  top: 0;
+  left: 0;
   height: 30px;
   width: 100%;
   background: #ddd;
-  z-index: 80;
-  position: relative;
   border-bottom: solid 1px rgba(0, 0, 0, 0.2);
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -901,6 +903,7 @@ body {
 }
 @media (max-width: 1199px) {
   #header {
+    position: static;
     background: none;
     height: auto;
   }
@@ -936,12 +939,12 @@ body {
   }
 }
 #doc-navigation {
+  z-index: 70;
+  position: fixed;
+  top: 30px;
+  left: 0;
   width: 200px;
   min-height: 100%;
-  position: absolute;
-  left: 0;
-  top: 30px;
-  z-index: 70;
 }
 #doc-navigation .nav {
   margin: 0;
@@ -1015,6 +1018,7 @@ body {
   line-height: 1.8em;
   position: relative;
   margin-left: 200px;
+  margin-top: 30px;
   border-left: solid 1px rgba(0, 0, 0, 0.2);
   -webkit-box-shadow: inset 1px 0 0px #ffffff;
   box-shadow: inset 1px 0 0px #ffffff;
@@ -1104,6 +1108,7 @@ body {
   #documentation {
     font-size: 1.4em;
     margin-left: 0;
+    margin-top: 0;
   }
 }
 @media (max-width: 991px) {
