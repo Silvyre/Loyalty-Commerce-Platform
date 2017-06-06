@@ -131,7 +131,7 @@ The following parameters are included in posting requests:
     </tr>
     <tr>
       <td>pic</td>
-      <td>Product identification code</td>
+      <td>Product identification code used for discerning which application and promotion are associated to this transaction. This is helpful for reports</td>
       <td>N</td>
     </tr>
     <tr>
@@ -209,7 +209,7 @@ The following parameters are included in transfer requests:
     </tr>
     <tr>
       <td>pic</td>
-      <td>Product identification code</td>
+      <td>Product identification code used for discerning which application and promotion are associated to this transaction. This is helpful for reports</td>
       <td>N</td>
     </tr>
     <tr>
@@ -334,7 +334,7 @@ The following parameters are included in reversal requests:
   <tbody>
     <tr>
       <td>transactionId</td>
-      <td>ID of the transaction being reattempted. This should be used to ensure that the initial transaction was indeed not successful.</td>
+      <td>ID of the transaction being reversed. This should be used to ensure that the initial transaction was indeed successful.</td>
       <td>Y</td>
     </tr>
     <tr>
@@ -370,7 +370,7 @@ A reversal response returns the **transactionId** and the **status**. In case of
 
 ## Call Authorization
 
-We recommend using with Basic Auth (an encrypted username/password pair) to authorize calls from the LCP.
+We recommend using Basic Auth (an encrypted username/password pair) to authorize calls from the LCP.
 
 ## Single Sign On (SSO)
 
