@@ -404,11 +404,6 @@ A [reference implementation of the SSO API](https://github.com/Points/Loyalty-Co
 
 The LCP has two environments: staging and production. Typically, these connect to an LP's test and production service respectively. The LCP expects that the LP's web service is promoted from test to production.
 
-To test the integration, we can:
-1. Call the LP webservice with a simulated LCP request.
-1. Use a test
-1. Perform test transactions in an Application on the LCP.
-
 ## Monitoring
 
 The LCP will perform a scheduled health check on LP endpoints to guarantee that your members have a quality experience.
