@@ -3,11 +3,11 @@ For Points Loyalty Commerce Platform - Version 1.0
 
 ## Document Overview
 
-This document describes the RESTful API services a Loyalty Partner must implement to enable members using Loyalty Commerce Applications built on the Points Loyalty Commerce Platform (LCP) to transact.
+This document describes the RESTful API services a Loyalty Partner can implement to enable members using Loyalty Commerce Applications built on the Points Loyalty Commerce Platform (LCP) to transact.
 
 ## Introducing the Loyalty Partner API
 
-As a Loyalty Partner (LP), you can integrate with the LCP and all its applications with these simple calls.
+As a Loyalty Partner (LP), you can integrate with the LCP and all its Applications with these simple calls.
 
 1. Member Validation
 1. Credit/Debit Posting
@@ -18,19 +18,29 @@ As a Loyalty Partner (LP), you can integrate with the LCP and all its applicatio
 
 ![LP API](../images/lp-overview.png)
 
-When an application executes a member validation, credit, or debit operation to you (the Loyalty Partner) via the LCP, the LCP will find the pre-configured URL for your loyalty program's API and that specific operation, and send an HTTP request to that URL.
+A reference implementation for the LP API's member validation and credit/debit postings can be found in the [Loyalty Commerce Platform Github repository](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples). Our example LCP web service will be "http://api.loyaltyprogram.com" below.
 
-For example, in a typical Buy transaction, an MV will precede a credit posting in the sequence illustrated.
+## Why use the Loyalty Partner API?
+
+By integrating with the LCP via the LP API, you have the following advantages:
+1. **Speed up** time to market
+1. **Simple** RESTful API that can be shared with your partners
+1. **Instantaneously apply changes** to your webservices across permissioned LCP Applications
+
+
+## How do Applications and LPs interact?
+
+When an Application executes a member validation, credit, or debit operation to you (the Loyalty Partner) via the LCP, the LCP will find the pre-configured URL for your loyalty program's API and that specific operation, and send an HTTP request to that URL.
+
+For example, in a typical Buy Points transaction, an MV will precede a credit posting in the sequence illustrated.
 
 ![LP API - Buy example](../images/lp-api-buy.png)
-
-A reference implementation for the LP API's member validation and credit/debit postings can be found in the [Loyalty Commerce Platform Github repository](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples). Our example web server will be "http://api.loyaltyprogram.com" below.
 
 ## Validate a Member
 
 The basic API call for all LCP partners is the member validation (MV). Applications on the LCP will submit an MV request to determine if a member exists and check the balance of a loyalty program member's account.
 
-The MV is the only configurable call. As a Loyalty Partner, you define what data fields you receive and share with applications. An MV **request** body will contain a member's details (e.g. account ID, name) and an MV **response** confirms the validity of a member and may include additional member data. Data fields in both the MV request and response are specified in their respective schemas. During the onboarding process, Points configures these schemas on your behalf.
+The MV is the only configurable call. As a Loyalty Partner, you define what data fields you receive and share with Applications. An MV **request** body will contain a member's details (e.g. account ID, name) and an MV **response** confirms the validity of a member and may include additional member data. Data fields in both the MV request and response are specified in their respective schemas. During the onboarding process, Points configures these schemas on your behalf.
 
 The following parameters are recommended for MV requests:
 
@@ -61,7 +71,7 @@ The following parameters are recommended for MV requests:
   </tbody>
 </table>
 
-Sample MV request from applications via the LCP:
+Sample MV request from Applications via the LCP:
 
     POST http://api.loyaltyprogram.com/MemberValidation
     {
@@ -70,7 +80,7 @@ Sample MV request from applications via the LCP:
       "memberId": "A1234567890"
     }
 
-A successful MV response from you will include member details similar to those below if the member exists and is valid for use. You can return additional data to applications on the LCP to enable them to offer personalized loyalty experiences to consumers (e.g. targeted offers).
+A successful MV response from you will include member details similar to those below if the member exists and is valid for use. You can return additional data to Applications on the LCP to enable them to offer personalized loyalty experiences to consumers (e.g. targeted offers).
 
     200 OK
     {
@@ -96,7 +106,7 @@ An MV response for an invalid member must return a **status** and **statusMessag
 
 ## Credit or Debit an Account
 
-As your loyalty members earn or redeem points, this service allows applications on the LCP to post a debit and/or credit to a member’s account.
+As your loyalty members earn or redeem points, this service allows Applications on the LCP to post a debit and/or credit to a member’s account.
 
 The following parameters are included in posting requests:
 
@@ -131,7 +141,7 @@ The following parameters are included in posting requests:
     </tr>
     <tr>
       <td>pic</td>
-      <td>Product identification code used for discerning which application and promotion are associated to this transaction. This is helpful for reports</td>
+      <td>Product identification code can be any string and is used for discerning which Application and promotion are associated to this transaction</td>
       <td>N</td>
     </tr>
     <tr>
@@ -152,7 +162,7 @@ The following parameters are included in posting requests:
   </tbody>
 </table>
 
-Sample posting request from applications via the LCP:
+Sample posting request from Applications via the LCP:
 
     POST http://api.loyaltyprogram.com/Posting
     {
@@ -179,7 +189,7 @@ A posting response returns the **transactionId** and the **status**. In case of 
 
 ## Transfer Points Between Accounts
 
-As part of your loyalty program features, you may wish to provide a service to allow applications on the LCP to perform one-shot points transfers between loyalty member accounts. This API call withdraws/debits points from one account and deposits/credits them to another in a single transaction.
+As part of your loyalty program features, you may wish to provide a service to allow Applications on the LCP to perform one-shot points transfers between loyalty member accounts. This API call withdraws/debits points from one account and deposits/credits them to another in a single transaction.
 
 The following parameters are included in transfer requests:
 
@@ -209,7 +219,7 @@ The following parameters are included in transfer requests:
     </tr>
     <tr>
       <td>pic</td>
-      <td>Product identification code used for discerning which application and promotion are associated to this transaction. This is helpful for reports</td>
+      <td>Product identification code can be any string and is used for discerning which Application and promotion are associated to this transaction</td>
       <td>N</td>
     </tr>
     <tr>
@@ -245,7 +255,7 @@ The following parameters are included in transfer requests:
   </tbody>
 </table>
 
-Sample point transfer request from applications via the LCP:
+Sample point transfer request from Applications via the LCP:
 
     POST http://api.loyaltyprogram.com/Transfer
     {
@@ -276,7 +286,7 @@ A point transfer response returns the **transactionId** and the **status**. In c
 
 ## Retry a Transaction
 
-Occasionally, your system may undergo maintenance or experience downtime. During this time, you can return a status of "*systemError*" instead of "*failure*" to the LCP for any transactions (credit/debit posting, transfer) received. "*systemError*" informs the application on the LCP that the request passed may be correct For these transactions, your API should accept a call with the **transactionId**. The Points support team can then retry the transaction at a later time by sending the same **transactionId** used on the original request.
+Occasionally, your system may undergo maintenance or experience downtime. During this time, you can return a status of "*systemError*" instead of "*failure*" to the LCP for any transactions (credit/debit posting, transfer) received. "*systemError*" informs the Application on the LCP that the request passed may be correct For these transactions, your API should accept a call with the **transactionId**. The Points support team can then retry the transaction at a later time by sending the same **transactionId** used on the original request.
 
 The following parameter is included in retry requests:
 
@@ -374,18 +384,32 @@ We recommend using Basic Auth (an encrypted username/password pair) to authorize
 
 ## Single Sign On (SSO)
 
-Your loyalty members only sign in once on your loyalty program site and can continue logged in to applications on the LCP. With SSO, LCP applications do not need member credentials (i.e. password) for members to browse and transact.
+Your loyalty members only sign in once on your loyalty program site and can continue logged in to Applications on the LCP. With SSO, Applications do not need member credentials (i.e. password) for members to browse and transact.
 
 ![SSO MV](../images/sso-mv.png)
 
-When the member is signed in and visits a link on your loyalty program’s website to an LCP application, your loyalty program can provide the member’s info to the LCP and allow the LCP application to retrieve it without sharing any confidential information about the member through the web browser.
+When the member is signed in and visits a link on your loyalty program’s website to an LCP Application, your loyalty program can provide the member’s info to the LCP and allow the Application to retrieve it without sharing any confidential information about the member through the web browser.
 
 SSO is a five-step process:
 
-1. **Your loyalty program [creates an MV delegate](https://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#create-a-mv-delegate) on the LCP.** Your loyalty program provides the member info needed to create an MV and "delegates" the MV to the application so that the application has permission to access the MV. The LCP creates the MV and returns the MV URL to your loyalty program.
-1. **Your loyalty program redirects the user to the application and provides the application with the MV delegate URL.** No member information is passed in the redirect. It is securely stored in the LCP.
-1. **The application [gets the MV delegate](https://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#get-a-mv-delegate) from the LCP using the MV delegate URL** to securely obtain the location of the MV.
-1. **The application [gets the MV](https://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#get-a-mv) from the LCP using the MV URL** in the MV delegate to securely obtain information about the member and perform transactions. Authenticating factors like the member’s password are not shared with the application.
-1. If necessary, the application gets the member details from the LCP by appending "/member-details" to the MV URL to securely obtain additional information about the member.
+1. **Your loyalty program [creates an MV delegate](https://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#create-a-mv-delegate) on the LCP.** Your loyalty program provides the member info needed to create an MV and "delegates" the MV to the Application so that the Application has permission to access the MV. The LCP creates the MV and returns the MV URL to your loyalty program.
+1. **Your loyalty program redirects the user to the Application and provides the Application with the MV delegate URL.** No member information is passed in the redirect. It is securely stored in the LCP.
+1. **The Application [gets the MV delegate](https://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#get-a-mv-delegate) from the LCP using the MV delegate URL** to securely obtain the location of the MV.
+1. **The Application [gets the MV](https://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#get-a-mv) from the LCP using the MV URL** in the MV delegate to securely obtain information about the member and perform transactions. Authenticating factors like the member’s password are not shared with the Application.
+1. If necessary, the Application gets the member details from the LCP by appending "/member-details" to the MV URL to securely obtain additional information about the member.
 
 A [reference implementation of the SSO API](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples/java/sso-reference-implementation) can be found in the LCP Github repository.
+
+## Testing
+
+The LCP has two environments: staging and production. Typically, these connect to an LP's test and production service respectively. The LCP expects that the LP's web service is promoted from test to production.
+
+To test the integration, we can:
+1. Call the LP webservice with a simulated LCP request.
+1. Use a test
+1. Perform test transactions in an Application on the LCP.
+
+## Monitoring
+
+The LCP will perform a scheduled health check on LP endpoints to guarantee that your members have a quality experience.
+
