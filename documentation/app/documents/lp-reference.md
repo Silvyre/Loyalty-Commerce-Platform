@@ -85,15 +85,30 @@ A successful MV response from you will include member details similar to those b
     200 OK
     {
      "status": "success",
-     "memberId": "A1234567890",
      "accountCreationDate": "2015-12-31",
+     "accountStatus": "Active",
+     "allowedRecipients": [
+        {
+            "email": "lizzie.doe@gmail.com",
+            "firstName": "Elizabeth",
+            "lastName": "Doe",
+            "memberId": "C1234567890"
+         },
+         {
+            "email": "james.doe@gmail.com",
+            "firstName": "James",
+            "lastName": "Doe",
+            "memberId": "D1234567890"
+         }
+      ]
      "countryCode": "CA",
      "cobrand": "XYZ Co"
      "balance": 200000,
+     "memberId": "A1234567890",
      "membershipLevel": "Gold",
-     "accountStatus": "Active",
+     "eligibility": "TransferToAny",
      "email": "test@example.com",
-     "eligibility": "TransferToAny"
+     "expiredBalance": 15000
     }
 
 An MV response for an invalid member must return a **status** and **statusMessage** with a helpful descriptor:
@@ -404,7 +419,11 @@ A [reference implementation of the SSO API](https://github.com/Points/Loyalty-Co
 
 The LCP has two environments: staging and production. Typically, these connect to an LP's test and production service respectively. The LCP expects that the LP's web service is promoted from test to production.
 
+To test the integration, we can:
+1. Call your LP webservice with a simulated LCP request.
+1. Perform end-to-end test transactions with an Application on the LCP.
+
 ## Monitoring
 
-The LCP will perform a scheduled health check on LP endpoints to guarantee that your members have a quality experience.
+The LCP may perform health checks on LP endpoints to guarantee that your members have a quality experience.
 
