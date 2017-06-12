@@ -338,7 +338,7 @@ A transaction retry response returns the **transactionId** and the **status**. I
        "transactionId": "12345678"
     }
 
-## Transaction Reversals
+## Reverse a Transaction
 
 Transactions (postings or transfers) may be cancelled for any number of reasons and members' balances should be updated in a timely manner. You may wish to provide a service to handle reversals automatically.
 
@@ -435,7 +435,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>accountCreationDate</td>
       <td>Date when member registered in loyalty program</td>
       <td>String</td>
-      <td>36745</td>
+      <td>*36745*</td>
       <td>Great</td>
       <td></td>
     </tr>
@@ -443,7 +443,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>accountStatus</td>
       <td>Status of the account (e.g. active, expired, suspended)</td>
       <td>String</td>
-      <td>Active</td>
+      <td>*Active*</td>
       <td>Great</td>
       <td></td>
     </tr>
@@ -451,7 +451,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>agentDetail</td>
       <td>Descriptor for call center agents</td>
       <td>String</td>
-      <td>9VX4EE3VKR</td>
+      <td>*9VX4EE3VKR*</td>
       <td>For call center tools</td>
       <td>Y</td>
     </tr>
@@ -459,15 +459,15 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>agentId</td>
       <td>Identifier for call center agents</td>
       <td>String</td>
-      <td>Agent-123</td>
+      <td>*Agent-123*</td>
       <td>For call center tools</td>
       <td>Y</td>
     </tr>
     <tr>
-      <td>**balance**</td>
+      <td>balance</td>
       <td>Amount of points available in account</td>
       <td>Integer</td>
-      <td>21000</td>
+      <td>*21000*</td>
       <td>**Required**</td>
       <td></td>
     </tr>
@@ -475,7 +475,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>countryCode</td>
       <td>Two-letter ISO 3166-2 code for member's country of residence</td>
       <td>String</td>
-      <td>US</td>
+      <td>*US*</td>
       <td>Great</td>
       <td></td>
     </tr>
@@ -483,7 +483,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>currencyCode</td>
       <td>Three-letter ISO 4217 code for member's preferred transaction currency</td>
       <td>String</td>
-      <td>USD</td>
+      <td>*USD*</td>
       <td>Great</td>
       <td></td>
     </tr>
@@ -491,7 +491,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>expiredBalance</td>
       <td>Amount of points expired in account</td>
       <td>Integer</td>
-      <td>15000</td>
+      <td>*15000*</td>
       <td>For Reinstate</td>
       <td></td>
     </tr>
@@ -499,7 +499,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>email</td>
       <td>Member's email address</td>
       <td>String</td>
-      <td>john@doe.com</td>
+      <td>*john@doe.com*</td>
       <td>**Required**</td>
       <td></td>
     </tr>
@@ -507,7 +507,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>firstName</td>
       <td>Member's first name</td>
       <td>String</td>
-      <td>John</td>
+      <td>*John*</td>
       <td>**Required**</td>
       <td></td>
     </tr>
@@ -515,7 +515,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>language</td>
       <td>Localization tag that consists of an ISO 639-1 language code and ISO 3166-2 country code</td>
       <td>String</td>
-      <td>en-US</td>
+      <td>*en-US*</td>
       <td>Great</td>
       <td></td>
     </tr>
@@ -523,7 +523,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>lastName</td>
       <td>Member's last name</td>
       <td>String</td>
-      <td>Doe</td>
+      <td>*Doe*</td>
       <td>**Required**</td>
       <td></td>
     </tr>
@@ -531,7 +531,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>memberId</td>
       <td>Membership number</td>
       <td>String</td>
-      <td>A12345678</td>
+      <td>*A12345678*</td>
       <td>**Required**</td>
       <td></td>
     </tr>
@@ -539,7 +539,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>membershipLevel</td>
       <td>Member's tier level</td>
       <td>String</td>
-      <td>Diamond</td>
+      <td>*Diamond*</td>
       <td>Great</td>
       <td></td>
     </tr>
@@ -547,7 +547,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>promoCode</td>
       <td>Which promotion should be offered to the member</td>
       <td>String</td>
-      <td>SUMMER2017</td>
+      <td>*SUMMER2017*</td>
       <td>Great</td>
       <td>Y</td>
     </tr>
@@ -555,7 +555,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>referralCode</td>
       <td>Where the member was referred from</td>
       <td>String</td>
-      <td>EMAIL0517</td>
+      <td>*EMAIL0517*</td>
       <td>Great</td>
       <td>Y</td>
     </tr>
@@ -563,7 +563,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>touchpoint</td>
       <td>Which Application touchpoint the member is visiting</td>
       <td>String</td>
-      <td>storefront</td>
+      <td>*storefront*</td>
       <td>Great</td>
       <td>Y</td>
     </tr>
@@ -571,7 +571,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>allowedRecipients</td>
       <td>A comprehensive list of family/friends that a member can Free Transfer to</td>
       <td>String</td>
-      <td>[
+      <td>*[
         {
             ""email"": ""lizzie.doe@gmail.com"",
             ""firstName"": ""Elizabeth"",
@@ -584,7 +584,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
             ""lastName"": ""Doe"",
             ""memberId"": ""D1234567890""
          }
-]</td>
+]*</td>
       <td>For Free Transfer</td>
       <td></td>
     </tr>
@@ -592,7 +592,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>cobrandedCreditCard</td>
       <td>Cobranded credit cards associated to the member's account</td>
       <td>String</td>
-      <td>XYZ Bank Platinum VISA</td>
+      <td>*XYZ Bank Platinum VISA*</td>
       <td>Great</td>
       <td></td>
     </tr>  </tbody>
