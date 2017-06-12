@@ -417,17 +417,17 @@ A [reference implementation of the SSO API](https://github.com/Points/Loyalty-Co
 
 ## Member Data
 
-Points recommends sharing the following data in your MV responses and SSO MV delegates. While this list is not exhaustive and additional data enables LCP Applications to further customize and enhance your members' experience, the following data fields are prioritized and categorized for your convenience.
+Points recommends sharing the following data in your MV responses and SSO MV delegates. While this list is not exhaustive and additional data enables LCP Applications to further customize and enhance your members' experience, the following data fields are catalogued for your convenience.
 
 <table>
   <thead>
     <tr>
-      <th style="width:20%">Field Name</th>
-      <th style="width:30%">Description</th>
-      <th style="width:10%">Type</th>
-      <th style="width:25%">Example</th>
-      <th style="width:10%">Magic</th>
-      <th style="width:5%">SSO Only</th>
+      <th style=""width:20%"">Field Name</th>
+      <th style=""width:30%"">Description</th>
+      <th style=""width:10%"">Type</th>
+      <th style=""width:25%"">Example</th>
+      <th style=""width:10%"">Magic</th>
+      <th style=""width:5%"">SSO Only</th>
     </tr>
   </thead>
   <tbody>
@@ -464,11 +464,11 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>Y</td>
     </tr>
     <tr>
-      <td>balance</td>
+      <td>**balance**</td>
       <td>Amount of points available in account</td>
       <td>Integer</td>
       <td>21000</td>
-      <td>Required</td>
+      <td>**Required**</td>
       <td></td>
     </tr>
     <tr>
@@ -488,7 +488,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td></td>
     </tr>
     <tr>
-      <td>expiredbalance</td>
+      <td>expiredBalance</td>
       <td>Amount of points expired in account</td>
       <td>Integer</td>
       <td>15000</td>
@@ -500,7 +500,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>Member's email address</td>
       <td>String</td>
       <td>john@doe.com</td>
-      <td>Required</td>
+      <td>**Required**</td>
       <td></td>
     </tr>
     <tr>
@@ -508,7 +508,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>Member's first name</td>
       <td>String</td>
       <td>John</td>
-      <td>Required</td>
+      <td>**Required**</td>
       <td></td>
     </tr>
     <tr>
@@ -524,7 +524,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>Member's last name</td>
       <td>String</td>
       <td>Doe</td>
-      <td>Required</td>
+      <td>**Required**</td>
       <td></td>
     </tr>
     <tr>
@@ -532,7 +532,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>Membership number</td>
       <td>String</td>
       <td>A12345678</td>
-      <td>Required</td>
+      <td>**Required**</td>
       <td></td>
     </tr>
     <tr>
