@@ -24,8 +24,8 @@ A reference implementation for the LP API's member validation and credit/debit p
 
 By integrating with the LCP via the LP API, you have the following advantages:
 1. **Speed up** time to market
-1. **Simple** RESTful API that can be shared with your partners
-1. **Instantaneously apply changes** to your webservices across permissioned LCP Applications
+1. **Simple** RESTful API that can be re-used with your partners
+1. **Instantaneously apply changes** to your webservices across permissioned loyalty Applications
 
 
 ## How do Applications and LPs interact?
@@ -481,7 +481,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
     </tr>
     <tr>
       <td>currencyCode</td>
-      <td>Three-letter ISO-4217 code for member's preferred transaction currency</td>
+      <td>Three-letter ISO 4217 code for member's preferred transaction currency</td>
       <td>String</td>
       <td>USD</td>
       <td>Great</td>
@@ -569,7 +569,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
     </tr>
     <tr>
       <td>allowedRecipients</td>
-      <td>An exhaustive list of family/friends that a member can Free Transfer to</td>
+      <td>A comprehensive list of family/friends that a member can Free Transfer to</td>
       <td>String</td>
       <td>[
         {
