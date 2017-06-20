@@ -393,9 +393,14 @@ A reversal response returns the **transactionId** and the **status**. In case of
        "transactionId": "12345678"
     }
 
-## Call Authorization
+## Headers
 
-We recommend using Basic Auth (an encrypted username/password pair) to authorize calls from the LCP.
+* **Content-Type**: application/json
+* **Authorization**: Basic {Base64-encoded username:password}
+
+### Call Authorization
+
+We recommend using a combination of Basic Auth (a Base64-encoded username/password pair) and whitelisting Points IP addresses to authorize calls from the LCP.
 
 ## Single Sign On (SSO)
 
