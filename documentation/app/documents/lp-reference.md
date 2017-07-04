@@ -427,77 +427,21 @@ Points recommends sharing the following data in your MV responses and SSO MV del
 <table>
   <thead>
     <tr>
-      <th style=""width:20%"">Field Name</th>
-      <th style=""width:30%"">Description</th>
-      <th style=""width:10%"">Type</th>
-      <th style=""width:25%"">Example</th>
-      <th style=""width:10%"">Magic</th>
-      <th style=""width:5%"">SSO Only</th>
+      <th style="width:20%">Field Name</th>
+      <th style="width:30%">Description</th>
+      <th style="width:10%">Type</th>
+      <th style="width:25%">Example</th>
+      <th style="width:10%">Magic</th>
+      <th style="width:5%">SSO Only</th>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td>accountCreationDate</td>
-      <td>Date when member registered in loyalty program</td>
-      <td>String</td>
-      <td>*36745*</td>
-      <td>Great</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>accountStatus</td>
-      <td>Status of the account (e.g. active, expired, suspended)</td>
-      <td>String</td>
-      <td>*Active*</td>
-      <td>Great</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>agentDetail</td>
-      <td>Descriptor for call center agents</td>
-      <td>String</td>
-      <td>*9VX4EE3VKR*</td>
-      <td>For call center tools</td>
-      <td>Y</td>
-    </tr>
-    <tr>
-      <td>agentId</td>
-      <td>Identifier for call center agents</td>
-      <td>String</td>
-      <td>*Agent-007*</td>
-      <td>For call center tools</td>
-      <td>Y</td>
-    </tr>
     <tr>
       <td>balance</td>
       <td>Amount of points available in account</td>
       <td>Integer</td>
       <td>*21000*</td>
       <td>**Required**</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>countryCode</td>
-      <td>Two-letter ISO 3166-2 code for member's country of residence</td>
-      <td>String</td>
-      <td>*US*</td>
-      <td>Great</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>currencyCode</td>
-      <td>Three-letter ISO 4217 code for member's preferred transaction currency</td>
-      <td>String</td>
-      <td>*USD*</td>
-      <td>Great</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>expiredBalance</td>
-      <td>Amount of points expired in account</td>
-      <td>Integer</td>
-      <td>*15000*</td>
-      <td>For Reinstate</td>
       <td></td>
     </tr>
     <tr>
@@ -517,14 +461,6 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td></td>
     </tr>
     <tr>
-      <td>language</td>
-      <td>Localization tag that consists of an ISO 639-1 language code and ISO 3166-2 country code</td>
-      <td>String</td>
-      <td>*en-US*</td>
-      <td>Great</td>
-      <td></td>
-    </tr>
-    <tr>
       <td>lastName</td>
       <td>Member's last name</td>
       <td>String</td>
@@ -541,10 +477,58 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td></td>
     </tr>
     <tr>
+      <td>accountCreationDate</td>
+      <td>Date when member registered in loyalty program</td>
+      <td>String</td>
+      <td>*36745*</td>
+      <td>Excellent</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>countryCode</td>
+      <td>Two-letter ISO 3166-2 code for member's country of residence</td>
+      <td>String</td>
+      <td>*US*</td>
+      <td>Excellent + Enhanced fraud protection</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>currencyCode</td>
+      <td>Three-letter ISO 4217 code for member's preferred transaction currency</td>
+      <td>String</td>
+      <td>*USD*</td>
+      <td>Excellent</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>language</td>
+      <td>Localization tag that consists of an ISO 639-1 language code and ISO 3166-2 country code</td>
+      <td>String</td>
+      <td>*en-US*</td>
+      <td>Excellent</td>
+      <td></td>
+    </tr>
+    <tr>
       <td>membershipLevel</td>
       <td>Member's tier level</td>
       <td>String</td>
       <td>*Diamond*</td>
+      <td>Excellent</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>accountStatus</td>
+      <td>Status of the account (e.g. active, expired, suspended)</td>
+      <td>String</td>
+      <td>*Active*</td>
+      <td>Great</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>cobrandedCreditCard</td>
+      <td>Cobranded credit cards associated to the member's account</td>
+      <td>String</td>
+      <td>*XYZ Bank Platinum VISA*</td>
       <td>Great</td>
       <td></td>
     </tr>
@@ -566,39 +550,171 @@ Points recommends sharing the following data in your MV responses and SSO MV del
     </tr>
     <tr>
       <td>touchpoint</td>
-      <td>Which Application touchpoint the member is visiting</td>
+      <td>Which Application touchpoint the member visited through</td>
       <td>String</td>
       <td>*storefront*</td>
       <td>Great</td>
       <td>Y</td>
     </tr>
     <tr>
-      <td>allowedRecipients</td>
-      <td>A comprehensive list of family/friends that a member can Free Transfer to</td>
-      <td>String</td>
-      <td>*[
-        {
-            ""email"": ""lizzie.doe@gmail.com"",
-            ""firstName"": ""Elizabeth"",
-            ""lastName"": ""Doe"",
-            ""memberId"": ""C1234567890""
-         },
-         {
-            ""email"": ""james.doe@gmail.com"",
-            ""firstName"": ""James"",
-            ""lastName"": ""Doe"",
-            ""memberId"": ""D1234567890""
-         }
-]*</td>
-      <td>For Free Transfer</td>
+      <td>eligibleMiles</td>
+      <td>Miles eligible to be boosted by Accelerator</td>
+      <td>Integer</td>
+      <td>*12000*</td>
+      <td>For **Accelerator**</td>
       <td></td>
     </tr>
     <tr>
-      <td>cobrandedCreditCard</td>
-      <td>Cobranded credit cards associated to the member's account</td>
+      <td>flightBooking</td>
+      <td>Information on the member's upcoming reservation</td>
       <td>String</td>
-      <td>*XYZ Bank Platinum VISA*</td>
-      <td>Great</td>
+      <td>*{
+  "pnrNumber": "JKLABC",
+  "flightLegs": [
+    {
+      "arrivalAirportDescription": "Dubai Airport",
+      "scheduledDepartureDate": "2015-11-25T00:00:00Z",
+      "milesFlown": 3403,
+      "airlineCode": "AB",
+      "scheduledArrivalDate": "2015-11-25T00:00:00Z",
+      "passengers": [
+        {
+          "membershipNumber": "12345678",
+          "offerTarget": true
+        }
+      ],
+      "arrivalAirportCode": "DXB",
+      "legNumber": 1,
+      "departureAirportCode": "LHR",
+      "flightNumber": "400",
+      "departureAirportDescription": "London Heathrow Airport"
+    },
+    {
+      "arrivalAirportDescription": "London Heathrow Airport",
+      "scheduledDepartureDate": "2015-11-25T00:00:00Z",
+      "milesFlown": 3403,
+      "airlineCode": "AB",
+      "scheduledArrivalDate": "2015-11-25T00:00:00Z",
+      "passengers": [],
+      "arrivalAirportCode": "LHR",
+      "legNumber": 2,
+      "departureAirportCode": "DXB",
+      "flightNumber": "401",
+      "departureAirportDescription": "Dubai Airport"
+    }
+  ],
+  "bookingDate": "2015-11-25T00:00:00Z"
+}*</td>
+      <td>For **Accelerator**, allows personalized Accelerated Earn Offers based on flight information</td>
+      <td>Y</td>
+    </tr>
+    <tr>
+      <td>transactionQuantity</td>
+      <td>Quantity of points to complete the member's in-progress reservation</td>
+      <td></td>
+      <td>*24962*</td>
+      <td>For **Buy Inline**, enables optimal top-up purchase experience</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>tierBalance</td>
+      <td>Balance of miles earned at the current tier</td>
+      <td></td>
+      <td>*65332*</td>
+      <td>For **Buy Status Miles**, allows personalized offers in Status qualifying points purchase experience</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>agentDetail</td>
+      <td>Descriptor for call center agents</td>
+      <td>String</td>
+      <td>*9VX4EE3VKR*</td>
+      <td>For **call center** tools</td>
+      <td>Y</td>
+    </tr>
+    <tr>
+      <td>agentId</td>
+      <td>Identifier for call center agents</td>
+      <td>String</td>
+      <td>*Agent-007*</td>
+      <td>For **call center** tools</td>
+      <td>Y</td>
+    </tr>
+    <tr>
+      <td>allowedRecipients</td>
+      <td>A comprehensive list of JSON objects for each family/friend that a member can Free Transfer to</td>
+      <td>String</td>
+      <td>*[
+        {
+            "email": "lizzie.doe@gmail.com",
+            "firstName": "Elizabeth",
+            "lastName": "Doe",
+            "memberId": "C1234567890"
+         },
+         {
+            "email": "james.doe@gmail.com",
+            "firstName": "James",
+            "lastName": "Doe",
+            "memberId": "D1234567890"
+         }
+]*</td>
+      <td>For **Free Transfer**</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>expiredBalance</td>
+      <td>Amount of points expired in account</td>
+      <td>Integer</td>
+      <td>*15000*</td>
+      <td>For **Reinstate**</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>addressLine1</td>
+      <td>Member's street address</td>
+      <td>String</td>
+      <td>*111 Richmond St W*</td>
+      <td>Enhanced fraud protection</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>addressLine2</td>
+      <td>Additional components of member's street address</td>
+      <td>String</td>
+      <td>*Suite 700*</td>
+      <td>Enhanced fraud protection</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>city</td>
+      <td>Name of the member's city of residence</td>
+      <td>String</td>
+      <td>*Toronto*</td>
+      <td>Enhanced fraud protection</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>phoneNumber</td>
+      <td>Member's phone number</td>
+      <td>String</td>
+      <td>*4161234567*</td>
+      <td>Enhanced fraud protection</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>postalCode</td>
+      <td>Postal code</td>
+      <td>String</td>
+      <td>*M5H 3K6*</td>
+      <td>Enhanced fraud protection</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>regionCode</td>
+      <td>Name of the member's state or region of residence</td>
+      <td>String</td>
+      <td>*ON*</td>
+      <td>Enhanced fraud protection</td>
       <td></td>
     </tr>  </tbody>
 </table>
