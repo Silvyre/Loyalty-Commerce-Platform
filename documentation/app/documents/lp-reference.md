@@ -36,13 +36,19 @@ For example, in a typical Buy Points transaction, an MV will precede a credit po
 
 ![LP API - Buy example](../images/lp-api-buy.png)
 
-## Validate a Member
+## Member Validation
 
-The basic API call for all LCP partners is the member validation (MV). Applications on the LCP will submit an MV request to determine if a member exists and check the balance of a loyalty program member's account.
+The basic API call for all LCP partners is the member validation (MV). Applications on the LCP will submit an MV request to confirm the validity of a member account and capture profile data to cater members' experience to their distinct needs and interests (e.g. with targeted offers).
 
-The MV is the only configurable call. As a Loyalty Partner, you define what data fields you receive and share with Applications. An MV **request** body will contain a member's details (e.g. account ID, name) and an MV **response** confirms the validity of a member and may include additional member data. Data fields in both the MV request and response are specified in their respective schemas. During the onboarding process, Points configures these schemas on your behalf.
+The MV is the only configurable call. As a Loyalty Partner, you define what data fields you receive and share with Applications. The more data, the more personalized Applications can be for your members. See what Points recommends in the [Member Data section](#member-data) below.
 
-The following parameters are recommended for MV requests:
+The LCP will make an MV **request** that will contain a member account's identifying details (e.g. account ID, name). In return, your webservice will provide an MV **response** that:
+1. Confirms the validity of a member and
+1. Includes the member's profile data
+
+Data fields in both the MV request and response are specified in their respective schemas. During the onboarding process, Points configures these schemas on your behalf.
+
+You will receive the following parameters in MV requests:
 
 <table>
   <thead>
@@ -80,7 +86,7 @@ Sample MV request from Applications via the LCP:
       "memberId": "A1234567890"
     }
 
-A successful MV response will include member details similar to those below if the member exists and is valid for use. You can return additional data to Applications on the LCP to enable them to offer personalized loyalty experiences to consumers (e.g. targeted offers).
+A successful MV response should include member details similar to those below if the member account is valid:
 
     200 OK
     {
@@ -119,7 +125,7 @@ An MV response for an invalid member must return a **status** and **statusMessag
        "statusMessage": "Error: Unknown Member"
     }
 
-## Credit or Debit an Account
+## Credit or Debit Posting
 
 As your loyalty members earn or redeem points, this service allows Applications on the LCP to post a debit and/or credit to a member’s account.
 
@@ -202,7 +208,7 @@ A posting response returns the **transactionId** and the **status**. In case of 
        "transactionId": "12345678"
     }
 
-## Transfer Points Between Accounts
+## Transfer Between Accounts
 
 As part of your loyalty program features, you may wish to provide a service to allow Applications on the LCP to perform one-shot points transfers between loyalty member accounts. This API call withdraws/debits points from one account and deposits/credits them to another in a single transaction.
 
@@ -299,7 +305,7 @@ A point transfer response returns the **transactionId** and the **status**. In c
        "transactionId": "12345678"
     }
 
-## Retry a Transaction
+## Transaction Retry
 
 Occasionally, your system may undergo maintenance or experience downtime. During this time, you can return a status of "*systemError*" instead of "*failure*" to the LCP for any transactions (credit/debit posting, transfer) received. "*systemError*" informs the Application on the LCP that the request passed may be correct For these transactions, your API should accept a call with the **transactionId**. The Points support team can then retry the transaction at a later time by sending the same **transactionId** used on the original request.
 
@@ -338,7 +344,7 @@ A transaction retry response returns the **transactionId** and the **status**. I
        "transactionId": "12345678"
     }
 
-## Reverse a Transaction
+## Transaction Reversal
 
 Transactions (postings or transfers) may be cancelled for any number of reasons and members' balances should be updated in a timely manner. You may wish to provide a service to handle these reversals automatically.
 
