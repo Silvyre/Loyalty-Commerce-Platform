@@ -80,7 +80,7 @@ Sample MV request from Applications via the LCP:
       "memberId": "A1234567890"
     }
 
-A successful MV response from you will include member details similar to those below if the member exists and is valid for use. You can return additional data to Applications on the LCP to enable them to offer personalized loyalty experiences to consumers (e.g. targeted offers).
+A successful MV response will include member details similar to those below if the member exists and is valid for use. You can return additional data to Applications on the LCP to enable them to offer personalized loyalty experiences to consumers (e.g. targeted offers).
 
     200 OK
     {
@@ -340,9 +340,9 @@ A transaction retry response returns the **transactionId** and the **status**. I
 
 ## Reverse a Transaction
 
-Transactions (postings or transfers) may be cancelled for any number of reasons and members' balances should be updated in a timely manner. You may wish to provide a service to handle reversals automatically.
+Transactions (postings or transfers) may be cancelled for any number of reasons and members' balances should be updated in a timely manner. You may wish to provide a service to handle these reversals automatically.
 
-A transaction can be fully or partially reversed by sending the same **transactionId** used on the original request. The amount of points to reverse will always be specified and the sign (+/-) will indicate the operation to the member's points account. Amounts greater than 0 should add points into a member's account, while a negative amount should remove points.
+A transaction can be fully or partially reversed by sending the same **transactionId** used on the original request. The amount of points to reverse will always be specified and the sign (+/-) will indicate the operation to the member's points account. Positive should add points into a member's account, while negative should remove points.
 
 Each reversal will be made on a successful transaction. If the cumulative amount to be reversed is more than the points originally transacted, the reversal should be rejected.
 
@@ -364,7 +364,7 @@ The following parameters are included in reversal requests:
     </tr>
     <tr>
       <td>amount</td>
-      <td>Number of points to reverse for the transaction. This field will be populated for all reversals.</td>
+      <td>Number of points to reverse for the transaction. Positive for credits and negative for debits. This field will be populated for all reversals.</td>
       <td>Y</td>
     </tr>
   </tbody>
