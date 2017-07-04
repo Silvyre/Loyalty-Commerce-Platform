@@ -426,6 +426,8 @@ SSO is a five-step process:
 
 A [reference implementation of the SSO API](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples/java/sso-reference-implementation) can be found in the LCP Github repository.
 
+**Note**: While an SSO MV replaces the functionality of an MV webservice, it is necessary to have a [Member Validation webservice](#member-validation) for transactions where a second member account is involved to ensure that account is valid. Also, if a member visits an Application directly and wishes to transact, their account can be validated with the MV through a simple login form.
+
 ## Member Data
 
 Points recommends sharing the following data in your MV responses and SSO MV delegates. While this list is not exhaustive and additional data enables LCP Applications to further customize and enhance your members' experience, the following data fields are catalogued for your convenience.
