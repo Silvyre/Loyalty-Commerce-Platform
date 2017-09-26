@@ -36,3 +36,9 @@ The tool benefits from using [Github pages](http://pages.github.com/). Simply go
 into the `dist` folder and push your changes into Git. This folder should be a
 separate checkout of the repository in the `gh-pages` branch which was done in the
 last step of the setup process mentioned above.
+
+## LCP API Reference
+
+When adding new API modules or subsections, be sure to update the following two files.
+- `documentation/scripts/api-documents.json` to list sections in the side navbar.
+- `documentation/scripts/modules/load-markdown-documents.coffee` to load sections' documents into the body of the page.
