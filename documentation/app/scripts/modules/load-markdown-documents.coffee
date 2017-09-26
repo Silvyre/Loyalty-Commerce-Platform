@@ -131,6 +131,8 @@ module.exports =
   update_account_permissions: require("../../documents/api/update-account-permissions.md")
   update_an_account_example: require("../../documents/api/update-an-account-example.md")
   update_an_account: require("../../documents/api/update-an-account.md")
+  update_an_app: require("../../documents/api/update-an-app.md")
+  update_an_app_example: require("../../documents/api/update-an-app-example.md")
   update_an_order_example: require("../../documents/api/update-an-order-example.md")
   update_an_order: require("../../documents/api/update-an-order.md")
   update_sandbox_permissions_example: require("../../documents/api/update-sandbox-permissions-example.md")

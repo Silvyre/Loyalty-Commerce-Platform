@@ -14,6 +14,7 @@
       "order": "https://sandbox.lcp.points.com/v1/orders/<order-id>",
       "pic": "ABC",
       "status": "success",
+      "statusMessage": "success",
       "transactionId": "15786561",
       "type": "debit",
       "updatedAt": "2014-05-08T17:55:34.511304Z"

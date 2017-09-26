@@ -13,8 +13,16 @@ Update the list of accounts that have permission to access the application and i
     </thead>
     <tbody>
         <tr>
+        <tr>
+            <td>admin</td>
+            <td>A list of <a href="#accounts">accounts</a> that have permission to administer the application. Accounts with admin permissions have access to grant and revoke support, admin, and report permissions of other accounts.
+        </tr>
             <td>app-id</td>
             <td>The identifier of the application.</td>
+        </tr>
+        <tr>
+            <td>reports</td>
+            <td>A list of <a href="#accounts">accounts</a> that have permission to view reports for the application. Please follow up with Points to have reports enabled for your application.
         </tr>
         <tr>
             <td>support</td>

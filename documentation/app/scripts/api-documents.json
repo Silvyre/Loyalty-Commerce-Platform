@@ -103,6 +103,12 @@
       "parent": "apps"
     },
     {
+      "title": "Update an App",
+      "id": "update-an-app",
+      "exampleId": "update-an-app-example",
+      "parent": "apps"
+    },
+    {
       "title": "Credits",
       "id": "credits",
       "exampleId": "credits-example",

@@ -53,6 +53,10 @@ A credit is a transaction that adds points to a loyalty program member's account
             <td>The status of the credit. The status can be success, failure, systemError, or pending. Pending indicates the transaction is waiting for a response from the loyalty program. Retrieve the credit later to determine whether it succeeded or failed.</td>
         </tr>
         <tr>
+            <td>statusMessage</td>
+            <td>An additional descriptor of the status. May contain additional information about why a posting failed.</td>
+        </tr>
+        <tr>
             <td>transactionId</td>
             <td>A transaction ID that can be used to reconcile the credit against the loyalty partner's records.</td>
         </tr>

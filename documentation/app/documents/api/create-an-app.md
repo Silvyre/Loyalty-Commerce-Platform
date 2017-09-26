@@ -14,7 +14,7 @@ To create a new application, POST the application name and description to `/apps
     <tbody>
         <tr>
             <td>name</td>
-            <td>The name of your app (required). Provide a short name for your app, up to 50 characters.</td>
+            <td>The name of your app (required). Provide a short name for your app, up to 50 characters. Ensure that there is enough information available for Points to identify the owner and purpose of the app.</td>
         </tr>
         <tr>
             <td>description</td>

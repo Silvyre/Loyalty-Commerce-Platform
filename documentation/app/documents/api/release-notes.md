@@ -9,6 +9,27 @@
     </thead>
     <tbody>
         <tr>
+            <td>2017-08-17</td>
+            <td>Added statusMessage field to debits and credits
+            </td>
+        </tr>
+        <tr>
+            <td>2017-03-02</td>
+            <td>Added app admin to account permissions
+            <br>Added balanceCheckOnDebit field to LP examples
+            </td>
+        </tr>
+        <tr>
+            <td>2017-02-06</td>
+            <td>Added ability to update app name and description
+            </td>
+        </tr>
+        <tr>
+            <td>2016-12-08</td>
+            <td>Added app report viewer to account permissions
+            </td>
+        </tr>
+        <tr>
             <td>2016-01-28</td>
             <td>Added ability to filter LPs by name
             </td>
