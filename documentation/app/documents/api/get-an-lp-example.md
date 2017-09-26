@@ -7,6 +7,7 @@
 
     200 OK
     {
+      "balanceCheckOnDebit": false,
       "createdAt": "2014-04-19T07:56:08.482556Z",
       "creditType": "combinedBaseBonus",
       "defaultLanguage": "en",
