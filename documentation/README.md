@@ -37,6 +37,29 @@ into the `dist` folder and push your changes into Git. This folder should be a
 separate checkout of the repository in the `gh-pages` branch which was done in the
 last step of the setup process mentioned above.
 
+Here's a step-by-step:
+1. In `documentation`, commit and push changes to master. Use `npm run start` to review changes.
+1. In `documentation`, `npm run build` to build into `dist`.
+1. Change working directory to `dist`. Make sure you're on the `gh-pages` branch with `git branch`.
+1. In `dist`, commit and push changes to gh-pages. For text changes, only documentation.js should be changed.
+
+Typical commands will proceed as follows:
+
+         npm run start
+         git status
+         git add <filename>
+         git commit -m "<short message here>"
+         git push
+         npm run build
+         cd dist
+         git branch gh-pages
+         git checkout gh-pages
+         git status
+         git add <filename>
+         git commit -m "<short message here>"
+         git push
+         cd ..
+
 ## LCP API Reference
 
 When adding new API modules or subsections, be sure to update the following two files.
