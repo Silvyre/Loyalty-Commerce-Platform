@@ -10597,7 +10597,7 @@ module.exports = (Handlebars["default"] || Handlebars).template({"compiler":[7,"
     + alias4(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"id","hash":{},"data":data}) : helper)))
     + "\">"
     + alias4(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"title","hash":{},"data":data}) : helper)))
-    + "</a></li>\n";
+    + "</a></li>\r\n";
 },"useData":true});
 
 /***/ }),
@@ -14293,13 +14293,13 @@ function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj);
 module.exports = (Handlebars["default"] || Handlebars).template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=helpers.helperMissing, alias3="function";
 
-  return "<article class=\"document\">\n  <div class=\"for-humans\" id="
+  return "<article class=\"document\">\r\n  <div class=\"for-humans\" id="
     + container.escapeExpression(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"id","hash":{},"data":data}) : helper)))
-    + ">\n    "
+    + ">\r\n    "
     + ((stack1 = ((helper = (helper = helpers.content || (depth0 != null ? depth0.content : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"content","hash":{},"data":data}) : helper))) != null ? stack1 : "")
-    + "\n  </div>\n  <div class=\"for-machines\">\n    "
+    + "\r\n  </div>\r\n  <div class=\"for-machines\">\r\n    "
     + ((stack1 = ((helper = (helper = helpers.example || (depth0 != null ? depth0.example : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"example","hash":{},"data":data}) : helper))) != null ? stack1 : "")
-    + "\n  </div>\n</article>\n";
+    + "\r\n  </div>\r\n</article>\r\n";
 },"useData":true});
 
 /***/ }),
@@ -14318,7 +14318,7 @@ module.exports = (Handlebars["default"] || Handlebars).template({"compiler":[7,"
 
   return "<section class=\"api-documents\" id=\"section-"
     + container.escapeExpression(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"id","hash":{},"data":data}) : helper)))
-    + "\"></section>\n";
+    + "\"></section>\r\n";
 },"useData":true});
 
 /***/ }),
@@ -14335,9 +14335,9 @@ function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj);
 module.exports = (Handlebars["default"] || Handlebars).template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper;
 
-  return "<div class=\"one-document\">\n  "
+  return "<div class=\"one-document\">\r\n  "
     + ((stack1 = ((helper = (helper = helpers.content || (depth0 != null ? depth0.content : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"content","hash":{},"data":data}) : helper))) != null ? stack1 : "")
-    + "\n</div>\n";
+    + "\r\n</div>\r\n";
 },"useData":true});
 
 /***/ }),
@@ -16269,7 +16269,7 @@ module.exports = "<h3 id=\"list-all-live-permissions\">List all Live Permissions
   \***************************************************/
 /***/ (function(module, exports) {
 
-module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/lps/?limit=10&amp;offset=0&amp;partnerName=Southwest&amp;type=loyaltyProgram\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;lps&quot; : [\n    {\n      &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n      &quot;creditType&quot;: &quot;combinedBaseBonus&quot;,\n      &quot;defaultLanguage&quot;: &quot;en&quot;,\n      &quot;hidden&quot;: false,\n      &quot;links&quot;: {\n        &quot;credits&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/credits/&quot;\n        },\n        &quot;debits&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/debits/&quot;\n        },\n        &quot;memberValidations&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/mvs/&quot;\n        },\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;&quot;\n        }\n      },\n      &quot;name&quot;: &quot;Rapid Rewards&quot;,\n      &quot;partnerId&quot;: &quot;dVNm&quot;,\n      &quot;partnerName&quot;: &quot;Southwest&quot;,\n      &quot;rewardCurrency&quot;: &quot;Points&quot;,\n      &quot;translations&quot;: {\n        &quot;es&quot;: {\n          &quot;name&quot;: &quot;Rapid Rewards&quot;,\n          &quot;partnerName&quot;: &quot;Southwest&quot;,\n          &quot;rewardCurrency&quot;: &quot;puntos&quot;\n      },\n      &quot;type&quot;: &quot;loyaltyProgram&quot;,\n      &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n    },\n    ...\n  ]\n}\n</code></pre>";
+module.exports = "<h4 id=\"example-request\">Example Request</h4>\n<pre><code>GET https://lcp.points.com/v1/lps/?limit=10&amp;offset=0&amp;partnerName=Southwest&amp;type=loyaltyProgram\nAuthorization: MAC id=&quot;...&quot;, ts=&quot;...&quot;, nonce=&quot;...&quot;, ext=&quot;...&quot;, mac=&quot;...&quot;\n</code></pre><h4 id=\"example-response\">Example Response</h4>\n<pre><code>200 OK\n{\n  &quot;lps&quot; : [\n    {\n      &quot;balanceCheckOnDebit&quot;: false,\n      &quot;createdAt&quot;: &quot;2014-04-19T07:56:08.482556Z&quot;,\n      &quot;creditType&quot;: &quot;combinedBaseBonus&quot;,\n      &quot;defaultLanguage&quot;: &quot;en&quot;,\n      &quot;hidden&quot;: false,\n      &quot;links&quot;: {\n        &quot;credits&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/credits/&quot;\n        },\n        &quot;debits&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/debits/&quot;\n        },\n        &quot;memberValidations&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;/mvs/&quot;\n        },\n        &quot;self&quot;: {\n          &quot;href&quot;: &quot;https://lcp.points.com/v1/lps/&lt;id&gt;&quot;\n        }\n      },\n      &quot;name&quot;: &quot;Rapid Rewards&quot;,\n      &quot;partnerId&quot;: &quot;dVNm&quot;,\n      &quot;partnerName&quot;: &quot;Southwest&quot;,\n      &quot;rewardCurrency&quot;: &quot;Points&quot;,\n      &quot;translations&quot;: {\n        &quot;es&quot;: {\n          &quot;name&quot;: &quot;Rapid Rewards&quot;,\n          &quot;partnerName&quot;: &quot;Southwest&quot;,\n          &quot;rewardCurrency&quot;: &quot;puntos&quot;\n      },\n      &quot;type&quot;: &quot;loyaltyProgram&quot;,\n      &quot;updatedAt&quot;: &quot;2014-05-08T17:55:34.511304Z&quot;\n    },\n    ...\n  ]\n}\n</code></pre>";
 
 /***/ }),
 /* 135 */
