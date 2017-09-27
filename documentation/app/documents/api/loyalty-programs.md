@@ -13,6 +13,10 @@ A loyalty program (LP) allows applications to perform member validations, debits
     </thead>
     <tbody>
         <tr>
+            <td>balanceCheckOnDebit</td>
+            <td>Flag indicating whether a debit request will be accepted if the member balance in the MV is less than the amount being debited.</td>
+        </tr>
+        <tr>
             <td>createdAt</td>
             <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was created.</td>
         </tr>
