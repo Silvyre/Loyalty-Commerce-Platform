@@ -488,8 +488,8 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>accountCreationDate</td>
       <td>Date when member registered in loyalty program</td>
       <td>String</td>
-      <td>*36745*</td>
-      <td>Excellent</td>
+      <td>*2000-08-31*</td>
+      <td>Excellent + Enhanced fraud protection</td>
       <td></td>
     </tr>
     <tr>
@@ -537,6 +537,22 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>Cobranded credit cards associated to the member's account</td>
       <td>String</td>
       <td>*XYZ Bank Platinum VISA*</td>
+      <td>Great</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>cobrandMilesEarnedLastYear</td>
+      <td>Mileage earned through co-brand credit card over last 12 months</td>
+      <td>Integer</td>
+      <td>*18351*</td>
+      <td>Great</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lifetimeMilesRedeemed</td>
+      <td>Lifetime miles redeemed to date</td>
+      <td>Integer</td>
+      <td>*75000*</td>
       <td>Great</td>
       <td></td>
     </tr>
@@ -613,7 +629,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
   ],
   "bookingDate": "2015-11-25T00:00:00Z"
 }*</td>
-      <td>For **Accelerator**, allows personalized Accelerated Earn Offers based on flight information</td>
+      <td>For **Accelerator** and **PointsTravel**, allows personalized Accelerated Earn Offers and PointsTravel Hotel + Car Redeem Offers based on flight information</td>
       <td>Y</td>
     </tr>
     <tr>
@@ -622,7 +638,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td></td>
       <td>*24962*</td>
       <td>For **Buy Inline**, enables optimal top-up purchase experience</td>
-      <td></td>
+      <td>Y</td>
     </tr>
     <tr>
       <td>tierBalance</td>
@@ -678,6 +694,22 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td></td>
     </tr>
     <tr>
+      <td>profileUpdateDate</td>
+      <td>Last date when profile was updated</td>
+      <td>String</td>
+      <td>*2017-09-30*</td>
+      <td>Enhanced fraud protection</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>emailUpdateDate</td>
+      <td>Last date when email on profile was updated</td>
+      <td>String</td>
+      <td>*2017-09-29*</td>
+      <td>Enhanced fraud protection</td>
+      <td></td>
+    </tr>
+    <tr>
       <td>addressLine1</td>
       <td>Member's street address</td>
       <td>String</td>
@@ -724,7 +756,8 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>*ON*</td>
       <td>Enhanced fraud protection</td>
       <td></td>
-    </tr>  </tbody>
+    </tr>
+  </tbody>
 </table>
 
 ## Testing

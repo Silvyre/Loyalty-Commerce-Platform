@@ -28,7 +28,7 @@ Download this repo and from the `documentation` folder:
 - `npm run build` (from the documentation folder) to create a build of the documentation into the `dist` folder.
 - Any single markdown file can be loaded by creating a markdown file within the
   `app/static/documentation/` folder and then loading it via the URL:
-  `http://localhost:9000/?doc=[your-markdown-filename]`
+  `http://localhost:3000/?doc=[your-markdown-filename]`
 
 ## Deploy
 
