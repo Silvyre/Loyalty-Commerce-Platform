@@ -534,15 +534,15 @@ Points recommends sharing the following data in your MV responses and SSO MV del
     </tr>
     <tr>
       <td>cobrandedCreditCard</td>
-      <td>Cobranded credit cards associated to the member's account</td>
+      <td>Co-branded credit cards associated to the member's account</td>
       <td>String</td>
       <td>*XYZ Bank Platinum VISA*</td>
       <td>Great</td>
       <td></td>
     </tr>
     <tr>
-      <td>cobrandMilesEarnedLastYear</td>
-      <td>Mileage earned through co-brand credit card over last 12 months</td>
+      <td>cobrandedMilesEarnedLastYear</td>
+      <td>Mileage earned through co-branded credit card over last 12 months</td>
       <td>Integer</td>
       <td>*18351*</td>
       <td>Great</td>
