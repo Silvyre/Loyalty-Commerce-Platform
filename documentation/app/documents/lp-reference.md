@@ -450,7 +450,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <th style="width:30%">Description</th>
       <th style="width:10%">Type</th>
       <th style="width:25%">Example</th>
-      <th style="width:10%">Magic</th>
+      <th style="width:10%">Use Case</th>
       <th style="width:5%">SSO Only</th>
     </tr>
   </thead>
@@ -545,7 +545,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
     </tr>
     <tr>
       <td>cobrandedCreditCard</td>
-      <td>Co-branded credit cards associated to the member's account</td>
+      <td>Cobranded credit cards associated to the member's account</td>
       <td>String</td>
       <td>*XYZ Bank Platinum VISA*</td>
       <td>Great</td>
@@ -553,7 +553,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
     </tr>
     <tr>
       <td>cobrandedMilesEarnedLastYear</td>
-      <td>Mileage earned through co-branded credit card over last 12 months</td>
+      <td>Mileage earned through co-brand credit card over last 12 months</td>
       <td>Integer</td>
       <td>*18351*</td>
       <td>Great</td>
@@ -640,7 +640,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
   ],
   "bookingDate": "2015-11-25T00:00:00Z"
 }*</td>
-      <td>For **Accelerator** and **PointsTravel**, allows personalized Accelerated Earn Offers and PointsTravel Hotel + Car Redeem Offers based on flight information</td>
+      <td>For **Accelerator** and **PointsTravel**, allows personalized Accelerated Earn Offers and PointsTravel Hotel + Car Earn/Redeem Offers based on flight information</td>
       <td>Y</td>
     </tr>
     <tr>
@@ -708,7 +708,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>profileUpdateDate</td>
       <td>Last date when profile was updated</td>
       <td>String</td>
-      <td>*2017-09-30*</td>
+      <td>*2017-09-29T13:53:50.326239Z*</td>
       <td>Enhanced fraud protection</td>
       <td></td>
     </tr>
@@ -716,7 +716,7 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>emailUpdateDate</td>
       <td>Last date when email on profile was updated</td>
       <td>String</td>
-      <td>*2017-09-29*</td>
+      <td>*2017-09-27T20:43:29.426138Z*</td>
       <td>Enhanced fraud protection</td>
       <td></td>
     </tr>
