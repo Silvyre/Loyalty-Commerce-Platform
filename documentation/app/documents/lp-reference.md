@@ -414,9 +414,7 @@ Before members can transact, you need to send them to desired Application. With 
 
 ![SSO MV](../images/sso-mv.png)
 
-When a member is signed in and visits a link on your loyalty program’s website to an LCP Application, your LP provides the member's profile data to the LCP and allows the Application to securely retrieve an MV delegate containing the member's information. Member profile data is crucial to presenting a great, personalized experience that is engaging and meets the member's needs.
-
-To get started with SSO integration, ensure you've consulted the [Getting Started section](http://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#getting-started) to get access to the LCP.
+When a member is signed in and visits a link on your loyalty program’s website to an LCP Application (e.g. Storefront), your LP site provides the member's profile data to the LCP and allows the Application to securely retrieve an MV delegate containing the member's information. Member profile data is crucial to presenting a great, personalized experience that is engaging and meets the member's needs.
 
 To get started:
 
@@ -425,15 +423,17 @@ To get started:
 1. *Optional* - Test connectivity with sandbox loyalty program
 1. When you're ready for Staging-Live testing, Points will permission your application and provide you with Staging-Live credentials.
 
+For more details, see the [Getting Started guide](http://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#getting-started).
+
 SSO is a three-step process:
 
 1. **Your loyalty program site [creates an MV delegate](https://points.github.io/Loyalty-Commerce-Platform/?doc=api-reference#create-a-mv-delegate) on the LCP.**
   * Your loyalty program site provides the member info needed to create an MV and "delegates" the MV to the Application so that the Application has permission to access the MV.
   * The LCP returns the MV Delegate URL to your loyalty program.
-2. **Your loyalty program site redirects the user to the Application and provides the Application with the MV Delegate URL.**
+1. **Your loyalty program site redirects the user to the Application and provides the Application with the MV Delegate URL.**
   * Member information is stored securely in the LCP and is not passed in the redirect.
   * Example of redirect target URL: `https://storefront.points.com/<lp-name>/sso/mv-delegate/buy?token=<mv-delegate-url>`
-3. **The Application (e.g. Storefront) gets member data with the MV Delegate URL.** More details [here](https://points.github.io/Loyalty-Commerce-Platform/?doc=reference-manual#single-sign-on-sso-).
+1. **The Application (e.g. Storefront) gets member data with the MV Delegate URL.** More details [here](https://points.github.io/Loyalty-Commerce-Platform/?doc=reference-manual#single-sign-on-sso-).
 
 A [reference implementation of the SSO API](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/samples/java/sso-reference-implementation) can be found in the LCP Github repository.
 
