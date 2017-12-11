@@ -592,8 +592,9 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>Y</td>
     </tr>
     <tr>
-      <td>eligibleMiles</td>
-      <td>Miles eligible to be boosted by Accelerator</td>
+    <tr>
+      <td>boostablePoints</td>
+      <td>Points eligible to be boosted by Accelerator</td>
       <td>Integer</td>
       <td>*12000*</td>
       <td>For **Accelerator**</td>
