@@ -592,7 +592,6 @@ Points recommends sharing the following data in your MV responses and SSO MV del
       <td>Y</td>
     </tr>
     <tr>
-    <tr>
       <td>boostablePoints</td>
       <td>Points eligible to be boosted by Accelerator</td>
       <td>Integer</td>
