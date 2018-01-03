@@ -10,6 +10,16 @@
       "data":{  
          "anyKey": "anyValue"
    }
+   
+   POST https://sandbox.lcp.points.com/v1/lps/<lp-id>/earn/
+   Authorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."
+   {
+      "memberValidation": "https://sandbox.lcp.points.com/v1/lps/<lp-id>/mvs/<mv-id>",
+      "amount": 100,
+      "pic": "ABC",
+      "data":{  
+         "anyKey": "anyValue"
+    }
 
 
 #### Example Response
