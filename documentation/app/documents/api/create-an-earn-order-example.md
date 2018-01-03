@@ -28,6 +28,6 @@
         "email": "jdoe@example.com",
         "firstName": "John"
         "lastName": "Doe",
-	    "memberId": "1234"
+	"memberId": "1234"
       }
     }
