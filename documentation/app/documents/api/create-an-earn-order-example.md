@@ -27,6 +27,7 @@
       "user": {
         "email": "jdoe@example.com",
         "firstName": "John"
-        "lastName": "Doe","memberId": "1234"
+        "lastName": "Doe",
+        "memberId": "1234"
       }
     }
