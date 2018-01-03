@@ -7,7 +7,7 @@
       "memberValidation": "https://sandbox.lcp.points.com/v1/lps/<lp-id>/mvs/<mv-id>",
       "pic": "ABC",
       "data": {
-        "anyKey": "anyValue"
+        "someKey": "someValue"
       }
     }
 
