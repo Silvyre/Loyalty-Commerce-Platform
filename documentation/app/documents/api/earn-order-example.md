@@ -11,6 +11,8 @@
             "pics": {
                "base": "ABC"
             },
+            "someKey": "someValue"
+         },
          "user": {
             "email": "jdoe@example.com",
             "firstName": "John"
