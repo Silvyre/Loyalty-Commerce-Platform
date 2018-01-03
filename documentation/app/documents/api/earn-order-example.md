@@ -23,8 +23,8 @@
       "fulfillment": "https://sandbox.lcp.points.com/v1/lps/<lp-id>/earn/",
       "creditType": "base",
       "links": {
-        "self": {
-          "href": "https://sandbox.lcp.points.com/v1/orders/<id>"
+         "self": {
+            "href": "https://sandbox.lcp.points.com/v1/orders/<id>"
         }
       },
       "orderType": "EARN",
