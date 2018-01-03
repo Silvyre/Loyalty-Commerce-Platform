@@ -25,8 +25,10 @@
           "href": "https://sandbox.lcp.points.com/v1/orders/<id>"
         }
       },
+      "orderType": "EARN",
       "status": "success",
-      "updatedAt": "2018-01-01T17:55:34.511304Z"
+      "type": "order",
+      "updatedAt": "2018-01-01T17:55:34.511304Z",
       "updates": [
          {
             "resource": "https://sandbox.lcp.points.com/v1/lps/<lpid>/mvs/<id>",
