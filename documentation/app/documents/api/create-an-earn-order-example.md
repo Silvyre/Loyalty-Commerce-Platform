@@ -15,16 +15,15 @@
 
     201 CREATED
     {
-      "order": "https://lcp.points.com/v1/orders/<id>",
       "confirmationNumber": "3902-2266-8404-8538-1721",
-      "status": "success",
       "loyaltyProgram": "https://lcp.points.com/v1/lps/<lp-id>",
+      "order": "https://lcp.points.com/v1/orders/<id>",
       "orderDetails": {
         "basePoints": 1000,
         "pics": {
           "base": "ABC"
-        }
-    }
+        },
+      "status": "success",
       "user": {
         "email": "jdoe@example.com",
         "firstName": "John"
