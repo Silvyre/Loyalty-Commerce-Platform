@@ -17,7 +17,7 @@
     {
       "confirmationNumber": "3902-2266-8404-8538-1721",
       "loyaltyProgram": "https://lcp.points.com/v1/lps/<lp-id>",
-      "order": "https://lcp.points.com/v1/orders/<id>",
+      "order": "https://sandbox.lcp.points.com/v1/orders/<id>",
       "orderDetails": {
         "basePoints": 1000,
         "pics": {
