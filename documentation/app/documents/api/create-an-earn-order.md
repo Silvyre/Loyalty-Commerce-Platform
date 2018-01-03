@@ -38,6 +38,8 @@ Create an earn order to attempt to add points to a loyalty program member's acco
             <td>pic</td>
             <td>Product Identification Code (optional). Only set this field if directed to by the loyalty program.</td>
         </tr>
+    </tbody>
+</table>
         
 #### Returns
 
