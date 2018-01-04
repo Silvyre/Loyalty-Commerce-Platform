@@ -1,8 +1,8 @@
 ## Earn Orders
 
-An earn order is an order created by calling the `/earn/` endpoint consisting of one credit to a loyalty program member's account.
+An earn [order](#orders) is an order whose only primitives are a [member validation](#member-validations) and a [credit](#credits). With a successful and unused member validation an earn order can be created with a single call to the 'earn/' endpoint. The LCP creates the order and credit, patches the order's link to the given member validation, and updates the order's status upon any change to the status of the corresponding credit. 
 
-Creating an earn order triggers the addition of points. A record of the order and corresponding credit is kept that can later be retrieved. An earn order requires a member validation that has not been previously used for another transaction. 
+Similary to creating a credit, creating an earn order triggers the addition of points. A record of the order and corresponding credit are kept that can later be retrieved. 
 
 #### Parameters
 
