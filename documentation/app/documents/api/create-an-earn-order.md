@@ -1,6 +1,6 @@
 ### Create an Earn Order
 
-Create an earn order to attempt to add points to a loyalty program member's account. An earn order first requires a successful [member validation](#member-validations) that has not linked to another order.
+Create an earn order to attempt to add points to a loyalty program member's account. An earn order first requires a successful [member validation](#member-validations) that is not linked to another order.
 
 To create a new earn order, POST to `/lps/<lp-id>/earn/` a link to the member validation and the amount to credit the member's account. A pic can also be included in the request but is not required. Additional fields can be included in the data object. Requests must be signed with your app's credentials.
 
