@@ -1,6 +1,13 @@
 ### Create a Redeem Order
 
-Create a redeem order to attempt to remove points from a loyalty program member's account. An redeem order first requires a successful [member validation](#member-validations) that has not been used previously with another transaction.
+Create a redeem order to attempt to remove points from a loyalty program member's account. A redeem order first requires a successful [member validation](#member-validations) that is not linked to another order.
+
+To create a new redeem order, POST to `/lps/<lp-id>/redeem/` a link to the member validation and the amount to debit from the member's account. A pic can also be included in the request but is not required. Additional fields can be included in the data object. Requests must be signed with your app's credentials.
+
+In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating an order.
+
+Redeem orders can happen in real-time or in batch mode depending on the loyalty program. For real-time redeem orders, the debit will be immediately executed by the loyalty program and the order's status will be one of "complete", "debitFailure", or "debitError". For batch mode, the debit will be queued with other transactions and sent to the loyalty program in a batch job typically once a day. Batch orders will initially have a status of "statusPending". Once the loyalty program responds, the order's status will automatically be updated accordingly. 
+
 
 #### Parameters
 
