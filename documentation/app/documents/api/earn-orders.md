@@ -1,6 +1,6 @@
 ## Earn Orders
 
-An earn order is a transaction that credits a single loyalty program member's account one time.
+An earn order is an order created by calling the `/earn/` endpoint consisting of one credit to a loyalty program member's account.
 
 Creating an earn order triggers the addition of points. A record of the order and corresponding credit is kept that can later be retrieved. An earn order requires a member validation that has not been previously used for another transaction. 
 
