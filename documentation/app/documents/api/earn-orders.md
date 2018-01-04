@@ -4,7 +4,7 @@ An earn [order](#orders) is an order whose only primitives are a [member validat
 
 Similary to creating a credit, creating an earn order triggers the addition of points. A record of the order and corresponding credit are saved that can later be retrieved. See [Get an Order](#get-an-order) and [Get a Credit](#get-a-credit). An earn object is returned upon the creation of an earn order but it cannot be later retrieved.
 
-#### Parameters
+#### Properties
 
 <table>
     <thead>
