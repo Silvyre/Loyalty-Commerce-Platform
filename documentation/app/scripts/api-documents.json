@@ -167,7 +167,19 @@
       "id": "update-a-debit",
       "exampleId": "update-a-debit-example",
       "parent": "debits"
+    },	      
+    {
+      "title": "Earn Orders",
+      "id": "earn-orders",
+      "exampleId": "earn-orders-example",
+      "parent": ""
     },
+    {
+      "title": "Create an Earn Order",
+      "id": "create-an-earn-order",
+      "exampleId": "create-an-earn-order-example",
+      "parent": "earn-orders"
+    },	  
     {
       "title": "Live Credentials",
       "id": "live-credentials",
@@ -301,6 +313,18 @@
       "parent": "orders"
     },
     {
+      "title": "Redeem Orders",
+      "id": "redeem-orders",
+      "exampleId": "redeem-orders-example",
+      "parent": ""
+    },
+    {
+      "title": "Create a Redeem Order",
+      "id": "create-a-redeem-order",
+      "exampleId": "create-a-redeem-order-example",
+      "parent": "redeem-orders"
+    },	  	  
+    {
       "title": "Sandbox Credentials",
       "id": "sandbox-credentials",
       "exampleId": "sandbox-credentials-example",
@@ -359,7 +383,7 @@
       "id": "delete-sandbox-permissions",
       "exampleId": "delete-sandbox-permissions-example",
       "parent": "sandbox-permissions"
-    }
+    }	  
   ]
 }
 
