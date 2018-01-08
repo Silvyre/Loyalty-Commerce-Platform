@@ -16,7 +16,7 @@ module.exports =
   create_a_mv_example: require("../../documents/api/create-a-mv-example.md")
   create_a_mv: require("../../documents/api/create-a-mv.md")
   create_a_redeem_order: require("../../documents/api/create-a-redeem-order.md")
-  create_a_redeem_order_example: require("../../documents/api/create-a-redeem-order_example.md")
+  create_a_redeem_order_example: require("../../documents/api/create-a-redeem-order-example.md")
   create_a_report_example: require("../../documents/api/create-a-report-example.md")
   create_a_report_instance_example: require("../../documents/api/create-a-report-instance-example.md")
   create_a_report_instance: require("../../documents/api/create-a-report-instance.md")
