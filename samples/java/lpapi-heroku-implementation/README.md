@@ -5,6 +5,7 @@ This Java Heroku application showcases a barebones implementation of the APIs in
 
 ## Setup
 
+0. [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy) OR follow the following steps
 1. Create a [free Heroku account](https://signup.heroku.com/dc). 
 2. Optional: Install [Maven](http://maven.apache.org/download.cgi) for local deployment.
 3. Install [Heroku toolbelt](https://toolbelt.heroku.com/). 
