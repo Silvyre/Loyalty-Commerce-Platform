@@ -13,10 +13,6 @@ Live credentials authenticate your app to perform actions on the LCP in live mod
     </thead>
     <tbody>
         <tr>
-            <td>macAlgorithm</td>
-            <td>The MAC algorithm describes the algorithm used to create the signature.</td>
-        </tr>
-        <tr>
             <td>macKey</td>
             <td>The MAC key is the shared secret key. It should never be shared with anyone or transmitted in any request. Keep this key secure as you would any private key.</td>
         </tr>
