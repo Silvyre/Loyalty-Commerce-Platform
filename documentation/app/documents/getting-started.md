@@ -419,7 +419,7 @@ your own module to sign requests.
 1. Generate the extension string. The extension string is blank for GET and
    DELETE requests. For PUT and POST requests, concatenate the value of the
    Content-Type header (e.g. "application/json") with the request body and hash
-   it with SHA1.
+   it with SHA-2561.
 1. Build the normalized request string as follows:
 <table>
   <thead>
@@ -439,7 +439,7 @@ your own module to sign requests.
 </table>
 <ol start="5">
   <li>Decode the MAC key from Base64 if you haven’t already. The MAC key is encoded in Base64 using a URL-safe alphabet. You may need to add padding to the MAC key to decode it.</li>
-  <li>Generate the signature by using the HMAC-SHA1 algorithm and the MAC key over the normalized request string.</li>
+  <li>Generate the signature by using the HMAC-SHA256 algorithm and the MAC key over the normalized request string.</li>
   <li>Encode the signature in Base64. You do not need to use the URL-safe alphabet.</li>
   <li>Generate the authorization header for the request.</li>
 </ol>
