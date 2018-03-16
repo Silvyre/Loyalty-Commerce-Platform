@@ -136,22 +136,21 @@ using this scheme it is highly recommended that you use one of the [LCP Client
 Utilities](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util) to issue
 platform requests because these utilities will compute MACs for you.
 
-The credentials required for MAC authentication include a MAC key identifier, a
-MAC key and a MAC algorithm. Below is an example of a JSON document representing
+The credentials required for MAC authentication include a MAC key identifier and a
+MAC key. Below is an example of a JSON document representing
 the credentials for use with MAC authentication.
 
     {
       "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b",
-      "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",
-      "macAlgorithm": "HMAC-SHA1"
+      "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4"
     }
 
 The MAC key identifier uniquely identifies the MAC key. The MAC key identifier
 is sent with each request to tell the server which MAC key was used to sign the
 request. The MAC key is the shared secret key. It should never be shared with
 anyone or transmitted in any request. Keep this key secure as you would any
-private key. Finally, the MAC algorithm describes the algorithm used to create
-the signature.
+private key. The LCP currently supports hashing with SHA1 and SHA-256. The hash algorithm used will be auto detected by the LCP based on length.
+
 
 The LCP defines 2 different types of credentials:
 
