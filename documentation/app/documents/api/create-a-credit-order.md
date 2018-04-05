@@ -1,4 +1,4 @@
-### Create an Earn Order
+### Create a Credit-Order
 
 Create a credit-order to attempt to add points to a loyalty program member's account. A credit-order first requires a successful [member validation](#member-validations) that is not linked to another order.
 
