@@ -169,16 +169,16 @@
       "parent": "debits"
     },	      
     {
-      "title": "Earn Orders",
-      "id": "earn-orders",
-      "exampleId": "earn-orders-example",
+      "title": "Credit-Orders",
+      "id": "credit-orders",
+      "exampleId": "credit-order-example",
       "parent": ""
     },
     {
-      "title": "Create an Earn Order",
-      "id": "create-an-earn-order",
-      "exampleId": "create-an-earn-order-example",
-      "parent": "earn-orders"
+      "title": "Create a Credit-Order",
+      "id": "create-a-credit-order",
+      "exampleId": "create-a-credit-order-example",
+      "parent": "credit-orders"
     },	  
     {
       "title": "Live Credentials",
@@ -313,16 +313,16 @@
       "parent": "orders"
     },
     {
-      "title": "Redeem Orders",
-      "id": "redeem-orders",
-      "exampleId": "redeem-orders-example",
+      "title": "Debit-Orders",
+      "id": "debit-orders",
+      "exampleId": "debit-order-example",
       "parent": ""
     },
     {
-      "title": "Create a Redeem Order",
-      "id": "create-a-redeem-order",
-      "exampleId": "create-a-redeem-order-example",
-      "parent": "redeem-orders"
+      "title": "Create a Debit-Order",
+      "id": "create-a-debit-order",
+      "exampleId": "create-a-debit-order-example",
+      "parent": "debit-orders"
     },	  	  
     {
       "title": "Sandbox Credentials",
