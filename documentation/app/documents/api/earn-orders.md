@@ -23,6 +23,10 @@ Similary to creating a credit, creating a credit-order triggers the addition of 
             <td>Link to the successful member validation identifying the member's account to be credited. Must not be associated with any other orders. (Required)</td>
         </tr>
         <tr>
+            <td>orderType</td>
+            <td>Can be `CREDIT` or `EXCHANGE_CREDIT`. (Optional)</td>
+        </tr>
+        <tr>
             <td>pic</td>
             <td>Product Identification Code. (Optional)</td>
         </tr>
