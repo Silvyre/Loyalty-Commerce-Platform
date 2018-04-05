@@ -20,15 +20,15 @@
             "memberId": "1234"
          }
       },
-      "fulfillment": "https://sandbox.lcp.points.com/v1/lps/<lp-id>/earn/",
+      "fulfillment": "/lps/<lpid>/credit-order/",
       "creditType": "base",
       "links": {
          "self": {
             "href": "https://sandbox.lcp.points.com/v1/orders/<id>"
         }
       },
-      "orderType": "EARN",
-      "status": "success",
+      "orderType": "CREDIT",
+      "status": "complete",
       "type": "order",
       "updatedAt": "2018-01-01T17:55:34.511304Z",
       "updates": [
