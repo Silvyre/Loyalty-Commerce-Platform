@@ -1,6 +1,6 @@
 #### Example Request
 
-    POST https://sandbox.lcp.points.com/v1/lps/<lp-id>/redeem/
+    POST https://sandbox.lcp.points.com/v1/lps/<lp-id>/debit-order/
     Authorization: MAC id="...", ts="...", nonce="...", ext="...", mac="..."
     {
       "amount": 100,
@@ -23,7 +23,9 @@
         "pics": {
           "base": "ABC"
         },
-      "status": "success",
+        "someKey": "someValue"
+      },
+      "status": "complete",
       "user": {
         "email": "jdoe@example.com",
         "firstName": "John"
