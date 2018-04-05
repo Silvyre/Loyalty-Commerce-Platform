@@ -2,7 +2,7 @@
 
 Create a credit-order to attempt to add points to a loyalty program member's account. A credit-order first requires a successful [member validation](#member-validations) that is not linked to another order.
 
-To create a new credit-order, POST to `/lps/<lp-id>/credit-order/` a link to the member validation and the amount to credit the member's account. A `pic` and/or `orderType` can also be included in the request but is not required. Additional fields can be included in the `data` object. Requests must be signed with your app's credentials.
+To create a new credit-order, POST to `/lps/<lp-id>/credit-order/` a link to the `memberValidation` and the `amount` to credit the member's account. A `pic` and/or `orderType` can also be included in the request but neither field is not required. Additional fields can be included in the `data` object. Requests must be signed with your app's credentials.
 
 In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating an order.
 
