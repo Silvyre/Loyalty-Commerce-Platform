@@ -2,7 +2,7 @@
 
 Create a debit-order to attempt to remove points from a loyalty program member's account. A debit-order first requires a successful [member validation](#member-validations) that is not linked to another order.
 
-To create a new redeem order, POST to `/lps/<lp-id>/redeem/` a link to the `memberValidation` and the `amount` to debit from the member's account. A `pic` can also be included in the request but is not required. Additional fields can be included in the `data` object. Requests must be signed with your app's credentials.
+To create a new debit-order, POST to `/lps/<lp-id>/debit-order/` a link to the `memberValidation` and the `amount` to debit from the member's account. A `pic` can also be included in the request but is not required. Additional fields can be included in the `data` object. Requests must be signed with your app's credentials.
 
 In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating an order.
 
@@ -50,4 +50,4 @@ Debit-orders can happen in real-time or in batch mode depending on the loyalty p
         
 #### Returns
 
-The debit-orer object if it was created successfully. Returns an [error](./?doc=reference-manual#errors) if the member validation is not valid.
+The debit-order object if it was created successfully. Returns an [error](./?doc=reference-manual#errors) if the member validation is not valid.
