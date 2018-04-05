@@ -20,15 +20,14 @@
             "memberId": "1234"
          }
       },
-      "fulfillment": "https://sandbox.lcp.points.com/v1/lps/<lp-id>/redeem/",
-      "creditType": "base",
+      "fulfillment": "/lps/<lpid>/debit-order/",
       "links": {
          "self": {
             "href": "https://sandbox.lcp.points.com/v1/orders/<id>"
         }
       },
-      "orderType": "REDEEM_DEBIT",
-      "status": "success",
+      "orderType": "DEBIT",
+      "status": "complete",
       "type": "order",
       "updatedAt": "2018-01-01T17:55:34.511304Z",
       "updates": [
