@@ -136,22 +136,21 @@ using this scheme it is highly recommended that you use one of the [LCP Client
 Utilities](https://github.com/Points/Loyalty-Commerce-Platform/tree/master/util) to issue
 platform requests because these utilities will compute MACs for you.
 
-The credentials required for MAC authentication include a MAC key identifier, a
-MAC key and a MAC algorithm. Below is an example of a JSON document representing
+The credentials required for MAC authentication include a MAC key identifier and a
+MAC key. Below is an example of a JSON document representing
 the credentials for use with MAC authentication.
 
     {
       "macKeyIdentifier": "97ee420faaa343d4a04b7378b319b48b",
-      "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4",
-      "macAlgorithm": "HMAC-SHA1"
+      "macKey": "NyWslT0Oe7ZNJynyUIwg-SRj3A44DD_lrH6_-dwZ6E4"
     }
 
 The MAC key identifier uniquely identifies the MAC key. The MAC key identifier
 is sent with each request to tell the server which MAC key was used to sign the
 request. The MAC key is the shared secret key. It should never be shared with
 anyone or transmitted in any request. Keep this key secure as you would any
-private key. Finally, the MAC algorithm describes the algorithm used to create
-the signature.
+private key. The LCP currently supports hashing with SHA1 and SHA-256. The hash algorithm used will be auto detected by the LCP based on length.
+
 
 The LCP defines 2 different types of credentials:
 
@@ -420,7 +419,7 @@ your own module to sign requests.
 1. Generate the extension string. The extension string is blank for GET and
    DELETE requests. For PUT and POST requests, concatenate the value of the
    Content-Type header (e.g. "application/json") with the request body and hash
-   it with SHA1.
+   it with SHA-2561.
 1. Build the normalized request string as follows:
 <table>
   <thead>
@@ -440,7 +439,7 @@ your own module to sign requests.
 </table>
 <ol start="5">
   <li>Decode the MAC key from Base64 if you haven’t already. The MAC key is encoded in Base64 using a URL-safe alphabet. You may need to add padding to the MAC key to decode it.</li>
-  <li>Generate the signature by using the HMAC-SHA1 algorithm and the MAC key over the normalized request string.</li>
+  <li>Generate the signature by using the HMAC-SHA256 algorithm and the MAC key over the normalized request string.</li>
   <li>Encode the signature in Base64. You do not need to use the URL-safe alphabet.</li>
   <li>Generate the authorization header for the request.</li>
 </ol>

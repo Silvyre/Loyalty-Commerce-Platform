@@ -14,7 +14,6 @@
               "href": "https://lcp.points.com/v1/accounts/<id>/account-credentials/<ac-id>"
             }
           },
-          "macAlgorithm": "HMAC-SHA1",
           "macKey": "<macKey>",
           "macKeyIdentifier": "<macKeyIdentifier>"
         }

@@ -13,7 +13,7 @@ def generate_ext(content_type, body):
 
     if content_type is not None and body is not None and len(content_type) > 0 and len(body) > 0:
         content_type_plus_body = content_type + body
-        content_type_plus_body_hash = hashlib.sha1(content_type_plus_body)
+        content_type_plus_body_hash = hashlib.sha256(content_type_plus_body)
         ext = content_type_plus_body_hash.hexdigest()
     else:
         ext = ""
@@ -52,7 +52,7 @@ def generate_signature(mac_key, normalized_request_string):
     mac_key = base64.urlsafe_b64decode(mac_key)
 
     return base64.b64encode(
-        hmac.new(mac_key, normalized_request_string, hashlib.sha1).digest())
+        hmac.new(mac_key, normalized_request_string, hashlib.sha256).digest())
 
 
 def generate_authorization_header_value(

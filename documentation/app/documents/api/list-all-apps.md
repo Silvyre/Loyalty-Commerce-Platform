@@ -20,6 +20,10 @@ Retrieves a list of all apps that you have permission to access.
             <td>offset</td>
             <td>The starting offset when returning a list of apps (optional). Use for pagination. For example, to retrieve the second page of 10 apps, use offset=10. Defaults to 0 if not provided.</td>
         </tr>
+        <tr>
+            <td>liveCredentials</td>
+            <td>Filter results by whether or not an app has live credentials. Boolean values only: "True" or "False"</td>
+        </tr>
     </tbody>
 </table>
 
