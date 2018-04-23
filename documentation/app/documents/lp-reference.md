@@ -384,19 +384,23 @@ Sample reversal request from the LCP to remove 2000 points from the member accou
        "amount": -2000
     }
 
-A reversal response returns the **transactionId** and the **status**. In case of a *failure*, the response must include a **statusMessage**.
+A reversal response returns the **transactionId**, **reversalTransactionId**, and the **status**. In case of a *failure*, the response must include a **statusMessage**.
+
+The **transactionId** is the transactionId received in the request. The **reversalTransactionId** allows a your webservice to share a unique transaction ID for the reversal itself OR simply return the same transactionId received in the request.
 
     200 OK
     {  
        "status": "success",
-       "transactionId": "12345678"
+       "transactionId": "12345678",
+       "reversalTransactionId": "ABC678"
     }
 
     400 BAD REQUEST
     {  
        "status": "failure",
        "statusMessage": "Error: No such transactionId",
-       "transactionId": "12345678"
+       "transactionId": "12345678",
+       "reversalTransactionId": "ABC678"
     }
 
 ## Headers
