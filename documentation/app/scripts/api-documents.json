@@ -139,6 +139,18 @@
       "parent": "credits"
     },
     {
+      "title": "Credit-Orders",
+      "id": "credit-orders",
+      "exampleId": "credit-order-example",
+      "parent": ""
+    },
+    {
+      "title": "Create a Credit-Order",
+      "id": "create-a-credit-order",
+      "exampleId": "create-a-credit-order-example",
+      "parent": "credit-orders"
+    },	  
+    {
       "title": "Debits",
       "id": "debits",
       "exampleId": "debits-example",
@@ -167,19 +179,19 @@
       "id": "update-a-debit",
       "exampleId": "update-a-debit-example",
       "parent": "debits"
-    },	      
+    },	
     {
-      "title": "Credit-Orders",
-      "id": "credit-orders",
-      "exampleId": "credit-order-example",
+      "title": "Debit-Orders",
+      "id": "debit-orders",
+      "exampleId": "debit-order-example",
       "parent": ""
     },
     {
-      "title": "Create a Credit-Order",
-      "id": "create-a-credit-order",
-      "exampleId": "create-a-credit-order-example",
-      "parent": "credit-orders"
-    },	  
+      "title": "Create a Debit-Order",
+      "id": "create-a-debit-order",
+      "exampleId": "create-a-debit-order-example",
+      "parent": "debit-orders"
+    },	  	  
     {
       "title": "Live Credentials",
       "id": "live-credentials",
@@ -312,18 +324,6 @@
       "exampleId": "update-an-order-example",
       "parent": "orders"
     },
-    {
-      "title": "Debit-Orders",
-      "id": "debit-orders",
-      "exampleId": "debit-order-example",
-      "parent": ""
-    },
-    {
-      "title": "Create a Debit-Order",
-      "id": "create-a-debit-order",
-      "exampleId": "create-a-debit-order-example",
-      "parent": "debit-orders"
-    },	  	  
     {
       "title": "Sandbox Credentials",
       "id": "sandbox-credentials",
