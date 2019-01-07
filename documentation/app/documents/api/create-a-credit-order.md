@@ -24,13 +24,13 @@ Credit-orders can happen in real-time or in batch mode depending on the loyalty 
                 <p><strong>Sandbox mode</strong>: Set "amount" to these values to simulate different values for "status" in the response:
                     <ul>
                         <li>92: "creditError"</li>
-                        <li>93: "creditFailure"</li>
+                        <li>93: "creditFailed"</li>
                         <li>94: "statusPending"</li>
                         <li>95: "statusPending" that changes to "complete"</li>
                         <li>96: "statusPending" that changes to "creditFailure"</li>
                         <li>97: "creditError"</li>
-                        <li>98: "creditFailure"</li>
-                        <li>99: "creditFailure"</li>
+                        <li>98: "creditFailed"</li>
+                        <li>99: "creditFailed"</li>
                         <li>Other: "complete"</li>
                     </ul>
                 </p>
