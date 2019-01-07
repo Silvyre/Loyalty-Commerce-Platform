@@ -28,7 +28,7 @@ Debit-orders can happen in real-time or in batch mode depending on the loyalty p
                         <li>93: "debitFailed"</li>
                         <li>94: "statusPending"</li>
                         <li>95: "statusPending" that changes to "complete"</li>
-                        <li>96: "statusPending" that changes to "creditFailure"</li>
+                        <li>96: "statusPending" that changes to "creditFailed"</li>
                         <li>97: "debitError"</li>
                         <li>98: "debitFailed"</li>
                         <li>99: "debitFailed"</li>
