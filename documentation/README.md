@@ -10,7 +10,7 @@ into HTML.
 
 ## Setup
 
-Download this repo and from the `documentation` folder:
+Download [this](https://github.com/Points/Loyalty-Commerce-Platform) repo and from the `documentation` folder:
 
 1. Install [nodejs](http://nodejs.org/)
 1. Install [yarn](https://yarnpkg.com/en/docs/install): `npm install -g yarn`
