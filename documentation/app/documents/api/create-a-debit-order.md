@@ -6,7 +6,7 @@ To create a new debit-order, POST to `/lps/<lp-id>/debit-order/` a link to the `
 
 In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating an order.
 
-Debit-orders can happen in real-time or in batch mode depending on the loyalty program. For real-time debit-orders, the debit will be immediately executed by the loyalty program and the order's status will be one of "complete", "debitFailure", or "debitError". For batch mode, the debit will be queued with other transactions and sent to the loyalty program in a batch job typically once a day. Batch orders will initially have a status of "statusPending". Once the loyalty program responds, the order's status will automatically be updated accordingly. 
+Debit-orders can happen in real-time or in batch mode depending on the loyalty program. For real-time debit-orders, the debit will be immediately executed by the loyalty program and the order's status will be one of "complete", "debitFailed", or "debitError". For batch mode, the debit will be queued with other transactions and sent to the loyalty program in a batch job typically once a day. Batch orders will initially have a status of "statusPending". Once the loyalty program responds, the order's status will automatically be updated accordingly. 
 
 
 #### Parameters
@@ -24,13 +24,12 @@ Debit-orders can happen in real-time or in batch mode depending on the loyalty p
             <td><p>The number of points to add to the member's account. Must be a positive integer.</p>
                 <p><strong>Sandbox mode</strong>: Set "amount" to these values to simulate different values for "status" in the response:
                     <ul>
-                        <li>92: "debitError"</li>
-                        <li>93: "debitFailed"</li>
-                        <li>94: "statusPending"</li>
-                        <li>95: "statusPending" that changes to "complete"</li>
-                        <li>96: "statusPending" that changes to "debitFailed"</li>
+                        <li>91: "debitError"</li>
+                        <li>94: "debitPending"</li>
+                        <li>95: "debitPending" that changes to "complete"</li>
+                        <li>96: "debitPending" that changes to "debitFailed"</li>
                         <li>97: "debitError"</li>
-                        <li>98: "debitFailed"</li>
+                        <li>98: "debitError"</li>
                         <li>99: "debitFailed"</li>
                         <li>Other: "complete"</li>
                     </ul>
