@@ -6,7 +6,7 @@ To create a new credit-order, POST to `/lps/<lp-id>/credit-order/` a link to the
 
 In sandbox mode, the LCP never communicates with the loyalty program. All operations are simulated. The LCP simulates different success and failure responses depending on the parameters sent when creating an order.
 
-Credit-orders can happen in real-time or in batch mode depending on the loyalty program. For real-time credit-orders, the credit will be immediately executed by the loyalty program and the order's status will be one of "complete", "creditFailure", or "creditError". For batch mode, the credit will be queued with other transactions and sent to the loyalty program in a batch job typically once a day. Batch orders will initially have a status of "statusPending". Once the loyalty program responds, the order's status will automatically be updated accordingly. 
+Credit-orders can happen in real-time or in batch mode depending on the loyalty program. For real-time credit-orders, the credit will be immediately executed by the loyalty program and the order's status will be one of "complete", "creditFailed", or "creditError". For batch mode, the credit will be queued with other transactions and sent to the loyalty program in a batch job typically once a day. Batch orders will initially have a status of "statusPending". Once the loyalty program responds, the order's status will automatically be updated accordingly. 
 
 #### Parameters
 
@@ -42,7 +42,7 @@ Credit-orders can happen in real-time or in batch mode depending on the loyalty 
         </tr>
         <tr>
             <td>orderType</td>
-            <td>Can be "CREDIT" or "EXCHANGE_CREDIT" (optional). Defaults to "CREDIT" if no orderType is provided.</td>
+            <td>Can be "CREDIT", "EARN", or "EXCHANGE_CREDIT" (optional). Defaults to "CREDIT" if no orderType is provided.</td>
         </tr>
         <tr>
             <td>pic</td>
