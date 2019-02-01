@@ -481,7 +481,7 @@ your own module to sign requests.
             string contentTypePlusBody = contentType + body;
             SHA1 sha = new SHA1CryptoServiceProvider();
             ext = BitConverter.ToString(sha.ComputeHash(
-                Encoding.ASCII.GetBytes(contentTypePlusBody)));
+                Encoding.UTF8.GetBytes(contentTypePlusBody)));
             ext = ext.Replace("-", "").ToLower();
         }
 
@@ -505,7 +505,7 @@ your own module to sign requests.
 
         // Step 6: Generate the signature
         byte[] signature = hashGenerator.ComputeHash(
-            Encoding.ASCII.GetBytes(normalizedRequestString));
+            Encoding.UTF8.GetBytes(normalizedRequestString));
 
         // Step 7: Base64 encode the result
         string mac = System.Convert.ToBase64String(signature);
