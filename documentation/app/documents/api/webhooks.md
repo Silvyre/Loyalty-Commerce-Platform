@@ -24,7 +24,7 @@ Webhooks can be configured by Points for your app in both sandbox and live mode.
         </tr>
         <tr>
             <td>partnerTransactionId</td>
-            <td>Unique identifyer for the order as defined by the creating app. (Returned only if present in order)</td>
+            <td>Unique identifier for the order as defined by the creating app. (Returned only if present in order)</td>
         </tr>
         <tr>
             <td>update.resource</td>
