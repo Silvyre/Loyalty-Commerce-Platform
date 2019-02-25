@@ -16,11 +16,11 @@ Webhooks can be configured by Points for your app in both sandbox and live mode.
     <tbody>
         <tr>
             <td>orderUrl</td>
-            <td>Link to the order that was updated. (Always returned)</td>
+            <td>Link to the order that was updated.</td>
         </tr>
         <tr>
             <td>orderStatus</td>
-            <td>Updated status of the order. (Always returned)</td>
+            <td>Updated status of the order.</td>
         </tr>
         <tr>
             <td>partnerTransactionId</td>
@@ -28,19 +28,19 @@ Webhooks can be configured by Points for your app in both sandbox and live mode.
         </tr>
         <tr>
             <td>update.resource</td>
-            <td>Link to the resource that was updated. (Always returned)</td>
+            <td>Link to the resource that was updated.</td>
         </tr>
         <tr>
             <td>update.status</td>
-            <td>Updated status of the resource noted above. (Always returned)</td>
+            <td>Updated status of the resource noted above.</td>
         </tr>
         <tr>
             <td>update.type</td>
-            <td>The type of resource (Can be "credit" or "debit"). (Always returned)</td>
+            <td>The type of resource (Can be "credit" or "debit").</td>
         </tr>
         <tr>
             <td>update.updatedAt</td>
-            <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was last updated. (Always returned)</td>
+            <td>The <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> time when the resource was last updated. </td>
         </tr>
     </tbody>
 </table>
