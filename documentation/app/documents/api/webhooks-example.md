@@ -2,8 +2,8 @@
 
     {
       "orderUrl": "https://lcp.points.com/v1/orders/<id>",
-      "partnerTransactionId": "ABC123",
       "orderStatus": "complete",
+      "partnerTransactionId": "ABC123",
       "update": {  
         "resource": "https://lcp.points.com/v1/lps/<lpid>/credits/<id>",
         "status": "success",
